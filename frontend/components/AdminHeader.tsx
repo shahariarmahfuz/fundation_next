@@ -5,17 +5,15 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Menu,
-  Shield,
   LogOut,
   User as UserIcon,
   Moon,
   Sun,
-  Laptop,
   UserCog,
   Settings
 } from "lucide-react";
 import { getStoredUser, removeAuthToken } from "@/lib/api";
-import { useTheme, ThemeMode } from "@/lib/theme";
+import { useTheme } from "@/lib/theme";
 import { UserProfileModal } from "./UserProfileModal";
 
 interface AdminHeaderProps {
@@ -24,7 +22,7 @@ interface AdminHeaderProps {
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
 
   const [user, setUser] = useState<any | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -68,10 +66,21 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
     router.push("/login");
   };
 
+  const userAvatarInitial = user?.full_name
+    ? user.full_name.charAt(0).toUpperCase()
+    : user?.username
+    ? user.username.charAt(0).toUpperCase()
+    : "A";
+
+  const canManageUsers =
+    user?.is_superuser ||
+    user?.role?.name === "Super Admin" ||
+    user?.role?.permissions?.some((p: any) => p.code === "users.view" || p.code === "users.manage");
+
   return (
     <>
       <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-3 sm:px-6 text-slate-800 backdrop-blur-md shadow-sm dark:border-slate-800 dark:bg-slate-900/95 dark:text-white select-none transition-colors">
-        {/* Left side: Hamburger ☰ + Brand Logo */}
+        {/* Left side: Sidebar Toggle ☰ + Foundation Brand (No decorative / shield icon) */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <button
             onClick={onToggleSidebar}
@@ -82,45 +91,60 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
             <Menu className="h-5 w-5" />
           </button>
 
-          {/* Foundation Portal Brand */}
+          {/* Foundation Brand Typography */}
           <Link
             href="/admin/dashboard"
-            className="flex items-center gap-2.5 shrink-0 group"
+            className="flex items-center gap-2 group min-w-0"
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm shadow-emerald-900/40 group-hover:bg-emerald-500 transition-colors">
-              <Shield className="h-5 w-5" />
-            </div>
-            <div className="hidden sm:flex flex-col">
-              <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-white leading-tight">
-                Al-Birr Foundation
-              </span>
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold tracking-wide uppercase">
-                Management Portal
-              </span>
-            </div>
+            <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight truncate">
+              Al-Birr Foundation
+            </span>
           </Link>
         </div>
 
-        {/* Right side: Clickable Avatar ONLY (triggers profile menu dropdown) */}
-        <div className="flex items-center shrink-0">
+        {/* Right side: Light/Dark Theme Toggle ☀/☾ + User Profile Avatar [ F ] */}
+        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+          {/* Direct Light/Dark Theme Toggle in Header */}
+          <button
+            onClick={toggleTheme}
+            type="button"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-amber-400 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+            aria-label={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {theme === "dark" ? (
+              <Sun className="h-4 w-4 text-amber-400" />
+            ) : (
+              <Moon className="h-4 w-4 text-slate-700" />
+            )}
+          </button>
+
+          {/* Current User Profile Avatar [ F ] (Triggers Profile Menu) */}
           <div className="relative" ref={dropdownRef}>
             <button
+              id="user-menu-button"
               onClick={() => setDropdownOpen((prev) => !prev)}
               type="button"
               className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-xs sm:text-sm shadow-sm ring-2 ring-emerald-500/20 hover:ring-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all cursor-pointer"
-              aria-label="User profile and menu"
+              aria-label="User account menu"
+              aria-haspopup="menu"
               aria-expanded={dropdownOpen}
             >
-              {user?.full_name ? user.full_name.charAt(0).toUpperCase() : <UserIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
+              {userAvatarInitial}
             </button>
 
             {/* Profile Dropdown Popover */}
             {dropdownOpen && (
-              <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-xl backdrop-blur-md dark:border-slate-800 dark:bg-slate-900 animate-in fade-in zoom-in-95 duration-150 z-50 text-slate-800 dark:text-slate-100">
-                {/* User Header Block */}
+              <div
+                role="menu"
+                aria-orientation="vertical"
+                aria-labelledby="user-menu-button"
+                className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-xl backdrop-blur-md dark:border-slate-800 dark:bg-slate-900 animate-in fade-in zoom-in-95 duration-150 z-50 text-slate-800 dark:text-slate-100"
+              >
+                {/* 1. Current User Information */}
                 <div className="flex items-center gap-3 p-3 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white text-sm font-bold shadow-sm">
-                    {user?.full_name ? user.full_name.charAt(0).toUpperCase() : <UserIcon className="h-5 w-5" />}
+                    {userAvatarInitial}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
@@ -137,7 +161,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                   </div>
                 </div>
 
-                {/* Navigation Options */}
+                {/* 2. Profile Actions */}
                 <div className="py-1 space-y-0.5 text-xs">
                   <button
                     onClick={() => {
@@ -145,6 +169,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                       setProfileModalOpen(true);
                     }}
                     type="button"
+                    role="menuitem"
                     className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white transition-colors text-left cursor-pointer"
                   >
                     <UserIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -154,61 +179,33 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                   <Link
                     href="/admin/settings"
                     onClick={() => setDropdownOpen(false)}
+                    role="menuitem"
                     className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white transition-colors"
                   >
-                    <Settings className="h-4 w-4 text-slate-400 dark:text-slate-400 shrink-0" />
+                    <Settings className="h-4 w-4 text-slate-400 shrink-0" />
                     <span>Account Settings</span>
                   </Link>
 
-                  {user?.is_superuser && (
+                  {canManageUsers && (
                     <Link
                       href="/admin/users"
                       onClick={() => setDropdownOpen(false)}
+                      role="menuitem"
                       className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white transition-colors"
                     >
-                      <UserCog className="h-4 w-4 text-slate-400 dark:text-slate-400 shrink-0" />
+                      <UserCog className="h-4 w-4 text-slate-400 shrink-0" />
                       <span>User Management</span>
                     </Link>
                   )}
                 </div>
 
-                {/* Appearance / Theme Switcher */}
-                <div className="pt-2 pb-1 border-t border-slate-100 dark:border-slate-800">
-                  <div className="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    Appearance / Theme
-                  </div>
-                  <div className="grid grid-cols-3 gap-1 px-2">
-                    {[
-                      { mode: "light" as ThemeMode, label: "Light", icon: Sun },
-                      { mode: "dark" as ThemeMode, label: "Dark", icon: Moon },
-                      { mode: "system" as ThemeMode, label: "System", icon: Laptop },
-                    ].map(({ mode, label, icon: Icon }) => {
-                      const isActive = theme === mode;
-                      return (
-                        <button
-                          key={mode}
-                          onClick={() => setTheme(mode)}
-                          type="button"
-                          className={`flex flex-col items-center justify-center gap-1 rounded-lg py-1.5 text-[11px] font-medium transition-all cursor-pointer ${
-                            isActive
-                              ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 font-bold border border-emerald-500/30"
-                              : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-                          }`}
-                        >
-                          <Icon className="h-3.5 w-3.5" />
-                          <span>{label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Logout Action with Confirmation */}
+                {/* 3. Log Out with Confirmation */}
                 <div className="pt-1 mt-1 border-t border-slate-100 dark:border-slate-800">
                   {!confirmLogout ? (
                     <button
                       onClick={() => setConfirmLogout(true)}
                       type="button"
+                      role="menuitem"
                       className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30 transition-colors text-left cursor-pointer"
                     >
                       <LogOut className="h-4 w-4 shrink-0" />

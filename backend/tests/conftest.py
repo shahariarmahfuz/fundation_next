@@ -17,7 +17,10 @@ def db_session():
     try:
         yield db
     finally:
-        db.close()
+        try:
+            db.close()
+        except Exception:
+            pass
 
 
 @pytest.fixture(scope="session")
