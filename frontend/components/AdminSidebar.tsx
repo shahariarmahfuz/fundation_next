@@ -289,14 +289,14 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-slate-950/75 backdrop-blur-xs transition-opacity lg:hidden"
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-xs transition-opacity lg:hidden"
           aria-hidden="true"
         />
       )}
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-all duration-300 ease-in-out lg:static ${
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-[#050505] border-r border-slate-200 dark:border-[#1A1A1A] text-slate-700 dark:text-[#A3A3A3] transition-all duration-300 ease-in-out lg:static ${
           isOpen ? "translate-x-0 shadow-2xl w-72" : "-translate-x-full w-72"
         } ${
           isDesktopOpen
@@ -305,11 +305,11 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
         }`}
       >
         {/* Sidebar Header with Foundation Logo and Foundation Name */}
-        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50">
+        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-200 dark:border-[#1A1A1A] bg-slate-50/70 dark:bg-[#0A0A0A]">
           <Link href="/admin/dashboard" onClick={onClose} className="flex items-center gap-2.5 min-w-0 group">
             <FoundationLogo size="sm" />
             <div className="flex flex-col min-w-0">
-              <span className="text-xs font-bold text-slate-900 dark:text-white leading-tight truncate">
+              <span className="text-xs font-bold text-slate-900 dark:text-[#F5F5F5] leading-tight truncate">
                 {name || "Al-Birr Foundation"}
               </span>
               <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider truncate">
@@ -320,7 +320,7 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
           <button
             onClick={onClose}
             type="button"
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white transition-colors lg:hidden shrink-0"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-[#151515] dark:hover:text-white transition-colors lg:hidden shrink-0"
             aria-label="Close navigation menu"
           >
             <X className="h-5 w-5" />
@@ -328,7 +328,7 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
         </div>
 
         {/* Section Label */}
-        <div className="px-5 pt-4 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-900 hidden lg:block">
+        <div className="px-5 pt-4 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-[#737373] border-b border-slate-100 dark:border-[#1A1A1A] hidden lg:block">
           Accounting & Operations
         </div>
 
@@ -350,8 +350,8 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
                   onClick={onClose}
                   className={`flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium transition-all ${
                     active
-                      ? "bg-emerald-50 text-emerald-800 font-semibold border-l-2 border-emerald-600 shadow-sm dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500"
-                      : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+                      ? "bg-emerald-50 text-emerald-800 font-semibold border-l-2 border-emerald-600 shadow-sm dark:bg-[#151515] dark:text-emerald-400 dark:border-emerald-500"
+                      : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-[#A3A3A3] dark:hover:bg-[#101010] dark:hover:text-[#F5F5F5]"
                   }`}
                 >
                   <Icon className={`h-4 w-4 shrink-0 ${active ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`} />
@@ -368,8 +368,8 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
                   onClick={() => toggleSection(item.id)}
                   className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-medium transition-all ${
                     active
-                      ? "bg-slate-100 text-slate-900 font-semibold dark:bg-slate-900/80 dark:text-white"
-                      : "text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900/60 dark:hover:text-white"
+                      ? "bg-slate-100 text-slate-900 font-semibold dark:bg-[#101010] dark:text-[#F5F5F5]"
+                      : "text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 dark:text-[#A3A3A3] dark:hover:bg-[#101010] dark:hover:text-[#F5F5F5]"
                   }`}
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -385,7 +385,7 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
 
                 {/* Submenu Accordion */}
                 {isExpanded && (
-                  <div className="ml-5 pl-2 border-l border-slate-200 dark:border-slate-800/80 space-y-0.5 py-1">
+                  <div className="ml-5 pl-2 border-l border-slate-200 dark:border-[#1A1A1A] space-y-0.5 py-1">
                     {item.children?.map((child) => {
                       if (!hasAccess(child.permission)) return null;
                       const childActive = isChildActive(child.href);
@@ -397,13 +397,13 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
                           onClick={onClose}
                           className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-all ${
                             childActive
-                              ? "bg-emerald-50 text-emerald-700 font-semibold dark:bg-emerald-500/20 dark:text-emerald-300"
-                              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-200"
+                              ? "bg-emerald-50 text-emerald-700 font-semibold dark:bg-[#151515] dark:text-emerald-400"
+                              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-[#737373] dark:hover:bg-[#101010] dark:hover:text-[#F5F5F5]"
                           }`}
                         >
                           <span
                             className={`h-1.5 w-1.5 rounded-full shrink-0 ${
-                              childActive ? "bg-emerald-600 dark:bg-emerald-400" : "bg-slate-300 dark:bg-slate-600"
+                              childActive ? "bg-emerald-600 dark:bg-emerald-400" : "bg-slate-300 dark:bg-[#242424]"
                             }`}
                           />
                           <span className="truncate">{child.name}</span>
@@ -418,11 +418,11 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
         </nav>
 
         {/* Footer Info inside Sidebar */}
-        <div className="p-3 border-t border-slate-200 dark:border-slate-900 bg-slate-50 dark:bg-slate-950/60 text-center">
-          <div className="text-[10px] text-slate-500 dark:text-slate-400">
+        <div className="p-3 border-t border-slate-200 dark:border-[#1A1A1A] bg-slate-50 dark:bg-[#050505] text-center">
+          <div className="text-[10px] text-slate-500 dark:text-[#737373]">
             Al-Birr Foundation • BDT (৳)
           </div>
-          <div className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">
+          <div className="text-[9px] text-slate-400 dark:text-[#525252] mt-0.5">
             Strict Double-Entry Fund Isolation
           </div>
         </div>

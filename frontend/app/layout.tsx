@@ -29,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased font-sans dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
+      <body className="min-h-screen bg-slate-50 text-slate-900 antialiased font-sans dark:bg-[#050505] dark:text-[#F5F5F5] transition-colors duration-200">
         <ThemeProvider>
           <BrandingProvider>
             <FlashProvider>

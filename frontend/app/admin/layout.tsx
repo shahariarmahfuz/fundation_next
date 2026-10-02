@@ -36,17 +36,17 @@ export default function AdminLayout({
 
   if (checkingAuth) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white transition-colors">
+      <div className="flex h-screen w-full items-center justify-center bg-slate-50 dark:bg-[#050505] text-slate-900 dark:text-[#F5F5F5] transition-colors">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
-          <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Loading Management System...</span>
+          <span className="text-sm font-medium text-slate-600 dark:text-[#A3A3A3]">Loading Management System...</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen w-full flex-col overflow-hidden bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors">
+    <div className="flex h-screen w-full flex-col overflow-hidden bg-slate-100 dark:bg-[#050505] text-slate-900 dark:text-[#F5F5F5] antialiased transition-colors">
       {/* 1. Full-width Management Header across top */}
       <AdminHeader onToggleSidebar={toggleSidebar} />
 
@@ -58,7 +58,7 @@ export default function AdminLayout({
           onClose={() => setMobileSidebarOpen(false)}
         />
 
-        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900/50 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 transition-colors">
+        <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-[#050505] px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 transition-colors">
           <div className="mx-auto max-w-7xl">{children}</div>
         </main>
       </div>

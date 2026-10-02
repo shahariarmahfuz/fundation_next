@@ -85,13 +85,13 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-3 sm:px-6 text-slate-800 backdrop-blur-md shadow-sm dark:border-slate-800 dark:bg-slate-900/95 dark:text-white select-none transition-colors">
-        {/* Left side: Sidebar Toggle ☰ + Foundation Brand (No decorative / shield icon) */}
+      <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-slate-200 bg-white/95 px-3 sm:px-6 text-slate-800 backdrop-blur-md shadow-sm dark:border-[#1A1A1A] dark:bg-[#0A0A0A]/95 dark:text-[#F5F5F5] select-none transition-colors">
+        {/* Left side: Sidebar Toggle ☰ + Foundation Brand */}
         <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           <button
             onClick={onToggleSidebar}
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-colors shrink-0 cursor-pointer"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-[#A3A3A3] dark:hover:text-white dark:hover:bg-[#151515] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-colors shrink-0 cursor-pointer"
             aria-label="Toggle navigation menu"
           >
             <Menu className="h-5 w-5" />
@@ -103,19 +103,19 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
             className="flex items-center gap-2.5 group min-w-0"
           >
             <FoundationLogo size="sm" />
-            <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight truncate">
+            <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-[#F5F5F5] leading-tight truncate">
               {name || "Al-Birr Foundation"}
             </span>
           </Link>
         </div>
 
-        {/* Right side: Light/Dark Theme Toggle ☀/☾ + User Profile Avatar [ F ] */}
+        {/* Right side: Light/Dark Theme Toggle ☀/☾ + User Profile Avatar */}
         <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
-          {/* Direct Light/Dark Theme Toggle in Header (Clean icon-focused button) */}
+          {/* Direct Light/Dark Theme Toggle in Header (Visually integrated, no boxed border) */}
           <button
             onClick={toggleTheme}
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-slate-800/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-colors cursor-pointer"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-[#151515] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-colors cursor-pointer"
             aria-label={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
             title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
@@ -126,13 +126,13 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
             )}
           </button>
 
-          {/* Current User Profile Avatar [ F ] (Triggers Profile Menu) */}
+          {/* Current User Profile Avatar (Triggers Profile Menu) */}
           <div className="relative" ref={dropdownRef}>
             <button
               id="user-menu-button"
               onClick={() => setDropdownOpen((prev) => !prev)}
               type="button"
-              className="flex h-9 w-9 sm:h-9.5 sm:w-9.5 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-xs sm:text-sm shadow-sm hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 transition-all cursor-pointer"
+              className="flex h-9 w-9 sm:h-9.5 sm:w-9.5 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-xs sm:text-sm shadow-sm hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0A0A0A] transition-all cursor-pointer"
               aria-label="User account menu"
               aria-haspopup="menu"
               aria-expanded={dropdownOpen}
@@ -146,22 +146,22 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                 role="menu"
                 aria-orientation="vertical"
                 aria-labelledby="user-menu-button"
-                className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-xl backdrop-blur-md dark:border-slate-800 dark:bg-slate-900 animate-in fade-in zoom-in-95 duration-150 z-50 text-slate-800 dark:text-slate-100"
+                className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-xl backdrop-blur-md dark:border-[#242424] dark:bg-[#0D0D0D] animate-in fade-in zoom-in-95 duration-150 z-50 text-slate-800 dark:text-[#F5F5F5]"
               >
                 {/* 1. Current User Information */}
                 <Link
                   href="/admin/profile"
                   onClick={() => setDropdownOpen(false)}
-                  className="flex items-center gap-3 p-3 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-t-xl transition-colors cursor-pointer group"
+                  className="flex items-center gap-3 p-3 border-b border-slate-100 dark:border-[#1A1A1A] hover:bg-slate-50 dark:hover:bg-[#151515] rounded-t-xl transition-colors cursor-pointer group"
                 >
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white text-sm font-bold shadow-sm group-hover:bg-emerald-500 transition-colors">
                     {userAvatarInitial}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    <p className="text-xs font-bold text-slate-900 dark:text-[#F5F5F5] truncate group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
                       {user?.full_name || user?.username || "Management User"}
                     </p>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
+                    <p className="text-[11px] text-slate-500 dark:text-[#737373] truncate">
                       {user?.email || "user@foundation.org"}
                     </p>
                     <div className="mt-1">
@@ -178,7 +178,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                     href="/admin/profile"
                     onClick={() => setDropdownOpen(false)}
                     role="menuitem"
-                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white transition-colors"
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-[#A3A3A3] dark:hover:bg-[#151515] dark:hover:text-[#F5F5F5] transition-colors"
                   >
                     <UserIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <span>My Profile</span>
@@ -188,7 +188,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                     href="/admin/settings"
                     onClick={() => setDropdownOpen(false)}
                     role="menuitem"
-                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white transition-colors"
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-[#A3A3A3] dark:hover:bg-[#151515] dark:hover:text-[#F5F5F5] transition-colors"
                   >
                     <Settings className="h-4 w-4 text-slate-400 shrink-0" />
                     <span>Account Settings</span>
@@ -199,7 +199,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                       href="/admin/users"
                       onClick={() => setDropdownOpen(false)}
                       role="menuitem"
-                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white transition-colors"
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-[#A3A3A3] dark:hover:bg-[#151515] dark:hover:text-[#F5F5F5] transition-colors"
                     >
                       <UserCog className="h-4 w-4 text-slate-400 shrink-0" />
                       <span>User Management</span>
@@ -208,13 +208,13 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                 </div>
 
                 {/* 3. Log Out with Confirmation */}
-                <div className="pt-1 mt-1 border-t border-slate-100 dark:border-slate-800">
+                <div className="pt-1 mt-1 border-t border-slate-100 dark:border-[#1A1A1A]">
                   {!confirmLogout ? (
                     <button
                       onClick={() => setConfirmLogout(true)}
                       type="button"
                       role="menuitem"
-                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/30 transition-colors text-left cursor-pointer"
+                      className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950/40 transition-colors text-left cursor-pointer"
                     >
                       <LogOut className="h-4 w-4 shrink-0" />
                       <span>Log Out</span>
@@ -235,7 +235,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                         <button
                           onClick={() => setConfirmLogout(false)}
                           type="button"
-                          className="flex-1 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2 py-1 text-[11px] font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-colors cursor-pointer"
+                          className="flex-1 rounded border border-slate-300 dark:border-[#242424] bg-white dark:bg-[#151515] px-2 py-1 text-[11px] font-medium text-slate-700 dark:text-[#A3A3A3] hover:bg-slate-50 transition-colors cursor-pointer"
                         >
                           Cancel
                         </button>
