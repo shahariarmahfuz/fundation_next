@@ -45,6 +45,91 @@ const nextConfig = {
         permanent: false,
       },
       {
+        source: "/dashboard/qard-hasan/new",
+        destination: "/admin/qard-hasan/new",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/qard-hasan/ledger",
+        destination: "/admin/qard-hasan/ledger",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/qard-hasan/:id/repay",
+        destination: "/admin/qard-hasan/:id/repay",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/qard-hasan/:id",
+        destination: "/admin/qard-hasan/:id",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/qard-hasan",
+        destination: "/admin/qard-hasan",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/sadaqah/new",
+        destination: "/admin/sadaqah/new",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/sadaqah/ledger",
+        destination: "/admin/sadaqah/ledger",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/sadaqah/:id",
+        destination: "/admin/sadaqah/:id",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/sadaqah",
+        destination: "/admin/sadaqah",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/sadakah/new",
+        destination: "/admin/sadaqah/new",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/sadakah/ledger",
+        destination: "/admin/sadaqah/ledger",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/sadakah/:id",
+        destination: "/admin/sadaqah/:id",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/sadakah",
+        destination: "/admin/sadaqah",
+        permanent: false,
+      },
+      {
+        source: "/admin/sadakah/new",
+        destination: "/admin/sadaqah/new",
+        permanent: false,
+      },
+      {
+        source: "/admin/sadakah/ledger",
+        destination: "/admin/sadaqah/ledger",
+        permanent: false,
+      },
+      {
+        source: "/admin/sadakah/:id",
+        destination: "/admin/sadaqah/:id",
+        permanent: false,
+      },
+      {
+        source: "/admin/sadakah",
+        destination: "/admin/sadaqah",
+        permanent: false,
+      },
+      {
         source: "/dashboard/groups/new",
         destination: "/admin/groups/new",
         permanent: false,
@@ -57,6 +142,36 @@ const nextConfig = {
       {
         source: "/dashboard/profile",
         destination: "/admin/profile",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/expenses/new",
+        destination: "/admin/expenses/new",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/expenses/ledger",
+        destination: "/admin/expenses/ledger",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/expenses/:id",
+        destination: "/admin/expenses/:id",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/expenses",
+        destination: "/admin/expenses",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/audit-logs",
+        destination: "/admin/dashboard",
+        permanent: false,
+      },
+      {
+        source: "/admin/audit-logs",
+        destination: "/admin/dashboard",
         permanent: false,
       },
       {

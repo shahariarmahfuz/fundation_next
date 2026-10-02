@@ -4,10 +4,9 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { StatusBadge } from "@/components/StatusBadge";
 import { Pagination } from "@/components/Pagination";
 import {
-  Scale,
+  Heart,
   Plus,
   Coins,
   CheckCircle2,
@@ -18,21 +17,39 @@ import {
   ArrowRight,
   Search,
   ExternalLink,
-  BookOpen
+  BookOpen,
+  ShieldCheck
 } from "lucide-react";
 
-export default function QardHasanPage() {
-  const [loans, setLoans] = useState<any[]>([]);
+export default function SadaqahManagePage() {
+  const [grants, setGrants] = useState<any[]>([]);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
-  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState("");
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchLoans = async () => {
+  useEffect(() => {
+    async function loadRefs() {
+      try {
+        const [gRes, bRes] = await Promise.all([
+          api.get("/groups"),
+          api.get("/beneficiaries?page=1&page_size=200"),
+        ]);
+        setGroups(gRes || []);
+        setBeneficiaries(bRes.items || []);
+      } catch {}
+    }
+    loadRefs();
+  }, []);
+
+  const fetchGrants = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -40,33 +57,33 @@ export default function QardHasanPage() {
         page: String(page),
         page_size: String(pageSize),
       });
-      if (selectedStatus) params.append("status", selectedStatus);
+      if (selectedGroup) params.append("group_id", selectedGroup);
+      if (selectedBeneficiary) params.append("beneficiary_id", selectedBeneficiary);
+      if (search.trim()) params.append("search", search.trim());
 
-      const res = await api.get(`/qard-hasan?${params.toString()}`);
-      setLoans(res.items || []);
+      const res = await api.get(`/sadaqah?${params.toString()}`);
+      setGrants(res.items || []);
       setTotal(res.total || 0);
       setTotalPages(res.total_pages || 1);
     } catch (err: any) {
-      setError(err.message || "Failed to load Qard Hasan records");
+      setError(err.message || "Failed to load Sadaqah records");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchLoans();
-  }, [page, pageSize, selectedStatus]);
+    fetchGrants();
+  }, [page, pageSize, selectedGroup, selectedBeneficiary]);
 
-  const filteredLoans = loans.filter((l) => {
-    if (!search.trim()) return true;
-    const term = search.toLowerCase();
-    return (
-      l.qard_number?.toLowerCase().includes(term) ||
-      l.beneficiary?.name?.toLowerCase().includes(term) ||
-      l.beneficiary?.phone?.includes(term) ||
-      l.beneficiary?.beneficiary_number?.toLowerCase().includes(term)
-    );
-  });
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1);
+      fetchGrants();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
@@ -74,28 +91,28 @@ export default function QardHasanPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
-            <Scale className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-            Qard Hasan (Interest-Free Loans)
+            <Heart className="h-6 w-6 text-rose-600 dark:text-rose-400 fill-rose-100 dark:fill-rose-950/40" />
+            Manage Sadaqah (Humanitarian Aid)
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Shariah-compliant interest-free financing (0% Interest) with revolving group returns
+            Non-repayable direct humanitarian disbursements to registered beneficiaries
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           <Link
-            href="/admin/qard-hasan/ledger"
+            href="/admin/sadaqah/ledger"
             className="btn-secondary text-xs flex items-center gap-1.5"
           >
             <BookOpen className="h-4 w-4" />
-            Qard Hasan Ledger
+            Sadaqah Ledger
           </Link>
           <Link
-            href="/admin/qard-hasan/new"
+            href="/admin/sadaqah/new"
             className="btn-primary text-xs flex items-center gap-1.5 shadow-sm"
           >
             <Plus className="h-4 w-4" />
-            New Qard Hasan
+            New Sadaqah
           </Link>
         </div>
       </div>
@@ -113,82 +130,106 @@ export default function QardHasanPage() {
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Search by loan #, beneficiary name, or phone..."
+            placeholder="Search by grant #, beneficiary, phone, or purpose..."
             className="input-field pl-9 text-xs"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Filter Status:</span>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Group Filter */}
           <select
-            value={selectedStatus}
+            value={selectedGroup}
             onChange={(e) => {
-              setSelectedStatus(e.target.value);
+              setSelectedGroup(e.target.value);
               setPage(1);
             }}
-            className="input-field py-1 text-xs w-44"
+            className="input-field py-1 text-xs w-48"
           >
-            <option value="">All Loans</option>
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="COMPLETED">COMPLETED</option>
-            <option value="DEFAULTED">DEFAULTED</option>
+            <option value="">All Funding Groups</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Beneficiary Filter */}
+          <select
+            value={selectedBeneficiary}
+            onChange={(e) => {
+              setSelectedBeneficiary(e.target.value);
+              setPage(1);
+            }}
+            className="input-field py-1 text-xs w-48"
+          >
+            <option value="">All Beneficiaries</option>
+            {beneficiaries.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name} ({b.beneficiary_number})
+              </option>
+            ))}
           </select>
         </div>
       </div>
 
-      {/* Loans Table */}
+      {/* Grants Table */}
       <div className="table-container">
         <table className="table-custom">
           <thead>
             <tr>
-              <th>Loan Reference</th>
+              <th>Grant Reference</th>
+              <th>Date</th>
               <th>Beneficiary</th>
               <th>Funding Sources</th>
-              <th className="text-right">Principal</th>
-              <th className="text-right">Monthly Rate</th>
-              <th className="text-right">Total Repaid</th>
-              <th className="text-right">Outstanding</th>
-              <th>Status</th>
-              <th className="text-right">Actions</th>
+              <th>Purpose / Relief</th>
+              <th>Payment Method</th>
+              <th>Voucher Ref</th>
+              <th className="text-right">Amount (৳)</th>
+              <th className="text-right">Action</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
                 <td colSpan={9} className="text-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-emerald-600" />
+                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-rose-600" />
                 </td>
               </tr>
-            ) : filteredLoans.length === 0 ? (
+            ) : grants.length === 0 ? (
               <tr>
                 <td colSpan={9} className="text-center py-12 text-slate-400">
-                  No Qard Hasan loan records found.
+                  No Sadaqah grant records found.
                 </td>
               </tr>
             ) : (
-              filteredLoans.map((l) => {
-                const faCount = l.funding_allocations?.length || 0;
+              grants.map((g) => {
+                const faCount = g.funding_allocations?.length || 0;
                 return (
-                  <tr key={l.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                    {/* Loan Number */}
+                  <tr key={g.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                    {/* Grant Number */}
                     <td className="font-mono text-xs font-bold text-slate-900 dark:text-slate-100">
                       <Link
-                        href={`/admin/qard-hasan/${l.id}`}
-                        className="text-emerald-700 dark:text-emerald-400 hover:underline"
+                        href={`/admin/sadaqah/${g.id}`}
+                        className="text-rose-700 dark:text-rose-400 hover:underline"
                       >
-                        {l.qard_number}
+                        {g.sadakah_number}
                       </Link>
+                    </td>
+
+                    {/* Date */}
+                    <td className="text-xs text-slate-600 dark:text-slate-400">
+                      {formatDate(g.disbursement_date)}
                     </td>
 
                     {/* Beneficiary */}
                     <td>
                       <div className="font-semibold text-xs text-slate-900 dark:text-slate-100">
-                        {l.beneficiary?.name}
+                        {g.beneficiary?.name}
                       </div>
                       <div className="text-[10px] text-slate-400 dark:text-slate-400">
-                        {l.beneficiary?.phone || "No phone"} • {l.beneficiary?.beneficiary_number}
+                        {g.beneficiary?.phone || "No phone"} • {g.beneficiary?.beneficiary_number}
                       </div>
                     </td>
 
@@ -196,7 +237,7 @@ export default function QardHasanPage() {
                     <td>
                       {faCount > 1 ? (
                         <div className="flex flex-wrap gap-1">
-                          {l.funding_allocations.map((fa: any) => (
+                          {g.funding_allocations.map((fa: any) => (
                             <span
                               key={fa.id}
                               className="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-slate-700 dark:text-slate-300 font-mono"
@@ -207,69 +248,47 @@ export default function QardHasanPage() {
                             </span>
                           ))}
                         </div>
-                      ) : l.funding_allocations && l.funding_allocations.length === 1 ? (
+                      ) : g.funding_allocations && g.funding_allocations.length === 1 ? (
                         <span className="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300">
                           <FolderTree className="h-3 w-3 text-emerald-600" />
-                          {l.funding_allocations[0].group?.name || l.group?.name || "Group"}
+                          {g.funding_allocations[0].group?.name || g.group?.name || "Group"}
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300">
                           <FolderTree className="h-3 w-3 text-emerald-600" />
-                          {l.group?.name || "Group"}
+                          {g.group?.name || "Group"}
                         </span>
                       )}
                     </td>
 
-                    {/* Principal Amount */}
-                    <td className="text-right font-bold text-xs text-slate-900 dark:text-slate-100 font-mono">
-                      {formatCurrency(l.principal_amount)}
+                    {/* Purpose / Description */}
+                    <td className="text-xs text-slate-700 dark:text-slate-300 max-w-xs truncate" title={g.description}>
+                      {g.description}
                     </td>
 
-                    {/* Monthly Rate */}
-                    <td className="text-right text-xs text-slate-600 dark:text-slate-400 font-mono">
-                      {formatCurrency(l.monthly_repayment_amount)}/mo
+                    {/* Payment Method */}
+                    <td className="font-mono text-xs text-slate-600 dark:text-slate-400">
+                      {g.payment_method}
                     </td>
 
-                    {/* Total Repaid */}
-                    <td className="text-right font-semibold text-xs text-emerald-700 dark:text-emerald-400 font-mono">
-                      {formatCurrency(l.total_repaid)}
+                    {/* Voucher Ref */}
+                    <td className="font-mono text-xs text-slate-500 dark:text-slate-400">
+                      {g.reference || "—"}
                     </td>
 
-                    {/* Outstanding */}
-                    <td className="text-right font-bold text-xs text-blue-700 dark:text-blue-400 font-mono">
-                      {formatCurrency(l.outstanding_amount)}
-                    </td>
-
-                    {/* Status */}
-                    <td>
-                      <StatusBadge status={l.status} />
+                    {/* Amount */}
+                    <td className="text-right font-bold text-xs text-rose-700 dark:text-rose-400 font-mono">
+                      {formatCurrency(g.amount)}
                     </td>
 
                     {/* Actions */}
                     <td className="text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <Link
-                          href={`/admin/qard-hasan/${l.id}`}
-                          className="btn-secondary !py-1 !px-2 text-xs"
-                          title="View Details"
-                        >
-                          Details
-                        </Link>
-                        {l.status === "ACTIVE" ? (
-                          <Link
-                            href={`/admin/qard-hasan/${l.id}/repay`}
-                            className="btn-primary !py-1 !px-2.5 text-xs inline-flex items-center gap-1"
-                          >
-                            <Coins className="h-3 w-3" />
-                            Repay
-                          </Link>
-                        ) : (
-                          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center justify-end gap-0.5 px-2">
-                            <CheckCircle2 className="h-3.5 w-3.5" />
-                            Settled
-                          </span>
-                        )}
-                      </div>
+                      <Link
+                        href={`/admin/sadaqah/${g.id}`}
+                        className="btn-secondary !py-1 !px-2.5 text-xs inline-flex items-center gap-1"
+                      >
+                        Details
+                      </Link>
                     </td>
                   </tr>
                 );

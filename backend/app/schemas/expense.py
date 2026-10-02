@@ -1,9 +1,10 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, List, Dict
 from pydantic import BaseModel, ConfigDict
 from backend.app.schemas.group import GroupResponse
 from backend.app.schemas.transaction import TransactionResponse
+from backend.app.schemas.auth import UserResponse
 
 
 class ExpenseCategoryBase(BaseModel):
@@ -58,3 +59,43 @@ class ExpenseResponse(ExpenseBase):
     category: Optional[ExpenseCategoryResponse] = None
     group: Optional[GroupResponse] = None
     transaction: Optional[TransactionResponse] = None
+    created_by: Optional[UserResponse] = None
+
+
+class ExpenseLedgerItem(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    expense_number: str
+    expense_date: date
+    category_id: int
+    category_name: str
+    group_id: int
+    group_name: str
+    amount: Decimal
+    payment_method: str
+    payee: Optional[str] = None
+    description: str
+    reference: Optional[str] = None
+    notes: Optional[str] = None
+    transaction_id: int
+    transaction_number: Optional[str] = None
+    created_at: datetime
+    created_by_name: Optional[str] = None
+
+
+class ExpenseLedgerSummary(BaseModel):
+    total_amount: Decimal
+    total_count: int
+    top_category: Optional[str] = None
+    top_category_amount: Optional[Decimal] = None
+    group_breakdown: Dict[str, Decimal] = {}
+
+
+class ExpenseLedgerResponse(BaseModel):
+    summary: ExpenseLedgerSummary
+    items: List[ExpenseLedgerItem]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int

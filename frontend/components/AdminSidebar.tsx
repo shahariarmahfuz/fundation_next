@@ -16,7 +16,6 @@ import {
   FileBarChart2,
   Building2,
   UserCog,
-  History,
   Settings,
   ChevronDown,
   X
@@ -130,21 +129,21 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       icon: Scale,
       permission: "qard_hasan.view",
       children: [
-        { name: "All Qard Hasan", href: "/admin/qard-hasan" },
-        { name: "Add Qard Hasan", href: "/admin/qard-hasan?action=new", permission: "qard_hasan.create" },
-        { name: "Repayments", href: "/admin/qard-hasan?tab=repayments" },
-        { name: "Outstanding Qard", href: "/admin/qard-hasan?status=ACTIVE" },
+        { name: "New Qard Hasan", href: "/admin/qard-hasan/new", permission: "qard_hasan.create" },
+        { name: "Manage Qard Hasan", href: "/admin/qard-hasan", permission: "qard_hasan.view" },
+        { name: "Qard Hasan Ledger", href: "/admin/qard-hasan/ledger", permission: "qard_hasan.view" },
       ],
     },
     {
-      id: "sadakah",
-      name: "Sadakah",
-      href: "/admin/sadakah",
+      id: "sadaqah",
+      name: "Sadaqah",
+      href: "/admin/sadaqah",
       icon: Heart,
       permission: "sadakah.view",
       children: [
-        { name: "All Sadakah", href: "/admin/sadakah" },
-        { name: "Record Sadakah", href: "/admin/sadakah?action=new", permission: "sadakah.create" },
+        { name: "New Sadaqah", href: "/admin/sadaqah/new", permission: "sadakah.create" },
+        { name: "Manage Sadaqah", href: "/admin/sadaqah", permission: "sadakah.view" },
+        { name: "Sadaqah Ledger", href: "/admin/sadaqah/ledger", permission: "sadakah.view" },
       ],
     },
     {
@@ -154,10 +153,9 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       icon: Receipt,
       permission: "expenses.view",
       children: [
-        { name: "All Expenses", href: "/admin/expenses" },
-        { name: "Add Expense", href: "/admin/expenses?action=new", permission: "expenses.create" },
-        { name: "Categories", href: "/admin/expenses?tab=categories" },
-        { name: "Expense Reports", href: "/admin/reports?tab=expenses" },
+        { name: "Add Expense", href: "/admin/expenses/new", permission: "expenses.create" },
+        { name: "Manage Expenses", href: "/admin/expenses", permission: "expenses.view" },
+        { name: "Expense Ledger", href: "/admin/expenses/ledger", permission: "expenses.view" },
       ],
     },
     {
@@ -215,13 +213,6 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
         { name: "Roles", href: "/admin/users?tab=roles" },
         { name: "Permissions", href: "/admin/users?tab=roles" },
       ],
-    },
-    {
-      id: "audit-logs",
-      name: "Audit Logs",
-      href: "/admin/audit-logs",
-      icon: History,
-      permission: "audit.view",
     },
     {
       id: "settings",

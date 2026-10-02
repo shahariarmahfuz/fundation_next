@@ -5,57 +5,71 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Pagination } from "@/components/Pagination";
-import { Modal } from "@/components/Modal";
 import {
   Receipt,
   Plus,
-  FolderTree,
-  Tag,
+  Coins,
+  CheckCircle2,
   AlertCircle,
   Loader2,
+  FolderTree,
+  Tag,
   Search,
   Filter,
-  ArrowRight,
+  FileSpreadsheet,
   ExternalLink,
+  Building2,
   Calendar,
-  X
+  CreditCard,
+  User,
+  ArrowRight
 } from "lucide-react";
 
-export default function ManageExpensesPage() {
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+export default function ExpenseLedgerPage() {
+  const [items, setItems] = useState<any[]>([]);
+  const [summary, setSummary] = useState<any>({
+    total_amount: "0.00",
+    total_count: 0,
+    top_category: null,
+    top_category_amount: null,
+    group_breakdown: {},
+  });
   const [groups, setGroups] = useState<any[]>([]);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(25);
+  const [categories, setCategories] = useState<any[]>([]);
+
+  // Filter state
   const [selectedGroup, setSelectedGroup] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedMethod, setSelectedMethod] = useState("");
-  const [search, setSearch] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
+  const [search, setSearch] = useState("");
+
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Category Modal (only for adding category classification)
-  const [catModalOpen, setCatModalOpen] = useState(false);
-  const [newCatName, setNewCatName] = useState("");
-  const [newCatDesc, setNewCatDesc] = useState("");
-  const [savingCat, setSavingCat] = useState(false);
+  // Load dropdown reference options
+  useEffect(() => {
+    async function loadRefs() {
+      try {
+        const [gRes, cRes] = await Promise.all([
+          api.get("/groups"),
+          api.get("/expense-categories"),
+        ]);
+        setGroups(gRes || []);
+        setCategories(cRes || []);
+      } catch {}
+    }
+    loadRefs();
+  }, []);
 
-  const fetchDropdowns = async () => {
-    try {
-      const [g, c] = await Promise.all([
-        api.get("/groups"),
-        api.get("/expense-categories"),
-      ]);
-      setGroups(g || []);
-      setCategories(c || []);
-    } catch {}
-  };
-
-  const fetchExpenses = async () => {
+  // Fetch Ledger data
+  const fetchLedger = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -70,53 +84,30 @@ export default function ManageExpensesPage() {
       if (endDate) params.append("end_date", endDate);
       if (search.trim()) params.append("search", search.trim());
 
-      const res = await api.get(`/expenses?${params.toString()}`);
-      setExpenses(res.items || []);
+      const res = await api.get(`/expenses/ledger?${params.toString()}`);
+      setItems(res.items || []);
       setTotal(res.total || 0);
       setTotalPages(res.total_pages || 1);
+      if (res.summary) setSummary(res.summary);
     } catch (err: any) {
-      setError(err.message || "Failed to load expenses");
+      setError(err.message || "Failed to load expense ledger.");
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchDropdowns();
-  }, []);
-
-  useEffect(() => {
-    fetchExpenses();
+    fetchLedger();
   }, [page, pageSize, selectedGroup, selectedCategory, selectedMethod, startDate, endDate]);
 
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
       setPage(1);
-      fetchExpenses();
+      fetchLedger();
     }, 300);
     return () => clearTimeout(timer);
   }, [search]);
-
-  const handleCreateCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCatName.trim()) return;
-    setSavingCat(true);
-    try {
-      await api.post("/expense-categories", {
-        name: newCatName.trim(),
-        description: newCatDesc.trim() || undefined,
-      });
-      setCatModalOpen(false);
-      setNewCatName("");
-      setNewCatDesc("");
-      fetchDropdowns();
-    } catch (err: any) {
-      alert(err.message || "Failed to create category");
-    } finally {
-      setSavingCat(false);
-    }
-  };
 
   return (
     <div className="space-y-6">
@@ -128,30 +119,21 @@ export default function ManageExpensesPage() {
               <Receipt className="h-5 w-5" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Manage Expenses
+              Expense Ledger
             </h1>
           </div>
           <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Track and audit operational and charitable disbursements per accounting group.
+            Authoritative double-entry accounting records for all operational and foundation disbursements.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
-            href="/admin/expenses/ledger"
+            href="/admin/expenses"
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
-            <FolderTree className="h-3.5 w-3.5 text-slate-500" />
-            Expense Ledger
+            Manage Expenses
           </Link>
-          <button
-            onClick={() => setCatModalOpen(true)}
-            className="btn-secondary text-xs inline-flex items-center gap-1.5"
-          >
-            <Tag className="h-3.5 w-3.5" />
-            New Category
-          </button>
-          {/* PRIMARY BUTTON: LINKS DIRECTLY TO DEDICATED PAGE, NO POPUP */}
           <Link
             href="/admin/expenses/new"
             className="btn-primary inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold shadow-sm"
@@ -162,14 +144,64 @@ export default function ManageExpensesPage() {
         </div>
       </div>
 
-      {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs sm:text-sm text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
-          <AlertCircle className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
-          <span>{error}</span>
+      {/* Summary KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Total Disbursements</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-50 text-rose-600 dark:bg-rose-950 dark:text-rose-400">
+              <Coins className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-bold font-mono text-slate-900 dark:text-white">
+            {formatCurrency(summary.total_amount)}
+          </div>
+          <span className="text-[11px] text-slate-400">Total verified debits</span>
         </div>
-      )}
 
-      {/* Filters & Search Toolbar */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Expense Count</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950 dark:text-blue-400">
+              <FileSpreadsheet className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-bold font-mono text-slate-900 dark:text-white">
+            {summary.total_count}
+          </div>
+          <span className="text-[11px] text-slate-400">Disbursement records</span>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Top Category</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400">
+              <Tag className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-base font-bold text-slate-900 dark:text-white truncate" title={summary.top_category || "None"}>
+            {summary.top_category || "N/A"}
+          </div>
+          <span className="text-[11px] font-mono text-slate-400">
+            {summary.top_category_amount ? formatCurrency(summary.top_category_amount) : "৳0.00"}
+          </span>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Funding Groups</span>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50 text-purple-600 dark:bg-purple-950 dark:text-purple-400">
+              <FolderTree className="h-4 w-4" />
+            </div>
+          </div>
+          <div className="mt-2 text-2xl font-bold font-mono text-slate-900 dark:text-white">
+            {Object.keys(summary.group_breakdown || {}).length}
+          </div>
+          <span className="text-[11px] text-slate-400">Accounting groups debited</span>
+        </div>
+      </div>
+
+      {/* Filter Toolbar */}
       <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-3">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
           {/* Search */}
@@ -177,7 +209,7 @@ export default function ManageExpensesPage() {
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             <input
               type="text"
-              placeholder="Search voucher #, description, payee, ref..."
+              placeholder="Search voucher, description, payee, ref..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="input-field pl-9 text-xs"
@@ -222,7 +254,7 @@ export default function ManageExpensesPage() {
             </select>
           </div>
 
-          {/* Payment Method Filter */}
+          {/* Method Filter */}
           <div>
             <select
               value={selectedMethod}
@@ -242,7 +274,7 @@ export default function ManageExpensesPage() {
             </select>
           </div>
 
-          {/* Reset Filters */}
+          {/* Clear Filters Button */}
           <div>
             <button
               type="button"
@@ -291,70 +323,87 @@ export default function ManageExpensesPage() {
         </div>
       </div>
 
-      {/* Table */}
+      {error && (
+        <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs sm:text-sm text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
+          <AlertCircle className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Ledger Table */}
       <div className="table-container">
         <table className="table-custom">
           <thead>
             <tr>
-              <th>Expense No.</th>
               <th>Date</th>
+              <th>Voucher / ID</th>
               <th>Category</th>
-              <th>Group Account</th>
               <th>Description</th>
-              <th>Payee</th>
-              <th>Method</th>
+              <th>Source Group</th>
               <th className="text-right">Amount (৳)</th>
+              <th>Method</th>
+              <th>Payee</th>
+              <th>Reference</th>
               <th className="text-center">Action</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={9} className="text-center py-12">
+                <td colSpan={10} className="text-center py-12">
                   <Loader2 className="h-6 w-6 animate-spin mx-auto text-foundation-700" />
-                  <span className="mt-2 block text-xs text-slate-400">Loading expense records...</span>
+                  <span className="mt-2 block text-xs text-slate-400">Loading ledger records...</span>
                 </td>
               </tr>
-            ) : expenses.length === 0 ? (
+            ) : items.length === 0 ? (
               <tr>
-                <td colSpan={9} className="text-center py-12 text-slate-400">
-                  No expenses recorded.
+                <td colSpan={10} className="text-center py-12 text-slate-400">
+                  No expense records match the specified filters.
                 </td>
               </tr>
             ) : (
-              expenses.map((exp) => (
-                <tr key={exp.id}>
+              items.map((row) => (
+                <tr key={row.id}>
+                  <td className="text-xs font-medium text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                    {formatDate(row.expense_date)}
+                  </td>
                   <td className="font-mono text-xs font-semibold text-slate-900 dark:text-white whitespace-nowrap">
                     <Link
-                      href={`/admin/expenses/${exp.id}`}
+                      href={`/admin/expenses/${row.id}`}
                       className="text-foundation-700 dark:text-foundation-400 hover:underline"
                     >
-                      {exp.expense_number}
+                      {row.expense_number}
                     </Link>
                   </td>
-                  <td className="text-xs text-slate-500 whitespace-nowrap">{formatDate(exp.expense_date)}</td>
                   <td>
-                    <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-200">
-                      {exp.category?.name}
+                    <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                      {row.category_name}
                     </span>
+                  </td>
+                  <td className="text-xs text-slate-700 dark:text-slate-300 max-w-xs truncate" title={row.description}>
+                    {row.description}
                   </td>
                   <td>
                     <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                      <FolderTree className="h-3 w-3 text-foundation-700" />
-                      {exp.group?.name}
+                      <FolderTree className="h-3 w-3 text-foundation-600" />
+                      {row.group_name}
                     </span>
                   </td>
-                  <td className="text-xs text-slate-700 dark:text-slate-300 max-w-sm truncate" title={exp.description}>
-                    {exp.description}
+                  <td className="text-right font-mono font-bold text-xs text-rose-600 dark:text-rose-400 whitespace-nowrap">
+                    -{formatCurrency(row.amount)}
                   </td>
-                  <td className="text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">{exp.payee || "-"}</td>
-                  <td className="font-mono text-xs text-slate-500 whitespace-nowrap">{exp.payment_method}</td>
-                  <td className="text-right font-bold text-xs text-rose-700 dark:text-rose-400 whitespace-nowrap">
-                    -{formatCurrency(exp.amount)}
+                  <td className="font-mono text-xs text-slate-500 whitespace-nowrap">
+                    {row.payment_method}
+                  </td>
+                  <td className="text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                    {row.payee || "-"}
+                  </td>
+                  <td className="text-xs font-mono text-slate-500 max-w-[120px] truncate" title={row.reference || ""}>
+                    {row.reference || "-"}
                   </td>
                   <td className="text-center whitespace-nowrap">
                     <Link
-                      href={`/admin/expenses/${exp.id}`}
+                      href={`/admin/expenses/${row.id}`}
                       className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-foundation-700 hover:bg-foundation-50 dark:text-foundation-400 dark:hover:bg-slate-800"
                     >
                       Details <ArrowRight className="h-3 w-3" />
@@ -378,46 +427,6 @@ export default function ManageExpensesPage() {
           setPage(1);
         }}
       />
-
-      {/* Modal: New Category Only */}
-      <Modal
-        isOpen={catModalOpen}
-        onClose={() => setCatModalOpen(false)}
-        title="Add Expense Category"
-      >
-        <form onSubmit={handleCreateCategory} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Category Name</label>
-            <input
-              required
-              type="text"
-              placeholder="e.g. Winter Clothing Aid"
-              className="input-field"
-              value={newCatName}
-              onChange={(e) => setNewCatName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Description</label>
-            <input
-              type="text"
-              placeholder="Category purpose"
-              className="input-field"
-              value={newCatDesc}
-              onChange={(e) => setNewCatDesc(e.target.value)}
-            />
-          </div>
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
-            <button type="button" onClick={() => setCatModalOpen(false)} className="btn-secondary">
-              Cancel
-            </button>
-            <button type="submit" disabled={savingCat} className="btn-primary">
-              {savingCat && <Loader2 className="h-4 w-4 animate-spin" />}
-              Save Category
-            </button>
-          </div>
-        </form>
-      </Modal>
     </div>
   );
 }

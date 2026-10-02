@@ -129,6 +129,9 @@ class AccountingService:
 
         return group.opening_balance + inflows - outflows
 
+    # Alias for convenience
+    get_group_balance = get_group_current_balance
+
     @staticmethod
     def create_transaction(
         db: Session,
