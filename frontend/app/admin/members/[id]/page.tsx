@@ -148,53 +148,53 @@ export default function MemberProfilePage() {
       {/* Member Details & Financial Summary Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Info Card */}
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4 dark:border-slate-800 dark:bg-slate-900 transition-colors">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             Member Information
           </h3>
 
           <div className="space-y-3 text-xs sm:text-sm">
-            <div className="flex items-center gap-2 text-slate-600">
-              <FolderTree className="h-4 w-4 text-foundation-700 shrink-0" />
+            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+              <FolderTree className="h-4 w-4 text-foundation-700 dark:text-emerald-400 shrink-0" />
               <span>Group:</span>
-              <strong className="text-slate-900">
+              <strong className="text-slate-900 dark:text-white">
                 {member.group?.name} ({member.group?.code})
               </strong>
             </div>
 
-            <div className="flex items-center gap-2 text-slate-600">
-              <Phone className="h-4 w-4 text-foundation-700 shrink-0" />
+            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+              <Phone className="h-4 w-4 text-foundation-700 dark:text-emerald-400 shrink-0" />
               <span>Phone:</span>
-              <strong className="text-slate-900">{member.phone}</strong>
+              <strong className="text-slate-900 dark:text-white">{member.phone}</strong>
             </div>
 
             {member.email && (
-              <div className="flex items-center gap-2 text-slate-600">
-                <Mail className="h-4 w-4 text-foundation-700 shrink-0" />
+              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                <Mail className="h-4 w-4 text-foundation-700 dark:text-emerald-400 shrink-0" />
                 <span>Email:</span>
-                <span className="text-slate-900">{member.email}</span>
+                <span className="text-slate-900 dark:text-white">{member.email}</span>
               </div>
             )}
 
             {member.nid_or_id && (
-              <div className="flex items-center gap-2 text-slate-600">
-                <User className="h-4 w-4 text-foundation-700 shrink-0" />
+              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                <User className="h-4 w-4 text-foundation-700 dark:text-emerald-400 shrink-0" />
                 <span>NID/ID:</span>
-                <span className="text-slate-900 font-mono">{member.nid_or_id}</span>
+                <span className="text-slate-900 dark:text-white font-mono">{member.nid_or_id}</span>
               </div>
             )}
 
             {member.address && (
-              <div className="flex items-start gap-2 text-slate-600">
-                <MapPin className="h-4 w-4 text-foundation-700 shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2 text-slate-600 dark:text-slate-400">
+                <MapPin className="h-4 w-4 text-foundation-700 dark:text-emerald-400 shrink-0 mt-0.5" />
                 <span>Address:</span>
-                <span className="text-slate-900">{member.address}</span>
+                <span className="text-slate-900 dark:text-white">{member.address}</span>
               </div>
             )}
           </div>
 
           {member.notes && (
-            <div className="pt-3 border-t border-slate-100 text-xs text-slate-500">
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400">
               <strong>Notes:</strong> {member.notes}
             </div>
           )}
@@ -202,7 +202,7 @@ export default function MemberProfilePage() {
 
         {/* Right: Financial Status */}
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 flex flex-col justify-between">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 flex flex-col justify-between transition-colors">
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-xs text-slate-500 dark:text-slate-400">Monthly Contribution</span>
@@ -214,37 +214,37 @@ export default function MemberProfilePage() {
                 {formatCurrency(member.monthly_contribution_amount)}
               </div>
             </div>
-            <div className="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
+            <div className="text-[11px] text-slate-400 dark:text-slate-500 mt-2 flex items-center justify-between">
               <span>Source: Foundation Setting</span>
               <span>Obligatory rate</span>
             </div>
           </div>
 
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-5 flex flex-col justify-between">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-5 flex flex-col justify-between dark:border-emerald-900/40 dark:bg-emerald-950/30 transition-colors">
             <div>
-              <span className="text-xs text-emerald-800 font-medium">Total Paid to Group</span>
-              <div className="mt-1 text-2xl font-bold text-emerald-900">
+              <span className="text-xs text-emerald-800 dark:text-emerald-300 font-medium">Total Paid to Group</span>
+              <div className="mt-1 text-2xl font-bold text-emerald-900 dark:text-emerald-400">
                 {formatCurrency(ledger?.total_paid)}
               </div>
             </div>
-            <span className="text-[11px] text-emerald-700 mt-2">Credited to {member.group?.code}</span>
+            <span className="text-[11px] text-emerald-700 dark:text-emerald-400 mt-2">Credited to {member.group?.code}</span>
           </div>
 
-          <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-5 flex flex-col justify-between">
+          <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-5 flex flex-col justify-between dark:border-amber-900/40 dark:bg-amber-950/30 transition-colors">
             <div>
-              <span className="text-xs text-amber-800 font-medium">Outstanding Dues</span>
-              <div className="mt-1 text-2xl font-bold text-amber-900">
+              <span className="text-xs text-amber-800 dark:text-amber-300 font-medium">Outstanding Dues</span>
+              <div className="mt-1 text-2xl font-bold text-amber-900 dark:text-amber-400">
                 {formatCurrency(ledger?.total_due)}
               </div>
             </div>
-            <span className="text-[11px] text-amber-700 mt-2">Pending/Due records</span>
+            <span className="text-[11px] text-amber-700 dark:text-amber-400 mt-2">Pending/Due records</span>
           </div>
         </div>
       </div>
 
       {/* Member Contribution Ledger Table */}
       <div className="space-y-4">
-        <h3 className="text-base font-bold text-slate-900">Member Contribution Ledger</h3>
+        <h3 className="text-base font-bold text-slate-900 dark:text-white">Member Contribution Ledger</h3>
 
         <div className="table-container">
           <table className="table-custom">

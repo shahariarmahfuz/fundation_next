@@ -132,8 +132,8 @@ export default function DonationsPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Donations & Donors</h1>
-          <p className="text-xs sm:text-sm text-slate-500">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Donations & Donors</h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             Philanthropic donations credited directly to dedicated accounting groups
           </p>
         </div>
@@ -150,16 +150,16 @@ export default function DonationsPage() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs sm:text-sm text-rose-800">
+        <div className="flex items-center gap-3 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 p-4 text-xs sm:text-sm text-rose-800 dark:text-rose-300">
           <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Filter */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-slate-700">Filter Group:</span>
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Filter Group:</span>
           <select
             value={selectedGroup}
             onChange={(e) => {
@@ -207,28 +207,28 @@ export default function DonationsPage() {
               </tr>
             ) : (
               donations.map((d) => (
-                <tr key={d.id}>
-                  <td className="font-mono text-xs font-semibold text-slate-900">
+                <tr key={d.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                  <td className="font-mono text-xs font-semibold text-slate-900 dark:text-slate-100">
                     {d.donation_number}
                   </td>
-                  <td className="text-xs text-slate-500">{formatDate(d.donation_date)}</td>
+                  <td className="text-xs text-slate-500 dark:text-slate-400">{formatDate(d.donation_date)}</td>
                   <td>
-                    <div className="font-semibold text-xs text-slate-900">
+                    <div className="font-semibold text-xs text-slate-900 dark:text-slate-100">
                       {d.donor?.name || "Anonymous Donor"}
                     </div>
                     {d.donor?.phone && (
-                      <div className="text-[10px] text-slate-400">{d.donor.phone}</div>
+                      <div className="text-[10px] text-slate-400 dark:text-slate-400">{d.donor.phone}</div>
                     )}
                   </td>
                   <td>
-                    <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                      <FolderTree className="h-3 w-3 text-foundation-700" />
+                    <span className="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+                      <FolderTree className="h-3 w-3 text-foundation-700 dark:text-emerald-400" />
                       {d.group?.name}
                     </span>
                   </td>
-                  <td className="font-mono text-xs text-slate-600">{d.payment_method}</td>
-                  <td className="font-mono text-xs text-slate-500">{d.reference || "-"}</td>
-                  <td className="text-right font-bold text-xs text-emerald-700">
+                  <td className="font-mono text-xs text-slate-600 dark:text-slate-400">{d.payment_method}</td>
+                  <td className="font-mono text-xs text-slate-500 dark:text-slate-400">{d.reference || "-"}</td>
+                  <td className="text-right font-bold text-xs text-emerald-700 dark:text-emerald-400">
                     +{formatCurrency(d.amount)}
                   </td>
                 </tr>
@@ -258,13 +258,13 @@ export default function DonationsPage() {
       >
         <form onSubmit={handleDonationSubmit} className="space-y-4">
           {submitError && (
-            <div className="rounded-lg bg-rose-50 p-3 text-xs text-rose-700 border border-rose-200">
+            <div className="rounded-lg bg-rose-50 dark:bg-rose-950/40 p-3 text-xs text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
               {submitError}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Donor (Optional / Anonymous)
             </label>
             <select
@@ -282,7 +282,7 @@ export default function DonationsPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Credited Group Account <span className="text-rose-500">*</span>
             </label>
             <select
@@ -297,13 +297,13 @@ export default function DonationsPage() {
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-[11px] text-slate-400">
+            <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-400">
               Money will be deposited into and increase this group&apos;s balance.
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Donation Amount (৳ BDT) <span className="text-rose-500">*</span>
             </label>
             <input
@@ -318,7 +318,7 @@ export default function DonationsPage() {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Method</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Method</label>
               <select
                 className="input-field"
                 value={formData.payment_method}
@@ -331,7 +331,7 @@ export default function DonationsPage() {
               </select>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Date</label>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Date</label>
               <input
                 required
                 type="date"
@@ -343,7 +343,7 @@ export default function DonationsPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Reference / Bank Slip</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Reference / Bank Slip</label>
             <input
               type="text"
               placeholder="e.g. SLIP-102938"
@@ -353,7 +353,7 @@ export default function DonationsPage() {
             />
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
             <button type="button" onClick={() => setModalOpen(false)} className="btn-secondary">
               Cancel
             </button>
@@ -373,7 +373,7 @@ export default function DonationsPage() {
       >
         <form onSubmit={handleCreateDonor} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Donor Name <span className="text-rose-500">*</span>
             </label>
             <input
@@ -386,7 +386,7 @@ export default function DonationsPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Phone</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Phone</label>
             <input
               type="tel"
               className="input-field"
@@ -396,7 +396,7 @@ export default function DonationsPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Email</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Email</label>
             <input
               type="email"
               className="input-field"
@@ -406,7 +406,7 @@ export default function DonationsPage() {
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Address</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Address</label>
             <input
               type="text"
               className="input-field"
@@ -415,7 +415,7 @@ export default function DonationsPage() {
               onChange={(e) => setNewDonor({ ...newDonor, address: e.target.value })}
             />
           </div>
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
             <button type="button" onClick={() => setDonorModalOpen(false)} className="btn-secondary">
               Cancel
             </button>

@@ -85,7 +85,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
           <button
             onClick={onToggleSidebar}
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-slate-700/80 dark:bg-slate-800/80 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white transition-colors shrink-0 cursor-pointer"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-slate-300 dark:hover:text-white dark:hover:bg-slate-800/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-colors shrink-0 cursor-pointer"
             aria-label="Toggle navigation menu"
           >
             <Menu className="h-5 w-5" />
@@ -103,19 +103,19 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
         </div>
 
         {/* Right side: Light/Dark Theme Toggle ☀/☾ + User Profile Avatar [ F ] */}
-        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
-          {/* Direct Light/Dark Theme Toggle in Header */}
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          {/* Direct Light/Dark Theme Toggle in Header (Clean icon-focused button) */}
           <button
             onClick={toggleTheme}
             type="button"
-            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-700 hover:bg-slate-200 dark:border-slate-700 dark:bg-slate-800 dark:text-amber-400 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/80 dark:text-amber-400 dark:hover:text-amber-300 dark:hover:bg-slate-800/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 transition-colors cursor-pointer"
             aria-label={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
             title={theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}
           >
             {theme === "dark" ? (
-              <Sun className="h-4 w-4 text-amber-400" />
+              <Sun className="h-5 w-5 text-amber-400" />
             ) : (
-              <Moon className="h-4 w-4 text-slate-700" />
+              <Moon className="h-5 w-5 text-slate-700" />
             )}
           </button>
 
@@ -125,7 +125,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
               id="user-menu-button"
               onClick={() => setDropdownOpen((prev) => !prev)}
               type="button"
-              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-xs sm:text-sm shadow-sm ring-2 ring-emerald-500/20 hover:ring-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all cursor-pointer"
+              className="flex h-9 w-9 sm:h-9.5 sm:w-9.5 items-center justify-center rounded-full bg-emerald-600 text-white font-bold text-xs sm:text-sm shadow-sm hover:opacity-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900 transition-all cursor-pointer"
               aria-label="User account menu"
               aria-haspopup="menu"
               aria-expanded={dropdownOpen}

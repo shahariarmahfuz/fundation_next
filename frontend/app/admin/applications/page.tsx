@@ -136,10 +136,10 @@ export default function ApplicationsPage() {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             Public Member Applications
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Review online membership submissions and assign approved members to accounting groups
           </p>
         </div>
@@ -148,7 +148,7 @@ export default function ApplicationsPage() {
           <Link
             href="/apply"
             target="_blank"
-            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 transition-colors"
           >
             <UserCheck className="h-4 w-4" />
             View Public Form
@@ -157,24 +157,24 @@ export default function ApplicationsPage() {
       </div>
 
       {reviewSuccess && (
-        <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-800">
-          <CheckCircle className="h-5 w-5 text-emerald-600 flex-shrink-0" />
+        <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-4 text-sm text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300">
+          <CheckCircle className="h-5 w-5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
           <span>{reviewSuccess}</span>
         </div>
       )}
 
       {/* Filter Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">Filter Status:</span>
-          <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200">
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Filter Status:</span>
+          <div className="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 dark:bg-slate-800 dark:border-slate-700">
             <button
               onClick={() => {
                 setStatusFilter("");
                 setPage(1);
               }}
               className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
-                statusFilter === "" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-600"
+                statusFilter === "" ? "bg-white text-emerald-700 shadow-sm dark:bg-slate-900 dark:text-emerald-400" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               All
@@ -185,7 +185,7 @@ export default function ApplicationsPage() {
                 setPage(1);
               }}
               className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
-                statusFilter === "PENDING" ? "bg-white text-amber-700 shadow-sm" : "text-slate-600"
+                statusFilter === "PENDING" ? "bg-white text-amber-700 shadow-sm dark:bg-slate-900 dark:text-amber-400" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               Pending
@@ -196,7 +196,7 @@ export default function ApplicationsPage() {
                 setPage(1);
               }}
               className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
-                statusFilter === "APPROVED" ? "bg-white text-emerald-700 shadow-sm" : "text-slate-600"
+                statusFilter === "APPROVED" ? "bg-white text-emerald-700 shadow-sm dark:bg-slate-900 dark:text-emerald-400" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               Approved
@@ -207,7 +207,7 @@ export default function ApplicationsPage() {
                 setPage(1);
               }}
               className={`rounded-lg px-3 py-1 text-xs font-medium transition-colors ${
-                statusFilter === "REJECTED" ? "bg-white text-rose-700 shadow-sm" : "text-slate-600"
+                statusFilter === "REJECTED" ? "bg-white text-rose-700 shadow-sm dark:bg-slate-900 dark:text-rose-400" : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               Rejected
@@ -215,16 +215,16 @@ export default function ApplicationsPage() {
           </div>
         </div>
 
-        <div className="text-xs text-slate-500 font-medium">
+        <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
           Total Applications: {total}
         </div>
       </div>
 
       {/* Applications Table */}
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+          <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+            <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200 dark:bg-slate-800/60 dark:text-slate-400 dark:border-slate-800">
               <tr>
                 <th className="px-6 py-3 font-semibold">Applicant</th>
                 <th className="px-6 py-3 font-semibold">Contact Info</th>
@@ -235,47 +235,47 @@ export default function ApplicationsPage() {
                 <th className="px-6 py-3 font-semibold text-center">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
                 <tr>
                   <td colSpan={7} className="px-6 py-12 text-center">
                     <Loader2 className="mx-auto h-6 w-6 animate-spin text-emerald-600" />
-                    <span className="mt-2 block text-xs text-slate-500">Loading applications...</span>
+                    <span className="mt-2 block text-xs text-slate-500 dark:text-slate-400">Loading applications...</span>
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-6 text-center text-rose-600">
+                  <td colSpan={7} className="px-6 py-6 text-center text-rose-600 dark:text-rose-400">
                     {error}
                   </td>
                 </tr>
               ) : applications.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-slate-400">
+                  <td colSpan={7} className="px-6 py-10 text-center text-slate-400 dark:text-slate-500">
                     No membership applications found matching criteria.
                   </td>
                 </tr>
               ) : (
                 applications.map((app) => (
-                  <tr key={app.id} className="hover:bg-slate-50/50">
+                  <tr key={app.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-bold text-slate-900">{app.applicant_name}</div>
-                      <div className="text-xs text-slate-400">App #{app.id}</div>
+                      <div className="font-bold text-slate-900 dark:text-white">{app.applicant_name}</div>
+                      <div className="text-xs text-slate-400 dark:text-slate-500">App #{app.id}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-slate-800">{app.email}</div>
-                      <div className="text-xs text-slate-500">{app.phone}</div>
+                      <div className="text-slate-800 dark:text-slate-200">{app.email}</div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">{app.phone}</div>
                     </td>
-                    <td className="px-6 py-4 font-mono text-xs text-slate-700">
+                    <td className="px-6 py-4 font-mono text-xs text-slate-700 dark:text-slate-300">
                       {app.nid_or_id || "Not Provided"}
                     </td>
-                    <td className="px-6 py-4 text-right font-bold text-emerald-700">
+                    <td className="px-6 py-4 text-right font-bold text-emerald-700 dark:text-emerald-400">
                       {formatCurrency(app.proposed_contribution)}
                     </td>
                     <td className="px-6 py-4 text-center">
                       <StatusBadge status={app.status} />
                     </td>
-                    <td className="px-6 py-4 text-slate-600">
+                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
                       {formatDate(app.created_at)}
                     </td>
                     <td className="px-6 py-4 text-center">
@@ -283,8 +283,8 @@ export default function ApplicationsPage() {
                         onClick={() => handleOpenReview(app)}
                         className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
                           app.status === "PENDING"
-                            ? "border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
-                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
+                            ? "border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                         }`}
                       >
                         <Eye className="h-3.5 w-3.5" />
@@ -317,39 +317,39 @@ export default function ApplicationsPage() {
         {selectedApp && (
           <form onSubmit={handleSubmitReview} className="space-y-4">
             {/* Applicant Summary */}
-            <div className="rounded-xl bg-slate-50 p-4 border border-slate-200 text-sm space-y-2">
+            <div className="rounded-xl bg-slate-50 p-4 border border-slate-200 text-sm space-y-2 dark:bg-slate-950/60 dark:border-slate-800">
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <span className="text-xs text-slate-500 block">Email Address:</span>
-                  <span className="font-semibold text-slate-900">{selectedApp.email}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 block">Email Address:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{selectedApp.email}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500 block">Phone Number:</span>
-                  <span className="font-semibold text-slate-900">{selectedApp.phone}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 block">Phone Number:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{selectedApp.phone}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500 block">National ID (NID):</span>
-                  <span className="font-mono text-slate-900">{selectedApp.nid_or_id || "None"}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 block">National ID (NID):</span>
+                  <span className="font-mono text-slate-900 dark:text-slate-200">{selectedApp.nid_or_id || "None"}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500 block">Proposed Contribution:</span>
-                  <span className="font-bold text-emerald-700">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 block">Proposed Contribution:</span>
+                  <span className="font-bold text-emerald-700 dark:text-emerald-400">
                     {formatCurrency(selectedApp.proposed_contribution)} / month
                   </span>
                 </div>
               </div>
 
               {selectedApp.address && (
-                <div className="pt-2 border-t border-slate-200">
-                  <span className="text-xs text-slate-500 block">Residential Address:</span>
-                  <span className="text-slate-800">{selectedApp.address}</span>
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 block">Residential Address:</span>
+                  <span className="text-slate-800 dark:text-slate-200">{selectedApp.address}</span>
                 </div>
               )}
 
               {selectedApp.reason_for_joining && (
-                <div className="pt-2 border-t border-slate-200">
-                  <span className="text-xs text-slate-500 block">Statement / Reason for Joining:</span>
-                  <p className="text-xs text-slate-700 italic mt-0.5">
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
+                  <span className="text-xs text-slate-500 dark:text-slate-400 block">Statement / Reason for Joining:</span>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 italic mt-0.5">
                     "{selectedApp.reason_for_joining}"
                   </p>
                 </div>
@@ -358,18 +358,18 @@ export default function ApplicationsPage() {
 
             {/* Current Application Status Details */}
             {selectedApp.status !== "PENDING" ? (
-              <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-2">
+              <div className="rounded-xl border border-slate-200 bg-white p-4 space-y-2 dark:border-slate-800 dark:bg-slate-900">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-semibold text-slate-700">Application Resolution:</span>
+                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">Application Resolution:</span>
                   <StatusBadge status={selectedApp.status} />
                 </div>
                 {selectedApp.review_notes && (
-                  <div className="text-xs text-slate-600">
+                  <div className="text-xs text-slate-600 dark:text-slate-300">
                     <strong>Admin Notes:</strong> {selectedApp.review_notes}
                   </div>
                 )}
                 {selectedApp.status === "APPROVED" && selectedApp.created_member_id && (
-                  <div className="text-xs text-emerald-700 font-medium">
+                  <div className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">
                     Enrolled as Member ID #{selectedApp.created_member_id}.
                   </div>
                 )}
@@ -377,7 +377,7 @@ export default function ApplicationsPage() {
                   <button
                     type="button"
                     onClick={() => setReviewModalOpen(false)}
-                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 transition-colors"
                   >
                     Close Details
                   </button>
@@ -387,13 +387,13 @@ export default function ApplicationsPage() {
               /* Review Actions Form */
               <div className="space-y-4 pt-2">
                 {reviewError && (
-                  <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800">
+                  <div className="rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800 dark:bg-rose-950/40 dark:border-rose-900/60 dark:text-rose-300">
                     {reviewError}
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-2">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-2">
                     Review Decision *
                   </label>
                   <div className="grid grid-cols-2 gap-3">
@@ -402,11 +402,11 @@ export default function ApplicationsPage() {
                       onClick={() => setReviewAction("APPROVE")}
                       className={`flex items-center justify-center gap-2 rounded-xl p-3 border text-sm font-semibold transition-all ${
                         reviewAction === "APPROVE"
-                          ? "border-emerald-600 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500"
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                          ? "border-emerald-600 bg-emerald-50 text-emerald-800 ring-2 ring-emerald-500 dark:border-emerald-500 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-400"
+                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                       }`}
                     >
-                      <CheckCircle className="h-4 w-4 text-emerald-600" />
+                      <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                       Approve & Enroll Member
                     </button>
                     <button
@@ -414,11 +414,11 @@ export default function ApplicationsPage() {
                       onClick={() => setReviewAction("REJECT")}
                       className={`flex items-center justify-center gap-2 rounded-xl p-3 border text-sm font-semibold transition-all ${
                         reviewAction === "REJECT"
-                          ? "border-rose-600 bg-rose-50 text-rose-800 ring-2 ring-rose-500"
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                          ? "border-rose-600 bg-rose-50 text-rose-800 ring-2 ring-rose-500 dark:border-rose-500 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-400"
+                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                       }`}
                     >
-                      <XCircle className="h-4 w-4 text-rose-600" />
+                      <XCircle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
                       Reject Application
                     </button>
                   </div>
@@ -426,17 +426,17 @@ export default function ApplicationsPage() {
 
                 {reviewAction === "APPROVE" && (
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 mb-1">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1">
                       Assigned Accounting Group *
                     </label>
-                    <p className="text-xs text-slate-500 mb-1.5">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5">
                       Fundamental rule: Every active member must belong to exactly one accounting group. Their future contributions will strictly fund this group.
                     </p>
                     <select
                       required
                       value={assignedGroupId}
                       onChange={(e) => setAssignedGroupId(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-emerald-500 focus:outline-none"
+                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:outline-none"
                     >
                       {groups.map((g) => (
                         <option key={g.id} value={g.id}>
@@ -448,7 +448,7 @@ export default function ApplicationsPage() {
                 )}
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 mb-1">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                     Review Remarks / Notes (Optional)
                   </label>
                   <textarea
@@ -456,7 +456,7 @@ export default function ApplicationsPage() {
                     value={reviewNotes}
                     onChange={(e) => setReviewNotes(e.target.value)}
                     placeholder="e.g. Identity verified via national registry; passed background screening..."
-                    className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+                    className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder-slate-400 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-500 focus:border-emerald-500 focus:outline-none"
                   />
                 </div>
 
@@ -464,7 +464,7 @@ export default function ApplicationsPage() {
                   <button
                     type="button"
                     onClick={() => setReviewModalOpen(false)}
-                    className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                    className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
                   >
                     Cancel
                   </button>

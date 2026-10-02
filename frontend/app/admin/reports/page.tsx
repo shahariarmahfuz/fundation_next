@@ -148,14 +148,14 @@ export default function ReportsPage() {
           <h1 className="text-2xl font-bold tracking-tight text-slate-900">
             Financial Statements & Audit Reports
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
             Exportable foundation accounts, fund balances, loan recovery, and dues
           </p>
         </div>
 
         <button
           onClick={() => window.print()}
-          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 print:hidden transition-colors shadow-sm"
+          className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 print:hidden transition-colors shadow-sm dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
         >
           <Printer className="h-4 w-4" />
           Print / Export PDF
@@ -163,13 +163,13 @@ export default function ReportsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex flex-wrap gap-2 border-b border-slate-200 pb-2 print:hidden">
+      <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-800 pb-2 print:hidden">
         <button
           onClick={() => setActiveTab("financial")}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === "financial"
               ? "bg-emerald-600 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
           }`}
         >
           <FileBarChart2 className="h-4 w-4" />
@@ -181,7 +181,7 @@ export default function ReportsPage() {
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === "groups"
               ? "bg-emerald-600 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
           }`}
         >
           <FolderTree className="h-4 w-4" />
@@ -193,7 +193,7 @@ export default function ReportsPage() {
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === "qard"
               ? "bg-emerald-600 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
           }`}
         >
           <Scale className="h-4 w-4" />
@@ -205,7 +205,7 @@ export default function ReportsPage() {
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === "members"
               ? "bg-emerald-600 text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200"
+              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700 dark:hover:text-white"
           }`}
         >
           <Users className="h-4 w-4" />
@@ -217,16 +217,16 @@ export default function ReportsPage() {
       {activeTab === "financial" && (
         <div className="space-y-6">
           {/* Filters Bar */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm print:hidden">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm print:hidden dark:border-slate-800 dark:bg-slate-900 transition-colors">
             <div className="flex flex-wrap items-center gap-4">
               <div className="w-full sm:w-56">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                   Accounting Group
                 </label>
                 <select
                   value={finGroupId}
                   onChange={(e) => setFinGroupId(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:outline-none"
                 >
                   <option value="">All Foundation Groups</option>
                   {groups.map((g) => (
@@ -238,33 +238,33 @@ export default function ReportsPage() {
               </div>
 
               <div className="w-full sm:w-44">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                   From Date
                 </label>
                 <input
                   type="date"
                   value={finDateFrom}
                   onChange={(e) => setFinDateFrom(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div className="w-full sm:w-44">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                   To Date
                 </label>
                 <input
                   type="date"
                   value={finDateTo}
                   onChange={(e) => setFinDateTo(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:outline-none"
                 />
               </div>
 
               <div className="flex items-end self-end pt-5">
                 <button
                   onClick={fetchFinancialReport}
-                  className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800"
+                  className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 transition-colors"
                 >
                   <Filter className="h-4 w-4" />
                   Generate Statement
@@ -274,81 +274,81 @@ export default function ReportsPage() {
           </div>
 
           {financialLoading ? (
-            <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-slate-200">
+            <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-slate-200 dark:border-slate-800 dark:bg-slate-900">
               <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-              <span className="ml-3 text-slate-600 font-medium">Generating financial statement...</span>
+              <span className="ml-3 text-slate-600 dark:text-slate-300 font-medium">Generating financial statement...</span>
             </div>
           ) : financialError ? (
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/40 dark:text-rose-300">
               {financialError}
             </div>
           ) : financialData ? (
             <div className="space-y-6">
               {/* Financial KPI Summary Cards */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-5 shadow-sm">
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-5 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30 transition-colors">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-emerald-800 dark:text-emerald-300">
                       Total Inflows (Gross Receipts)
                     </span>
-                    <TrendingUp className="h-5 w-5 text-emerald-600" />
+                    <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <div className="mt-2 text-2xl font-bold text-emerald-700">
+                  <div className="mt-2 text-2xl font-bold text-emerald-700 dark:text-emerald-400">
                     +{formatCurrency(financialData.total_inflow)}
                   </div>
-                  <div className="mt-1 text-xs text-emerald-600">
+                  <div className="mt-1 text-xs text-emerald-600 dark:text-emerald-300">
                     Contributions, donations & loan repayments
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-rose-100 bg-rose-50/60 p-5 shadow-sm">
+                <div className="rounded-2xl border border-rose-100 bg-rose-50/60 p-5 shadow-sm dark:border-rose-900/40 dark:bg-rose-950/30 transition-colors">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-rose-800">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-rose-800 dark:text-rose-300">
                       Total Outflows (Disbursements)
                     </span>
-                    <TrendingDown className="h-5 w-5 text-rose-600" />
+                    <TrendingDown className="h-5 w-5 text-rose-600 dark:text-rose-400" />
                   </div>
-                  <div className="mt-2 text-2xl font-bold text-rose-700">
+                  <div className="mt-2 text-2xl font-bold text-rose-700 dark:text-rose-400">
                     -{formatCurrency(financialData.total_outflow)}
                   </div>
-                  <div className="mt-1 text-xs text-rose-600">
+                  <div className="mt-1 text-xs text-rose-600 dark:text-rose-300">
                     Expenses, sadakah grants & qard disbursements
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                       Net Flow During Period
                     </span>
-                    <Coins className="h-5 w-5 text-slate-500" />
+                    <Coins className="h-5 w-5 text-slate-500 dark:text-slate-400" />
                   </div>
                   <div
                     className={`mt-2 text-2xl font-bold ${
-                      Number(financialData.net_change) >= 0 ? "text-emerald-700" : "text-rose-700"
+                      Number(financialData.net_change) >= 0 ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"
                     }`}
                   >
                     {Number(financialData.net_change) >= 0 ? "+" : ""}
                     {formatCurrency(financialData.net_change)}
                   </div>
-                  <div className="mt-1 text-xs text-slate-400">
+                  <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">
                     Inflow minus Outflow surplus / (deficit)
                   </div>
                 </div>
               </div>
 
               {/* Breakdown by Type Grid */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                <h3 className="text-base font-semibold text-slate-900 mb-4">
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
+                <h3 className="text-base font-semibold text-slate-900 dark:text-white mb-4">
                   Distribution by Transaction Classification
                 </h3>
                 <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                   {Object.entries(financialData.breakdown_by_type || {}).map(([type, amt]: [string, any]) => (
-                    <div key={type} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                      <div className="text-xs font-medium uppercase text-slate-500">
+                    <div key={type} className="rounded-xl border border-slate-100 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950/60 transition-colors">
+                      <div className="text-xs font-medium uppercase text-slate-500 dark:text-slate-400">
                         {type.replace(/_/g, " ")}
                       </div>
-                      <div className="mt-1 text-lg font-bold text-slate-900">
+                      <div className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
                         {formatCurrency(amt)}
                       </div>
                     </div>
@@ -357,15 +357,15 @@ export default function ReportsPage() {
               </div>
 
               {/* Transactions Ledger Table */}
-              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-                  <h3 className="font-semibold text-slate-900">
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
+                <div className="border-b border-slate-200 px-6 py-4 flex items-center justify-between dark:border-slate-800">
+                  <h3 className="font-semibold text-slate-900 dark:text-white">
                     Itemized Transaction Details ({financialData.items.length} records)
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm text-slate-600">
-                    <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+                  <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200 dark:bg-slate-800/60 dark:text-slate-400 dark:border-slate-800">
                       <tr>
                         <th className="px-6 py-3 font-semibold">Txn #</th>
                         <th className="px-6 py-3 font-semibold">Date</th>
@@ -376,30 +376,30 @@ export default function ReportsPage() {
                         <th className="px-6 py-3 font-semibold">Reference</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {financialData.items.map((item: any) => (
-                        <tr key={item.id} className="hover:bg-slate-50/50">
-                          <td className="px-6 py-3 font-mono font-medium text-slate-900">
+                        <tr key={item.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="px-6 py-3 font-mono font-medium text-slate-900 dark:text-white">
                             {item.transaction_number}
                           </td>
-                          <td className="px-6 py-3">{formatDate(item.date)}</td>
-                          <td className="px-6 py-3 text-xs font-semibold text-slate-800">
+                          <td className="px-6 py-3 text-slate-600 dark:text-slate-400">{formatDate(item.date)}</td>
+                          <td className="px-6 py-3 text-xs font-semibold text-slate-800 dark:text-slate-200">
                             {item.transaction_type.replace(/_/g, " ")}
                           </td>
                           <td className="px-6 py-3">
                             <StatusBadge status={item.flow_type} />
                           </td>
-                          <td className="px-6 py-3 text-right font-bold text-slate-900">
+                          <td className="px-6 py-3 text-right font-bold text-slate-900 dark:text-white">
                             {item.flow_type === "INFLOW" ? (
-                              <span className="text-emerald-600">+{formatCurrency(item.amount)}</span>
+                              <span className="text-emerald-600 dark:text-emerald-400">+{formatCurrency(item.amount)}</span>
                             ) : (
-                              <span className="text-rose-600">-{formatCurrency(item.amount)}</span>
+                              <span className="text-rose-600 dark:text-rose-400">-{formatCurrency(item.amount)}</span>
                             )}
                           </td>
-                          <td className="px-6 py-3 text-slate-600 max-w-xs truncate">
+                          <td className="px-6 py-3 text-slate-600 dark:text-slate-300 max-w-xs truncate">
                             {item.description}
                           </td>
-                          <td className="px-6 py-3 text-xs font-mono text-slate-400">
+                          <td className="px-6 py-3 text-xs font-mono text-slate-400 dark:text-slate-500">
                             {item.reference || "-"}
                           </td>
                         </tr>
@@ -417,9 +417,9 @@ export default function ReportsPage() {
       {activeTab === "groups" && (
         <div className="space-y-6">
           {groupBalancesLoading ? (
-            <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-slate-200">
+            <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-slate-200 dark:border-slate-800 dark:bg-slate-900">
               <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-              <span className="ml-3 text-slate-600 font-medium">Aggregating group balances...</span>
+              <span className="ml-3 text-slate-600 dark:text-slate-300 font-medium">Aggregating group balances...</span>
             </div>
           ) : groupBalancesData ? (
             <>
@@ -443,65 +443,65 @@ export default function ReportsPage() {
               </div>
 
               {/* Group Balances Position Table */}
-              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-200 px-6 py-4">
-                  <h3 className="font-semibold text-slate-900">
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
+                <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+                  <h3 className="font-semibold text-slate-900 dark:text-white">
                     Group-Specific Financial Position
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm text-slate-600">
-                    <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+                  <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200 dark:bg-slate-800/60 dark:text-slate-400 dark:border-slate-800">
                       <tr>
                         <th className="px-6 py-3 font-semibold">Group Code & Name</th>
                         <th className="px-6 py-3 font-semibold">Status</th>
                         <th className="px-6 py-3 font-semibold text-right">Opening Balance</th>
-                        <th className="px-6 py-3 font-semibold text-right text-emerald-600">Total Inflows (+)</th>
-                        <th className="px-6 py-3 font-semibold text-right text-rose-600">Total Outflows (-)</th>
-                        <th className="px-6 py-3 font-semibold text-right text-slate-900">Current Closing Balance</th>
+                        <th className="px-6 py-3 font-semibold text-right text-emerald-600 dark:text-emerald-400">Total Inflows (+)</th>
+                        <th className="px-6 py-3 font-semibold text-right text-rose-600 dark:text-rose-400">Total Outflows (-)</th>
+                        <th className="px-6 py-3 font-semibold text-right text-slate-900 dark:text-white">Current Closing Balance</th>
                         <th className="px-6 py-3 font-semibold text-right">% of Capital</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {groupBalancesData.groups.map((g: any) => {
                         const pct =
                           Number(groupBalancesData.total_foundation_balance) > 0
                             ? ((Number(g.closing_balance) / Number(groupBalancesData.total_foundation_balance)) * 100).toFixed(1)
                             : "0.0";
                         return (
-                          <tr key={g.group_id} className="hover:bg-slate-50/50">
+                          <tr key={g.group_id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                             <td className="px-6 py-4">
-                              <div className="font-bold text-slate-900">{g.group_name}</div>
-                              <span className="font-mono text-xs text-slate-400">Code: {g.group_code}</span>
+                              <div className="font-bold text-slate-900 dark:text-white">{g.group_name}</div>
+                              <span className="font-mono text-xs text-slate-400 dark:text-slate-500">Code: {g.group_code}</span>
                             </td>
                             <td className="px-6 py-4">
                               <StatusBadge status={g.status} />
                             </td>
-                            <td className="px-6 py-4 text-right font-medium text-slate-600">
+                            <td className="px-6 py-4 text-right font-medium text-slate-600 dark:text-slate-400">
                               {formatCurrency(g.opening_balance)}
                             </td>
-                            <td className="px-6 py-4 text-right font-semibold text-emerald-600">
+                            <td className="px-6 py-4 text-right font-semibold text-emerald-600 dark:text-emerald-400">
                               +{formatCurrency(g.total_inflows)}
                             </td>
-                            <td className="px-6 py-4 text-right font-semibold text-rose-600">
+                            <td className="px-6 py-4 text-right font-semibold text-rose-600 dark:text-rose-400">
                               -{formatCurrency(g.total_outflows)}
                             </td>
-                            <td className="px-6 py-4 text-right font-extrabold text-slate-900 text-base">
+                            <td className="px-6 py-4 text-right font-extrabold text-slate-900 dark:text-white text-base">
                               {formatCurrency(g.closing_balance)}
                             </td>
-                            <td className="px-6 py-4 text-right font-semibold text-slate-700">
+                            <td className="px-6 py-4 text-right font-semibold text-slate-700 dark:text-slate-300">
                               {pct}%
                             </td>
                           </tr>
                         );
                       })}
                     </tbody>
-                    <tfoot className="bg-slate-50/90 font-bold text-slate-900 border-t border-slate-200">
+                    <tfoot className="bg-slate-50/90 font-bold text-slate-900 border-t border-slate-200 dark:bg-slate-800/80 dark:text-white dark:border-slate-800">
                       <tr>
                         <td className="px-6 py-3" colSpan={5}>
                           Consolidated Total:
                         </td>
-                        <td className="px-6 py-3 text-right text-base text-emerald-700">
+                        <td className="px-6 py-3 text-right text-base text-emerald-700 dark:text-emerald-400">
                           {formatCurrency(groupBalancesData.total_foundation_balance)}
                         </td>
                         <td className="px-6 py-3 text-right">100.0%</td>
@@ -519,84 +519,84 @@ export default function ReportsPage() {
       {activeTab === "qard" && (
         <div className="space-y-6">
           {qardLoading ? (
-            <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-slate-200">
+            <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-slate-200 dark:border-slate-800 dark:bg-slate-900">
               <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-              <span className="ml-3 text-slate-600 font-medium">Loading Qard Hasan loan registry...</span>
+              <span className="ml-3 text-slate-600 dark:text-slate-300 font-medium">Loading Qard Hasan loan registry...</span>
             </div>
           ) : qardData ? (
             <>
               {/* Qard KPIs */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Active Loans Count
                   </div>
-                  <div className="mt-2 text-2xl font-bold text-slate-900">
+                  <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
                     {qardData.total_active_loans}
                   </div>
-                  <div className="mt-1 text-xs text-slate-400">0% Interest Microloans</div>
+                  <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">0% Interest Microloans</div>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Total Principal Disbursed
                   </div>
-                  <div className="mt-2 text-2xl font-bold text-slate-900">
+                  <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
                     {formatCurrency(qardData.total_principal)}
                   </div>
-                  <div className="mt-1 text-xs text-slate-400">Total capital loaned</div>
+                  <div className="mt-1 text-xs text-slate-400 dark:text-slate-500">Total capital loaned</div>
                 </div>
 
-                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5 shadow-sm">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30 transition-colors">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                     Total Repayments Collected
                   </div>
-                  <div className="mt-2 text-2xl font-bold text-emerald-700">
-                    {formatCurrency(qardData.total_repaid)}
+                  <div className="mt-2 text-xl font-bold text-emerald-700 dark:text-emerald-400">
+                    +{formatCurrency(qardData.total_repaid)}
                   </div>
-                  <div className="mt-1 text-xs text-emerald-600">
+                  <div className="mt-1 text-xs text-emerald-600 dark:text-emerald-300">
                     Recovered back to group funds
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-5 shadow-sm">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-amber-700">
+                <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-5 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/30 transition-colors">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
                     Outstanding Receivables
                   </div>
-                  <div className="mt-2 text-2xl font-bold text-amber-700">
+                  <div className="mt-2 text-xl font-bold text-amber-700 dark:text-amber-400">
                     {formatCurrency(qardData.total_outstanding)}
                   </div>
-                  <div className="mt-1 text-xs text-amber-600">
+                  <div className="mt-1 text-xs text-amber-600 dark:text-amber-300">
                     Remaining unpaid balance
                   </div>
                 </div>
               </div>
 
               {/* Loans List */}
-              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-200 px-6 py-4">
-                  <h3 className="font-semibold text-slate-900">
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
+                <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+                  <h3 className="font-semibold text-slate-900 dark:text-white">
                     Active Qard Hasan Portfolio Statement
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm text-slate-600">
-                    <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+                  <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200 dark:bg-slate-800/60 dark:text-slate-400 dark:border-slate-800">
                       <tr>
                         <th className="px-6 py-3 font-semibold">Loan # & Disbursed</th>
                         <th className="px-6 py-3 font-semibold">Beneficiary</th>
                         <th className="px-6 py-3 font-semibold">Funding Group</th>
                         <th className="px-6 py-3 font-semibold text-right">Principal</th>
-                        <th className="px-6 py-3 font-semibold text-right text-emerald-600">Repaid</th>
-                        <th className="px-6 py-3 font-semibold text-right text-amber-600">Outstanding</th>
+                        <th className="px-6 py-3 font-semibold text-right text-emerald-600 dark:text-emerald-400">Repaid</th>
+                        <th className="px-6 py-3 font-semibold text-right text-amber-600 dark:text-amber-400">Outstanding</th>
                         <th className="px-6 py-3 font-semibold text-right">Monthly Installment</th>
                         <th className="px-6 py-3 font-semibold text-center">Recovery %</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {qardData.loans.length === 0 ? (
                         <tr>
-                          <td colSpan={8} className="px-6 py-8 text-center text-slate-400">
+                          <td colSpan={8} className="px-6 py-8 text-center text-slate-400 dark:text-slate-500">
                             No active Qard Hasan loans found.
                           </td>
                         </tr>
@@ -607,32 +607,32 @@ export default function ReportsPage() {
                               ? ((Number(l.total_repaid) / Number(l.principal_amount)) * 100).toFixed(0)
                               : "0";
                           return (
-                            <tr key={l.id} className="hover:bg-slate-50/50">
+                            <tr key={l.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                               <td className="px-6 py-4">
-                                <div className="font-mono font-bold text-slate-900">{l.qard_number}</div>
-                                <div className="text-xs text-slate-400">{formatDate(l.disbursed_date)}</div>
+                                <div className="font-mono font-bold text-slate-900 dark:text-white">{l.qard_number}</div>
+                                <div className="text-xs text-slate-400 dark:text-slate-500">{formatDate(l.disbursed_date)}</div>
                               </td>
                               <td className="px-6 py-4">
-                                <div className="font-semibold text-slate-800">{l.beneficiary_name}</div>
-                                <div className="text-xs text-slate-400">{l.beneficiary_phone}</div>
+                                <div className="font-semibold text-slate-800 dark:text-slate-200">{l.beneficiary_name}</div>
+                                <div className="text-xs text-slate-400 dark:text-slate-500">{l.beneficiary_phone}</div>
                               </td>
-                              <td className="px-6 py-4 font-medium text-slate-700">
+                              <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
                                 {l.group_name}
                               </td>
-                              <td className="px-6 py-4 text-right font-semibold text-slate-800">
+                              <td className="px-6 py-4 text-right font-semibold text-slate-800 dark:text-slate-200">
                                 {formatCurrency(l.principal_amount)}
                               </td>
-                              <td className="px-6 py-4 text-right font-semibold text-emerald-600">
+                              <td className="px-6 py-4 text-right font-semibold text-emerald-600 dark:text-emerald-400">
                                 {formatCurrency(l.total_repaid)}
                               </td>
-                              <td className="px-6 py-4 text-right font-bold text-amber-700">
+                              <td className="px-6 py-4 text-right font-bold text-amber-700 dark:text-amber-400">
                                 {formatCurrency(l.outstanding_amount)}
                               </td>
-                              <td className="px-6 py-4 text-right text-slate-700">
+                              <td className="px-6 py-4 text-right text-slate-700 dark:text-slate-300">
                                 {formatCurrency(l.monthly_repayment_amount)}
                               </td>
                               <td className="px-6 py-4 text-center">
-                                <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700 border border-slate-200">
+                                <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-bold text-slate-700 border border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700">
                                   {recoveryPct}%
                                 </span>
                               </td>
@@ -653,10 +653,10 @@ export default function ReportsPage() {
       {activeTab === "members" && (
         <div className="space-y-6">
           {/* Member Picker */}
-          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm print:hidden">
+          <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm print:hidden dark:border-slate-800 dark:bg-slate-900 transition-colors">
             <div className="flex flex-wrap items-center gap-4">
               <div className="w-full sm:w-80">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                   Select Foundation Member
                 </label>
                 <select
@@ -665,7 +665,7 @@ export default function ReportsPage() {
                     setSelectedMemberId(e.target.value);
                     fetchMemberLedger(e.target.value);
                   }}
-                  className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm text-slate-800 focus:border-emerald-500 focus:outline-none"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:outline-none"
                 >
                   {membersList.map((m) => (
                     <option key={m.id} value={m.id}>
@@ -678,67 +678,67 @@ export default function ReportsPage() {
           </div>
 
           {memberLedgerLoading ? (
-            <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-slate-200">
+            <div className="flex items-center justify-center p-12 bg-white rounded-2xl border border-slate-200 dark:border-slate-800 dark:bg-slate-900">
               <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
-              <span className="ml-3 text-slate-600 font-medium">Loading member contribution statement...</span>
+              <span className="ml-3 text-slate-600 dark:text-slate-300 font-medium">Loading member contribution statement...</span>
             </div>
           ) : memberLedgerData ? (
             <div className="space-y-6">
               {/* Member Profile Cards */}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Member Details
                   </div>
-                  <div className="mt-1 text-lg font-bold text-slate-900">
+                  <div className="mt-1 text-lg font-bold text-slate-900 dark:text-white">
                     {memberLedgerData.member_name}
                   </div>
-                  <div className="text-xs font-mono text-slate-400">
+                  <div className="text-xs font-mono text-slate-400 dark:text-slate-500">
                     {memberLedgerData.member_number} • Group: {memberLedgerData.group_name}
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                     Agreed Monthly Rate
                   </div>
-                  <div className="mt-1 text-xl font-bold text-slate-900">
+                  <div className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
                     {formatCurrency(memberLedgerData.monthly_rate)}
                   </div>
-                  <div className="text-xs text-slate-400">Monthly commitment</div>
+                  <div className="text-xs text-slate-400 dark:text-slate-500">Monthly commitment</div>
                 </div>
 
-                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5 shadow-sm">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-emerald-700">
+                <div className="rounded-2xl border border-emerald-100 bg-emerald-50/50 p-5 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/30 transition-colors">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
                     Total Paid Contributions
                   </div>
-                  <div className="mt-1 text-xl font-bold text-emerald-700">
+                  <div className="mt-1 text-xl font-bold text-emerald-700 dark:text-emerald-400">
                     {formatCurrency(memberLedgerData.total_paid)}
                   </div>
-                  <div className="text-xs text-emerald-600">Credited to group account</div>
+                  <div className="text-xs text-emerald-600 dark:text-emerald-300">Credited to group account</div>
                 </div>
 
-                <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-5 shadow-sm">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-amber-700">
+                <div className="rounded-2xl border border-amber-100 bg-amber-50/50 p-5 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/30 transition-colors">
+                  <div className="text-xs font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400">
                     Total Outstanding Dues
                   </div>
-                  <div className="mt-1 text-xl font-bold text-amber-700">
+                  <div className="mt-1 text-xl font-bold text-amber-700 dark:text-amber-400">
                     {formatCurrency(memberLedgerData.total_due)}
                   </div>
-                  <div className="text-xs text-amber-600">Pending or overdue</div>
+                  <div className="text-xs text-amber-600 dark:text-amber-300">Pending or overdue</div>
                 </div>
               </div>
 
               {/* Monthly Ledger Table */}
-              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-200 px-6 py-4">
-                  <h3 className="font-semibold text-slate-900">
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
+                <div className="border-b border-slate-200 px-6 py-4 dark:border-slate-800">
+                  <h3 className="font-semibold text-slate-900 dark:text-white">
                     Monthly Contribution History
                   </h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm text-slate-600">
-                    <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
+                  <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+                    <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200 dark:bg-slate-800/60 dark:text-slate-400 dark:border-slate-800">
                       <tr>
                         <th className="px-6 py-3 font-semibold">Date</th>
                         <th className="px-6 py-3 font-semibold">Classification</th>
@@ -748,26 +748,26 @@ export default function ReportsPage() {
                         <th className="px-6 py-3 font-semibold">Reference</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100">
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {memberLedgerData.entries.length === 0 ? (
                         <tr>
-                          <td colSpan={6} className="px-6 py-8 text-center text-slate-400">
+                          <td colSpan={6} className="px-6 py-8 text-center text-slate-400 dark:text-slate-500">
                             No contributions recorded for this member.
                           </td>
                         </tr>
                       ) : (
                         memberLedgerData.entries.map((entry: any, idx: number) => (
-                          <tr key={idx} className="hover:bg-slate-50/50">
-                            <td className="px-6 py-4">{formatDate(entry.date)}</td>
-                            <td className="px-6 py-4 font-medium text-slate-800">{entry.type}</td>
-                            <td className="px-6 py-4 text-slate-700">{entry.description}</td>
-                            <td className="px-6 py-4 text-right font-bold text-slate-900">
+                          <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                            <td className="px-6 py-4 text-slate-600 dark:text-slate-400">{formatDate(entry.date)}</td>
+                            <td className="px-6 py-4 font-medium text-slate-800 dark:text-slate-200">{entry.type}</td>
+                            <td className="px-6 py-4 text-slate-700 dark:text-slate-300">{entry.description}</td>
+                            <td className="px-6 py-4 text-right font-bold text-slate-900 dark:text-white">
                               {formatCurrency(entry.amount)}
                             </td>
                             <td className="px-6 py-4 text-center">
                               <StatusBadge status={entry.status} />
                             </td>
-                            <td className="px-6 py-4 text-xs font-mono text-slate-400">
+                            <td className="px-6 py-4 text-xs font-mono text-slate-400 dark:text-slate-500">
                               {entry.reference || "-"}
                             </td>
                           </tr>

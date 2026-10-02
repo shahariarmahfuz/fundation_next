@@ -143,10 +143,10 @@ export default function QardHasanPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
             Qard Hasan (Interest-Free Loans)
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             Shariah-compliant interest-free financing (0% Interest) with revolving group returns
           </p>
         </div>
@@ -157,16 +157,16 @@ export default function QardHasanPage() {
       </div>
 
       {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs sm:text-sm text-rose-800">
+        <div className="flex items-center gap-3 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 p-4 text-xs sm:text-sm text-rose-800 dark:text-rose-300">
           <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
           <span>{error}</span>
         </div>
       )}
 
       {/* Filter */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm flex items-center justify-between">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-slate-700">Filter Status:</span>
+          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Filter Status:</span>
           <select
             value={selectedStatus}
             onChange={(e) => {
@@ -182,8 +182,8 @@ export default function QardHasanPage() {
           </select>
         </div>
 
-        <div className="text-xs text-slate-500 hidden sm:block">
-          Interest Rate: <strong className="text-emerald-700 font-bold">Strictly 0%</strong> (No fees or usury)
+        <div className="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">
+          Interest Rate: <strong className="text-emerald-700 dark:text-emerald-400 font-bold">Strictly 0%</strong> (No fees or usury)
         </div>
       </div>
 
@@ -218,28 +218,28 @@ export default function QardHasanPage() {
               </tr>
             ) : (
               loans.map((l) => (
-                <tr key={l.id}>
-                  <td className="font-mono text-xs font-semibold text-slate-900">{l.qard_number}</td>
+                <tr key={l.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                  <td className="font-mono text-xs font-semibold text-slate-900 dark:text-slate-100">{l.qard_number}</td>
                   <td>
-                    <div className="font-semibold text-xs text-slate-900">{l.beneficiary?.name}</div>
-                    <div className="text-[10px] text-slate-400">{l.beneficiary?.phone}</div>
+                    <div className="font-semibold text-xs text-slate-900 dark:text-slate-100">{l.beneficiary?.name}</div>
+                    <div className="text-[10px] text-slate-400 dark:text-slate-400">{l.beneficiary?.phone}</div>
                   </td>
                   <td>
-                    <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
-                      <FolderTree className="h-3 w-3 text-foundation-700" />
+                    <span className="inline-flex items-center gap-1 rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-medium text-slate-700 dark:text-slate-300">
+                      <FolderTree className="h-3 w-3 text-foundation-700 dark:text-emerald-400" />
                       {l.group?.name}
                     </span>
                   </td>
-                  <td className="text-right font-bold text-xs text-slate-900">
+                  <td className="text-right font-bold text-xs text-slate-900 dark:text-slate-100">
                     {formatCurrency(l.principal_amount)}
                   </td>
-                  <td className="text-right text-xs text-slate-600">
+                  <td className="text-right text-xs text-slate-600 dark:text-slate-400">
                     {formatCurrency(l.monthly_repayment_amount)}/mo
                   </td>
-                  <td className="text-right font-semibold text-xs text-emerald-700">
+                  <td className="text-right font-semibold text-xs text-emerald-700 dark:text-emerald-400">
                     {formatCurrency(l.total_repaid)}
                   </td>
-                  <td className="text-right font-bold text-xs text-blue-700">
+                  <td className="text-right font-bold text-xs text-blue-700 dark:text-blue-400">
                     {formatCurrency(l.outstanding_amount)}
                   </td>
                   <td>
@@ -258,7 +258,7 @@ export default function QardHasanPage() {
                         Receive Repay
                       </button>
                     ) : (
-                      <span className="text-xs text-emerald-600 font-semibold flex items-center justify-end gap-1">
+                      <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center justify-end gap-1">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         Settled
                       </span>
@@ -291,13 +291,13 @@ export default function QardHasanPage() {
       >
         <form onSubmit={handleDisburseSubmit} className="space-y-4">
           {disburseError && (
-            <div className="rounded-lg bg-rose-50 p-3 text-xs text-rose-700 border border-rose-200">
+            <div className="rounded-lg bg-rose-50 dark:bg-rose-950/40 p-3 text-xs text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
               {disburseError}
             </div>
           )}
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Beneficiary (Recipient) <span className="text-rose-500">*</span>
             </label>
             <select
@@ -315,7 +315,7 @@ export default function QardHasanPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Source Accounting Group <span className="text-rose-500">*</span>
             </label>
             <select
@@ -330,14 +330,14 @@ export default function QardHasanPage() {
                 </option>
               ))}
             </select>
-            <p className="mt-1 text-[11px] text-slate-400">
+            <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-400">
               Capital will be disbursed from this group. Repayments will return to this group.
             </p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Principal Amount (৳) <span className="text-rose-500">*</span>
               </label>
               <input
@@ -350,7 +350,7 @@ export default function QardHasanPage() {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Monthly Repayment (৳) <span className="text-rose-500">*</span>
               </label>
               <input
@@ -365,7 +365,7 @@ export default function QardHasanPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Disbursement Date</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Disbursement Date</label>
             <input
               required
               type="date"
@@ -376,7 +376,7 @@ export default function QardHasanPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Repayment Schedule / Notes
             </label>
             <textarea
@@ -387,7 +387,7 @@ export default function QardHasanPage() {
             />
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
             <button type="button" onClick={() => setDisburseModalOpen(false)} className="btn-secondary">
               Cancel
             </button>
@@ -407,12 +407,12 @@ export default function QardHasanPage() {
       >
         <form onSubmit={handleRepaymentSubmit} className="space-y-4">
           {repayError && (
-            <div className="rounded-lg bg-rose-50 p-3 text-xs text-rose-700 border border-rose-200">
+            <div className="rounded-lg bg-rose-50 dark:bg-rose-950/40 p-3 text-xs text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
               {repayError}
             </div>
           )}
 
-          <div className="bg-slate-50 p-3 rounded-lg border border-slate-200 text-xs space-y-1">
+          <div className="bg-slate-50 dark:bg-slate-950/60 p-3 rounded-lg border border-slate-200 dark:border-slate-800 text-xs space-y-1 text-slate-800 dark:text-slate-200">
             <div><strong>Loan:</strong> {selectedLoan?.qard_number}</div>
             <div><strong>Beneficiary:</strong> {selectedLoan?.beneficiary?.name}</div>
             <div><strong>Credited Group:</strong> {selectedLoan?.group?.name}</div>
@@ -420,7 +420,7 @@ export default function QardHasanPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Repayment Amount (৳ BDT) <span className="text-rose-500">*</span>
             </label>
             <input
@@ -432,13 +432,13 @@ export default function QardHasanPage() {
               value={repayAmount}
               onChange={(e) => setRepayAmount(e.target.value)}
             />
-            <p className="mt-1 text-[11px] text-slate-400">
+            <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-400">
               Cannot exceed remaining principal (৳{selectedLoan?.outstanding_amount}).
             </p>
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Payment Method</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Method</label>
             <select
               className="input-field"
               value={repayMethod}
@@ -452,7 +452,7 @@ export default function QardHasanPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">Reference</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Reference</label>
             <input
               type="text"
               className="input-field"
@@ -462,7 +462,7 @@ export default function QardHasanPage() {
             />
           </div>
 
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
             <button type="button" onClick={() => setRepayModalOpen(false)} className="btn-secondary">
               Cancel
             </button>

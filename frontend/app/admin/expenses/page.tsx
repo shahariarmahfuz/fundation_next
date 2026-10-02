@@ -160,10 +160,10 @@ export default function ExpensesPage() {
       )}
 
       {/* Filters */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-[11px] font-semibold text-slate-500 mb-1">Filter by Group</label>
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Filter by Group</label>
             <select
               value={selectedGroup}
               onChange={(e) => {
@@ -182,7 +182,7 @@ export default function ExpensesPage() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-slate-500 mb-1">Filter by Category</label>
+            <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Filter by Category</label>
             <select
               value={selectedCategory}
               onChange={(e) => {
