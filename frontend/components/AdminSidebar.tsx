@@ -106,10 +106,9 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       icon: Coins,
       permission: "contributions.view",
       children: [
-        { name: "Record Contribution", href: "/admin/contributions?action=record", permission: "contributions.create" },
-        { name: "Manage Contributions", href: "/admin/contributions" },
-        { name: "Due Contributions", href: "/admin/contributions?status=DUE" },
-        { name: "Contribution Ledger", href: "/admin/ledgers" },
+        { name: "Receive Contribution", href: "/admin/contributions/receive", permission: "contributions.create" },
+        { name: "Manage Contributions", href: "/admin/contributions", permission: "contributions.view" },
+        { name: "Contribution Ledger", href: "/admin/contributions/ledger", permission: "contributions.view" },
       ],
     },
     {
@@ -119,8 +118,9 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       icon: HandHeart,
       permission: "beneficiaries.view",
       children: [
-        { name: "Add Beneficiary", href: "/admin/beneficiaries?action=new", permission: "beneficiaries.create" },
+        { name: "Add Beneficiary", href: "/admin/beneficiaries/new", permission: "beneficiaries.create" },
         { name: "Manage Beneficiaries", href: "/admin/beneficiaries", permission: "beneficiaries.view" },
+        { name: "Beneficiary Ledger", href: "/admin/beneficiaries/ledger", permission: "beneficiaries.view" },
       ],
     },
     {

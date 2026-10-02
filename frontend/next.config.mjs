@@ -10,6 +10,41 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: "/dashboard/contributions/receive",
+        destination: "/admin/contributions/receive",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/contributions/new",
+        destination: "/admin/contributions/receive",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/contributions/ledger",
+        destination: "/admin/contributions/ledger",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/contributions",
+        destination: "/admin/contributions",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/beneficiaries/new",
+        destination: "/admin/beneficiaries/new",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/beneficiaries/ledger",
+        destination: "/admin/beneficiaries/ledger",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/beneficiaries",
+        destination: "/admin/beneficiaries",
+        permanent: false,
+      },
+      {
         source: "/dashboard/groups/new",
         destination: "/admin/groups/new",
         permanent: false,

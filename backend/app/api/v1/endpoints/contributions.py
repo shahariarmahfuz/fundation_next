@@ -17,7 +17,11 @@ from backend.app.schemas.contribution import (
     ContributionCreate,
     ContributionPay,
     ContributionResponse,
-    ContributionGenerateMonth
+    ContributionGenerateMonth,
+    ContributionBatchCreate,
+    PeriodStatusItem,
+    MemberPeriodsResponse,
+    ContributionBatchResponse
 )
 from backend.app.schemas.common import PaginatedResponse
 from backend.app.api.deps import require_permission, get_current_user
@@ -61,6 +65,173 @@ def get_contributions(
     }
 
 
+@router.get("/applicable-amount")
+def get_applicable_contribution_amount(
+    contribution_month: Optional[str] = Query(None, description="Month in YYYY-MM format"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """Returns the configured Foundation monthly contribution amount for the specified month."""
+    month_str = contribution_month or date.today().strftime("%Y-%m")
+    amount = AccountingService.get_monthly_contribution_amount(db, month_str)
+    return {
+        "contribution_month": month_str,
+        "amount": str(amount)
+    }
+
+
+@router.get("/check-duplicate")
+def check_duplicate_contribution(
+    member_id: int = Query(...),
+    contribution_month: str = Query(...),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """Checks whether a PAID contribution already exists for the given member and month."""
+    member = db.query(Member).filter(Member.id == member_id).first()
+    if not member:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
+
+    existing = db.query(Contribution).filter(
+        Contribution.member_id == member_id,
+        Contribution.contribution_month == contribution_month
+    ).first()
+
+    is_paid = existing is not None and existing.status == "PAID"
+    return {
+        "exists": existing is not None,
+        "is_paid": is_paid,
+        "status": existing.status if existing else None,
+        "member_id": member_id,
+        "member_name": member.full_name,
+        "contribution_month": contribution_month,
+        "message": f"A contribution for {member.full_name} for {contribution_month} already exists." if is_paid else None
+    }
+
+
+MONTH_NAMES = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+]
+
+
+@router.get("/member-periods", response_model=MemberPeriodsResponse)
+def get_member_contribution_periods(
+    member_id: int = Query(...),
+    year: Optional[int] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    """
+    Returns the contribution status for each month of the selected year for a member,
+    including rate calculation, PAID/DUE/CURRENT_PENDING/FUTURE status, and summary metrics.
+    """
+    member = db.query(Member).filter(Member.id == member_id).first()
+    if not member:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
+
+    today = date.today()
+    current_year = today.year
+    current_month_str = today.strftime("%Y-%m")
+    target_year = year or current_year
+
+    available_years = [current_year - 2, current_year - 1, current_year, current_year + 1, current_year + 2]
+
+    # Query all contributions for this member to accurately determine status and historical dues
+    all_contribs = db.query(Contribution).filter(Contribution.member_id == member.id).all()
+    contrib_map = {c.contribution_month: c for c in all_contribs}
+
+    periods = []
+    paid_count = 0
+    due_count = 0
+    current_pending_count = 0
+    future_count = 0
+    total_due_amount = Decimal("0.00")
+
+    for month_idx in range(1, 13):
+        m_str = f"{target_year}-{str(month_idx).zfill(2)}"
+        m_name = MONTH_NAMES[month_idx - 1]
+
+        c = contrib_map.get(m_str)
+        if c and c.status == "PAID":
+            status_str = "PAID"
+            is_paid = True
+            is_selectable = False
+            amt = c.amount
+            payment_date = c.payment_date
+            payment_method = c.payment_method
+            reference = c.reference
+            contribution_id = c.id
+            transaction_id = c.transaction_id
+            paid_count += 1
+        else:
+            is_paid = False
+            is_selectable = True
+            payment_date = None
+            payment_method = None
+            reference = None
+            contribution_id = c.id if c else None
+            transaction_id = None
+            amt = AccountingService.get_monthly_contribution_amount(db, m_str)
+            if m_str < current_month_str:
+                status_str = "DUE"
+                due_count += 1
+                total_due_amount += amt
+            elif m_str == current_month_str:
+                status_str = "CURRENT_PENDING"
+                current_pending_count += 1
+                total_due_amount += amt
+            else:
+                status_str = "FUTURE"
+                future_count += 1
+
+        periods.append(PeriodStatusItem(
+            month=m_str,
+            year=target_year,
+            month_num=month_idx,
+            month_name=m_name,
+            status=status_str,
+            is_paid=is_paid,
+            is_selectable=is_selectable,
+            amount=amt,
+            payment_date=payment_date,
+            payment_method=payment_method,
+            reference=reference,
+            contribution_id=contribution_id,
+            transaction_id=transaction_id
+        ))
+
+    # Also detect any unpaid months in previous years
+    earlier_unpaid = []
+    for c_month, c in contrib_map.items():
+        if c_month < f"{target_year}-01" and c.status != "PAID":
+            earlier_unpaid.append(c_month)
+
+    summary = {
+        "paid_count": paid_count,
+        "due_count": due_count,
+        "current_pending_count": current_pending_count,
+        "future_count": future_count,
+        "total_due_amount": str(total_due_amount),
+        "earlier_unpaid_months": sorted(earlier_unpaid),
+    }
+
+    group_name = member.group.name if member.group else f"Group #{member.group_id}"
+
+    return MemberPeriodsResponse(
+        member_id=member.id,
+        member_name=member.full_name,
+        member_number=member.member_number,
+        group_id=member.group_id,
+        group_name=group_name,
+        current_month=current_month_str,
+        available_years=available_years,
+        selected_year=target_year,
+        periods=periods,
+        summary=summary
+    )
+
+
 @router.post("/generate-month")
 def generate_monthly_dues(
     gen_in: ContributionGenerateMonth,
@@ -100,6 +271,146 @@ def generate_monthly_dues(
     return {"success": True, "created_records": created_count, "month": gen_in.contribution_month, "amount_per_member": str(month_amount)}
 
 
+@router.post("/receive-batch", response_model=ContributionBatchResponse)
+def receive_multiple_contributions(
+    batch_in: ContributionBatchCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("contributions.create"))
+) -> Any:
+    """
+    Receives and records multiple monthly contributions for a member in a single atomic transaction.
+    Supports any combination of past due months, current month, and advance future months.
+    Guarantees normalized storage (one Contribution record per month) linked to a single FinancialTransaction.
+    """
+    member = db.query(Member).filter(Member.id == batch_in.member_id).first()
+    if not member:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
+
+    sorted_months = sorted(list(set(batch_in.months)))
+    if not sorted_months:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No contribution months selected")
+
+    # Check for already paid months
+    already_paid = db.query(Contribution).filter(
+        Contribution.member_id == member.id,
+        Contribution.contribution_month.in_(sorted_months),
+        Contribution.status == "PAID"
+    ).all()
+
+    if already_paid:
+        paid_str = ", ".join([p.contribution_month for p in already_paid])
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"The following month(s) are already paid for {member.full_name}: {paid_str}"
+        )
+
+    # Compute time-aware rates for each month
+    month_rates = []
+    total_amount = Decimal("0.00")
+    for m in sorted_months:
+        rate = AccountingService.get_monthly_contribution_amount(db, m)
+        if rate <= Decimal("0.00"):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid calculated rate for month {m}")
+        month_rates.append((m, rate))
+        total_amount += rate
+
+    pay_date = batch_in.payment_date or date.today()
+    months_display = ", ".join(sorted_months)
+
+    # 1. Create single Financial Transaction in member's group (atomic inflow)
+    txn = AccountingService.create_transaction(
+        db=db,
+        group_id=member.group_id,
+        transaction_type="CONTRIBUTION",
+        flow_type="INFLOW",
+        amount=total_amount,
+        description=f"Monthly Contribution for {months_display} - {member.full_name} ({member.member_number})",
+        payment_method=batch_in.payment_method or "CASH",
+        reference=batch_in.reference,
+        related_entity_type="member",
+        related_entity_id=member.id,
+        created_by_id=current_user.id,
+        check_sufficient_funds=False
+    )
+
+    # 2. Upsert Contribution records for each month
+    contributions = []
+    for m, rate in month_rates:
+        existing = db.query(Contribution).filter(
+            Contribution.member_id == member.id,
+            Contribution.contribution_month == m
+        ).first()
+
+        if existing:
+            existing.amount = rate
+            existing.status = "PAID"
+            existing.payment_date = pay_date
+            existing.payment_method = batch_in.payment_method or "CASH"
+            existing.reference = batch_in.reference
+            existing.notes = batch_in.notes
+            existing.transaction_id = txn.id
+            contributions.append(existing)
+        else:
+            unique_code = uuid.uuid4().hex[:6].upper()
+            c_num = f"CON-{m.replace('-', '')}-{member.member_number}-{unique_code}"
+            contrib = Contribution(
+                contribution_number=c_num,
+                member_id=member.id,
+                group_id=member.group_id,
+                contribution_month=m,
+                amount=rate,
+                status="PAID",
+                payment_date=pay_date,
+                payment_method=batch_in.payment_method or "CASH",
+                reference=batch_in.reference,
+                notes=batch_in.notes,
+                transaction_id=txn.id,
+                created_by_id=current_user.id
+            )
+            db.add(contrib)
+            contributions.append(contrib)
+
+    db.commit()
+    for c in contributions:
+        db.refresh(c)
+
+    cache.invalidate_financial_caches(member.group_id)
+
+    AuditService.log(
+        db, action="RECEIVE_BATCH", module="contributions", record_id=str(txn.id),
+        user=current_user,
+        new_values={
+            "member": member.full_name,
+            "member_number": member.member_number,
+            "group_id": member.group_id,
+            "months": sorted_months,
+            "count": len(sorted_months),
+            "total_amount": str(total_amount),
+            "transaction_number": txn.transaction_number
+        }
+    )
+    db.commit()
+
+    group_name = member.group.name if member.group else f"Group #{member.group_id}"
+
+    return ContributionBatchResponse(
+        success=True,
+        transaction_id=txn.id,
+        transaction_number=txn.transaction_number,
+        member_id=member.id,
+        member_name=member.full_name,
+        member_number=member.member_number,
+        group_id=member.group_id,
+        group_name=group_name,
+        months=sorted_months,
+        months_count=len(sorted_months),
+        total_amount=total_amount,
+        payment_method=batch_in.payment_method or "CASH",
+        reference=batch_in.reference,
+        contributions=contributions
+    )
+
+
 @router.post("", response_model=ContributionResponse)
 def record_contribution(
     contrib_in: ContributionCreate,
@@ -127,7 +438,7 @@ def record_contribution(
     if existing and existing.status == "PAID":
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Contribution for month {contrib_in.contribution_month} is already paid"
+            detail=f"A contribution for {member.full_name} for {contrib_in.contribution_month} already exists."
         )
 
     # 1. Create Financial Transaction in member's group (atomic)

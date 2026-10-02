@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api, getStoredUser } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 
 export default function ManageBeneficiariesPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [user, setUser] = useState<any | null>(null);
   const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
@@ -34,21 +35,6 @@ export default function ManageBeneficiariesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: "success" | "warning"; message: string } | null>(null);
-
-  // New Modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    code: "",
-    name: "",
-    phone: "",
-    email: "",
-    address: "",
-    nid_or_id: "",
-    status: "ACTIVE",
-    notes: "",
-  });
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Edit Modal
   const [editingBeneficiary, setEditingBeneficiary] = useState<any | null>(null);
@@ -117,48 +103,14 @@ export default function ManageBeneficiariesPage() {
   // Check if ?action=new is in query string
   useEffect(() => {
     if (searchParams.get("action") === "new") {
-      setIsModalOpen(true);
+      router.push("/admin/beneficiaries/new");
     }
-  }, [searchParams]);
+  }, [searchParams, router]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPage(1);
     fetchBeneficiaries();
-  };
-
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setSubmitError(null);
-    try {
-      await api.post("/beneficiaries", {
-        ...formData,
-        code: formData.code.trim() || undefined,
-        beneficiary_number: formData.code.trim() || undefined,
-      });
-      setIsModalOpen(false);
-      setFormData({
-        code: "",
-        name: "",
-        phone: "",
-        email: "",
-        address: "",
-        nid_or_id: "",
-        status: "ACTIVE",
-        notes: "",
-      });
-      setNotification({
-        type: "success",
-        message: `Beneficiary registered successfully!`,
-      });
-      setTimeout(() => setNotification(null), 5000);
-      fetchBeneficiaries();
-    } catch (err: any) {
-      setSubmitError(err.message || "Failed to register beneficiary");
-    } finally {
-      setSubmitting(false);
-    }
   };
 
   const openEditModal = (b: any) => {
@@ -232,12 +184,25 @@ export default function ManageBeneficiariesPage() {
             View, search, and manage welfare aid recipients, 0% Qard Hasan loans, and Sadakah assistance
           </p>
         </div>
-        {canCreate && (
-          <button onClick={() => setIsModalOpen(true)} className="btn-primary shrink-0">
-            <Plus className="h-4 w-4" />
-            Add Beneficiary
-          </button>
-        )}
+
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/admin/beneficiaries/ledger"
+            className="btn-secondary shrink-0 flex items-center gap-1.5"
+          >
+            <HandHeart className="h-4 w-4" />
+            Beneficiary Ledger
+          </Link>
+          {canCreate && (
+            <Link
+              href="/admin/beneficiaries/new"
+              className="btn-primary shrink-0 flex items-center gap-1.5"
+            >
+              <Plus className="h-4 w-4" />
+              Add Beneficiary
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Notifications */}
@@ -398,153 +363,6 @@ export default function ManageBeneficiariesPage() {
           setPage(1);
         }}
       />
-
-      {/* Modal: Add Beneficiary */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title="Register Welfare Beneficiary"
-        maxWidth="lg"
-      >
-        <form onSubmit={handleCreate} className="space-y-4">
-          {submitError && (
-            <div className="rounded-lg bg-rose-50 dark:bg-rose-950/40 p-3 text-xs text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40">
-              {submitError}
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Full Name *
-              </label>
-              <input
-                required
-                type="text"
-                placeholder="e.g. Mohammad Rahim"
-                className="input-field"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Beneficiary Code <span className="text-slate-400 font-normal">(Optional)</span>
-              </label>
-              <input
-                type="text"
-                placeholder="Leave blank to generate automatically (e.g. B-0001)"
-                className="input-field uppercase font-mono"
-                value={formData.code}
-                onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
-              />
-              <p className="mt-1 text-[11px] text-slate-400">
-                Format: B-XXXX (e.g. B-0001, B-2026-001). Auto-generates next serial if left blank.
-              </p>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Phone Number *
-              </label>
-              <input
-                required
-                type="text"
-                placeholder="017XXXXXXXX"
-                className="input-field"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Email Address
-              </label>
-              <input
-                type="email"
-                placeholder="beneficiary@example.org"
-                className="input-field"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                National ID / Birth Cert No.
-              </label>
-              <input
-                type="text"
-                placeholder="10 or 17 digit NID"
-                className="input-field"
-                value={formData.nid_or_id}
-                onChange={(e) => setFormData({ ...formData, nid_or_id: e.target.value })}
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Status *
-              </label>
-              <select
-                required
-                className="input-field"
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              >
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="INACTIVE">INACTIVE</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Residential Address
-              </label>
-              <input
-                type="text"
-                placeholder="Village/Road, Thana, District"
-                className="input-field"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Social/Family Background & Aid Eligibility Notes
-            </label>
-            <textarea
-              rows={3}
-              placeholder="Family situation, income source, assistance requirement justification..."
-              className="input-field"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-            />
-          </div>
-
-          <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="btn-secondary text-xs"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={submitting}
-              className="btn-primary text-xs"
-            >
-              {submitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              Register Beneficiary
-            </button>
-          </div>
-        </form>
-      </Modal>
 
       {/* Modal: Edit Beneficiary */}
       {editingBeneficiary && (

@@ -52,3 +52,42 @@ class BeneficiaryResponse(BeneficiaryBase):
         elif not self.beneficiary_number and self.code:
             self.beneficiary_number = self.code
         return self
+
+
+class BeneficiaryLedgerItem(BaseModel):
+    id: int
+    transaction_number: str
+    transaction_date: datetime
+    transaction_type: str  # SADAKAH, QARD_HASAN_DISBURSEMENT, QARD_HASAN_REPAYMENT
+    flow_type: str  # INFLOW, OUTFLOW
+    amount: Decimal
+    balance_after: Decimal
+    description: str
+    payment_method: str
+    reference: Optional[str] = None
+    beneficiary_id: int
+    beneficiary_name: str
+    beneficiary_number: str
+    group_id: int
+    group_name: str
+    group_code: Optional[str] = None
+    created_by_name: Optional[str] = None
+    is_reversed: bool = False
+
+
+class BeneficiaryLedgerSummary(BaseModel):
+    total_aid_disbursed: Decimal
+    total_sadakah: Decimal
+    total_qard_disbursed: Decimal
+    total_qard_repaid: Decimal
+    net_qard_outstanding: Decimal
+
+
+class BeneficiaryLedgerResponse(BaseModel):
+    items: list[BeneficiaryLedgerItem]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+    summary: BeneficiaryLedgerSummary
+

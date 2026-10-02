@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -48,18 +49,6 @@ export default function ContributionsPage() {
   const [genMonth, setGenMonth] = useState(new Date().toISOString().slice(0, 7));
   const [generating, setGenerating] = useState(false);
   const [genResult, setGenResult] = useState<any | null>(null);
-
-  // Direct Record Contribution Modal
-  const [recordModalOpen, setRecordModalOpen] = useState(false);
-  const [recordMemberId, setRecordMemberId] = useState("");
-  const [recordMonth, setRecordMonth] = useState(new Date().toISOString().slice(0, 7));
-  const [recordAmount, setRecordAmount] = useState("");
-  const [recordPayMethod, setRecordPayMethod] = useState("CASH");
-  const [recordRef, setRecordRef] = useState("");
-  const [recordNotes, setRecordNotes] = useState("");
-  const [recording, setRecording] = useState(false);
-  const [recordError, setRecordError] = useState<string | null>(null);
-
 
   const fetchDropdowns = async () => {
     try {
@@ -139,57 +128,24 @@ export default function ContributionsPage() {
     }
   };
 
-  const handleRecord = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!recordMemberId) {
-      setRecordError("Please select a member");
-      return;
-    }
-    setRecording(true);
-    setRecordError(null);
-    try {
-      await api.post("/contributions", {
-        member_id: parseInt(recordMemberId, 10),
-        contribution_month: recordMonth,
-        amount: recordAmount ? parseFloat(recordAmount) : undefined,
-        payment_method: recordPayMethod,
-        reference: recordRef || undefined,
-        notes: recordNotes || undefined,
-      });
-      setRecordModalOpen(false);
-      setRecordMemberId("");
-      setRecordAmount("");
-      setRecordRef("");
-      setRecordNotes("");
-      fetchContributions();
-    } catch (err: any) {
-      setRecordError(err.message || "Failed to record contribution");
-    } finally {
-      setRecording(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Monthly Contributions</h1>
-          <p className="text-xs sm:text-sm text-slate-500">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Monthly Contributions</h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             Track member monthly contribution payments and automatically credit their assigned group
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => {
-              setRecordError(null);
-              setRecordModalOpen(true);
-            }}
+          <Link
+            href="/admin/contributions/receive"
             className="btn-primary"
           >
             <Plus className="h-4 w-4" />
-            Record Contribution
-          </button>
+            Receive Contribution
+          </Link>
           <button
             onClick={() => {
               setGenResult(null);
@@ -481,134 +437,6 @@ export default function ContributionsPage() {
             <button type="submit" disabled={generating} className="btn-primary">
               {generating && <Loader2 className="h-4 w-4 animate-spin" />}
               Generate Records
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* Modal: Direct Record Contribution */}
-      <Modal
-        isOpen={recordModalOpen}
-        onClose={() => setRecordModalOpen(false)}
-        title="Record Member Contribution"
-      >
-        <form onSubmit={handleRecord} className="space-y-4">
-          {recordError && (
-            <div className="rounded-lg bg-rose-50 dark:bg-rose-950/40 p-3 text-xs text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800">
-              {recordError}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Select Member *
-            </label>
-            <select
-              required
-              className="input-field text-xs"
-              value={recordMemberId}
-              onChange={(e) => {
-                const mid = e.target.value;
-                setRecordMemberId(mid);
-                const mem = members.find((m) => String(m.id) === mid);
-                if (mem && mem.monthly_contribution_amount) {
-                  setRecordAmount(String(mem.monthly_contribution_amount));
-                }
-              }}
-            >
-              <option value="">-- Choose Member --</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.full_name} ({m.member_number}) — {m.group?.name || `Group #${m.group_id}`}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Contribution Month (YYYY-MM) *
-              </label>
-              <input
-                required
-                type="month"
-                className="input-field text-xs"
-                value={recordMonth}
-                onChange={(e) => setRecordMonth(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Amount (৳) *
-              </label>
-              <input
-                required
-                type="number"
-                step="0.01"
-                min="1"
-                placeholder="100.00"
-                className="input-field text-xs font-mono"
-                value={recordAmount}
-                onChange={(e) => setRecordAmount(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Payment Method *
-            </label>
-            <select
-              className="input-field text-xs"
-              value={recordPayMethod}
-              onChange={(e) => setRecordPayMethod(e.target.value)}
-            >
-              <option value="CASH">CASH</option>
-              <option value="BKASH">BKASH</option>
-              <option value="NAGAD">NAGAD</option>
-              <option value="BANK_TRANSFER">BANK TRANSFER</option>
-              <option value="OTHER">OTHER</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Transaction Reference / Receipt #
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. TRX-BKASH-89102"
-              className="input-field text-xs"
-              value={recordRef}
-              onChange={(e) => setRecordRef(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Notes
-            </label>
-            <input
-              type="text"
-              placeholder="Optional notes or remarks"
-              className="input-field text-xs"
-              value={recordNotes}
-              onChange={(e) => setRecordNotes(e.target.value)}
-            />
-          </div>
-
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setRecordModalOpen(false)}
-              className="btn-secondary"
-            >
-              Cancel
-            </button>
-            <button type="submit" disabled={recording} className="btn-primary">
-              {recording && <Loader2 className="h-4 w-4 animate-spin" />}
-              Record & Credit Group
             </button>
           </div>
         </form>

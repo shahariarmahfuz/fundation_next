@@ -68,9 +68,9 @@ export default function DashboardPage() {
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
             Refresh
           </button>
-          <Link href="/admin/contributions?action=record" className="btn-primary !py-1.5 !px-3 text-xs">
+          <Link href="/admin/contributions/receive" className="btn-primary !py-1.5 !px-3 text-xs">
             <PlusCircle className="h-3.5 w-3.5" />
-            Record Payment
+            Receive Contribution
           </Link>
         </div>
       </div>

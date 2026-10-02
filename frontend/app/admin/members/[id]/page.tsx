@@ -40,15 +40,6 @@ export default function MemberProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Pay modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [payMonth, setPayMonth] = useState("");
-  const [payAmount, setPayAmount] = useState("");
-  const [payMethod, setPayMethod] = useState("CASH");
-  const [payRef, setPayRef] = useState("");
-  const [paying, setPaying] = useState(false);
-  const [payError, setPayError] = useState<string | null>(null);
-
   const [documents, setDocuments] = useState<any[]>([]);
   const [mediaUploading, setMediaUploading] = useState<Record<string, boolean>>({});
   const [mediaError, setMediaError] = useState<string | null>(null);
@@ -65,9 +56,6 @@ export default function MemberProfilePage() {
       setMember(m);
       setLedger(l);
       setDocuments(docs || []);
-      setPayAmount(String(m.monthly_contribution_amount));
-      const currentMonth = new Date().toISOString().slice(0, 7);
-      setPayMonth(currentMonth);
     } catch (err: any) {
       setError(err.message || "Failed to load member data");
     } finally {
@@ -162,26 +150,6 @@ export default function MemberProfilePage() {
     }
   };
 
-  const handleRecordPayment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setPaying(true);
-    setPayError(null);
-    try {
-      await api.post("/contributions", {
-        member_id: parseInt(memberId),
-        contribution_month: payMonth,
-        amount: parseFloat(payAmount) || member.monthly_contribution_amount,
-        payment_method: payMethod,
-        reference: payRef,
-      });
-      setIsModalOpen(false);
-      fetchMemberData();
-    } catch (err: any) {
-      setPayError(err.message || "Failed to record contribution");
-    } finally {
-      setPaying(false);
-    }
-  };
 
   if (loading && !member) {
     return (
@@ -260,13 +228,13 @@ export default function MemberProfilePage() {
           </div>
         </div>
 
-        <button
-          onClick={() => setIsModalOpen(true)}
+        <Link
+          href={`/admin/contributions/receive?member_id=${member.id}`}
           className="btn-primary"
         >
           <PlusCircle className="h-4 w-4" />
-          Record Contribution
-        </button>
+          Receive Contribution
+        </Link>
       </div>
 
       {/* Member Details & Financial Summary Cards */}
@@ -707,95 +675,6 @@ export default function MemberProfilePage() {
           </table>
         </div>
       </div>
-
-      {/* Modal: Record Contribution */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={`Record Contribution — ${member.full_name}`}
-      >
-        <form onSubmit={handleRecordPayment} className="space-y-4">
-          {payError && (
-            <div className="rounded-lg bg-rose-50 p-3 text-xs text-rose-700 border border-rose-200">
-              {payError}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Contribution Month (YYYY-MM) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              required
-              type="month"
-              className="input-field"
-              value={payMonth}
-              onChange={(e) => setPayMonth(e.target.value)}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Payment Amount (৳ BDT) <span className="text-rose-500">*</span>
-            </label>
-            <input
-              required
-              type="number"
-              step="50"
-              className="input-field"
-              value={payAmount}
-              onChange={(e) => setPayAmount(e.target.value)}
-            />
-            <p className="mt-1 text-[11px] text-slate-400">
-              Will be deposited directly into <strong>{member.group?.name}</strong>.
-            </p>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Payment Method
-            </label>
-            <select
-              className="input-field"
-              value={payMethod}
-              onChange={(e) => setPayMethod(e.target.value)}
-            >
-              <option value="CASH">CASH</option>
-              <option value="BKASH">BKASH</option>
-              <option value="NAGAD">NAGAD</option>
-              <option value="BANK_TRANSFER">BANK TRANSFER</option>
-              <option value="OTHER">OTHER</option>
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Reference / Trx ID
-            </label>
-            <input
-              type="text"
-              className="input-field"
-              placeholder="e.g. BK-TRX-9872"
-              value={payRef}
-              onChange={(e) => setPayRef(e.target.value)}
-            />
-          </div>
-
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">
-            <button
-              type="button"
-              onClick={() => setIsModalOpen(false)}
-              className="btn-secondary"
-            >
-              Cancel
-            </button>
-            <button type="submit" disabled={paying} className="btn-primary">
-              {paying && <Loader2 className="h-4 w-4 animate-spin" />}
-              Post Payment
-            </button>
-          </div>
-        </form>
-      </Modal>
     </div>
   );
 }
