@@ -5,9 +5,11 @@ import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { api } from "@/lib/api";
+import { useBranding } from "@/lib/branding";
 import { UserPlus, CheckCircle2, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 
 export default function MemberApplicationPage() {
+  const { name } = useBranding();
   const [formData, setFormData] = useState({
     applicant_name: "",
     email: "",
@@ -56,7 +58,7 @@ export default function MemberApplicationPage() {
                   Membership Application
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-500">
-                  Join Al-Birr Foundation to contribute regularly and support community welfare
+                  Join {name || "the Foundation"} to contribute regularly and support community welfare
                 </p>
               </div>
             </div>
@@ -176,7 +178,7 @@ export default function MemberApplicationPage() {
 
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Why do you wish to join Al-Birr Foundation?
+                      Why do you wish to join {name || "the Foundation"}?
                     </label>
                     <textarea
                       rows={3}

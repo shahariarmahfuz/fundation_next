@@ -32,10 +32,14 @@ interface AllocationRow {
 export default function NewQardHasanPage() {
   const router = useRouter();
 
-  // Reference data
+  // Reference data with decoupled loading & error states
   const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
+  const [loadingBeneficiaries, setLoadingBeneficiaries] = useState(true);
+  const [beneficiariesError, setBeneficiariesError] = useState<string | null>(null);
+
   const [groups, setGroups] = useState<any[]>([]);
-  const [loadingRefs, setLoadingRefs] = useState(true);
+  const [loadingGroups, setLoadingGroups] = useState(true);
+  const [groupsError, setGroupsError] = useState<string | null>(null);
 
   // Form State
   const [beneficiaryId, setBeneficiaryId] = useState("");
@@ -58,31 +62,43 @@ export default function NewQardHasanPage() {
   const [error, setError] = useState<string | null>(null);
   const [createdLoan, setCreatedLoan] = useState<any | null>(null);
 
-  useEffect(() => {
-    async function loadData() {
-      setLoadingRefs(true);
-      try {
-        const [bRes, gRes] = await Promise.all([
-          api.get("/beneficiaries?page=1&page_size=200"),
-          api.get("/groups"),
-        ]);
-        const bList = bRes.items || [];
-        setBeneficiaries(bList);
-        setGroups(gRes || []);
-
-        if (bList.length > 0) {
-          setBeneficiaryId(String(bList[0].id));
-        }
-        if (gRes && gRes.length > 0) {
-          setAllocations([{ group_id: String(gRes[0].id), amount: "10000.00" }]);
-        }
-      } catch (err: any) {
-        setError(err.message || "Failed to load reference data.");
-      } finally {
-        setLoadingRefs(false);
+  const loadBeneficiaries = async () => {
+    setLoadingBeneficiaries(true);
+    setBeneficiariesError(null);
+    try {
+      const bRes = await api.get("/beneficiaries?page=1&page_size=200");
+      const bList = bRes.items || [];
+      setBeneficiaries(bList);
+      if (bList.length > 0 && !beneficiaryId) {
+        setBeneficiaryId(String(bList[0].id));
       }
+    } catch (err: any) {
+      setBeneficiariesError(err.message || "Unable to load beneficiaries.");
+    } finally {
+      setLoadingBeneficiaries(false);
     }
-    loadData();
+  };
+
+  const loadGroups = async () => {
+    setLoadingGroups(true);
+    setGroupsError(null);
+    try {
+      const gRes = await api.get("/groups");
+      const gList = Array.isArray(gRes) ? gRes : [];
+      setGroups(gList);
+      if (gList.length > 0 && (!allocations[0] || !allocations[0].group_id)) {
+        setAllocations([{ group_id: String(gList[0].id), amount: principalAmount }]);
+      }
+    } catch (err: any) {
+      setGroupsError(err.message || "Unable to load accounting groups.");
+    } finally {
+      setLoadingGroups(false);
+    }
+  };
+
+  useEffect(() => {
+    loadBeneficiaries();
+    loadGroups();
   }, []);
 
   // Update monthly repayment placeholder when principal changes
@@ -184,7 +200,10 @@ export default function NewQardHasanPage() {
 
   const canSubmit =
     !submitting &&
-    !loadingRefs &&
+    !loadingBeneficiaries &&
+    !loadingGroups &&
+    !beneficiariesError &&
+    !groupsError &&
     beneficiaryId &&
     parsedPrincipal > 0 &&
     parseFloat(monthlyRepayment) > 0 &&
@@ -232,7 +251,7 @@ export default function NewQardHasanPage() {
 
       // Refresh groups list to reflect deducted balances
       const gRes = await api.get("/groups");
-      setGroups(gRes || []);
+      setGroups(Array.isArray(gRes) ? gRes : []);
 
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
@@ -243,12 +262,13 @@ export default function NewQardHasanPage() {
   };
 
   const filteredBeneficiaries = beneficiaries.filter((b) => {
-    if (!beneficiarySearch) return true;
-    const term = beneficiarySearch.toLowerCase();
+    if (!beneficiarySearch.trim()) return true;
+    const term = beneficiarySearch.toLowerCase().trim();
     return (
       b.name?.toLowerCase().includes(term) ||
       b.phone?.includes(term) ||
-      b.beneficiary_number?.toLowerCase().includes(term)
+      b.beneficiary_number?.toLowerCase().includes(term) ||
+      b.nid?.toLowerCase().includes(term)
     );
   });
 
@@ -418,26 +438,85 @@ export default function NewQardHasanPage() {
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Filter / Search Beneficiary
               </label>
-              <input
-                type="text"
-                placeholder="Search by name, phone, or code..."
-                className="input-field text-xs mb-2"
-                value={beneficiarySearch}
-                onChange={(e) => setBeneficiarySearch(e.target.value)}
-              />
-              <select
-                required
-                size={5}
-                className="input-field text-xs leading-normal font-medium h-36"
-                value={beneficiaryId}
-                onChange={(e) => setBeneficiaryId(e.target.value)}
-              >
-                {filteredBeneficiaries.map((b) => (
-                  <option key={b.id} value={b.id} className="p-1.5 hover:bg-emerald-50 dark:hover:bg-slate-800">
-                    {b.name} — ({b.phone || "No phone"}) [{b.beneficiary_number}]
-                  </option>
-                ))}
-              </select>
+
+              {loadingBeneficiaries ? (
+                <div className="flex flex-col items-center justify-center p-8 border border-slate-200 dark:border-[#242424] rounded-xl bg-slate-50 dark:bg-[#0D0D0D]">
+                  <Loader2 className="h-6 w-6 animate-spin text-emerald-500 mb-2" />
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Loading beneficiaries from database...</span>
+                </div>
+              ) : beneficiariesError ? (
+                <div className="p-4 border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 rounded-xl text-xs space-y-2">
+                  <div className="flex items-center gap-2 text-rose-800 dark:text-rose-300 font-semibold">
+                    <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+                    <span>Unable to load beneficiaries.</span>
+                  </div>
+                  <p className="text-[11px] text-rose-700 dark:text-rose-400">{beneficiariesError}</p>
+                  <button
+                    type="button"
+                    onClick={loadBeneficiaries}
+                    className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold cursor-pointer"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : beneficiaries.length === 0 ? (
+                <div className="p-6 border border-dashed border-slate-300 dark:border-[#242424] rounded-xl text-center text-xs text-slate-500 dark:text-slate-400 space-y-2">
+                  <p className="font-semibold text-slate-700 dark:text-slate-300">No beneficiaries found in database.</p>
+                  <Link
+                    href="/admin/beneficiaries/new"
+                    className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    Register First Beneficiary
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <input
+                    type="text"
+                    placeholder="Search by name, phone, code, or NID..."
+                    className="input-field text-xs"
+                    value={beneficiarySearch}
+                    onChange={(e) => setBeneficiarySearch(e.target.value)}
+                  />
+
+                  {filteredBeneficiaries.length === 0 ? (
+                    <div className="p-5 border border-dashed border-slate-300 dark:border-[#242424] rounded-xl text-center text-xs text-slate-500 dark:text-slate-400 space-y-2">
+                      <p>
+                        No beneficiaries found matching &ldquo;<span className="font-semibold text-slate-800 dark:text-slate-200">{beneficiarySearch}</span>&rdquo;
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setBeneficiarySearch("")}
+                        className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold cursor-pointer"
+                      >
+                        Clear Search Filter ({beneficiaries.length} total available)
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      required
+                      size={5}
+                      className="input-field text-xs leading-normal font-medium h-36"
+                      value={beneficiaryId}
+                      onChange={(e) => setBeneficiaryId(e.target.value)}
+                    >
+                      {filteredBeneficiaries.map((b) => (
+                        <option
+                          key={b.id}
+                          value={b.id}
+                          className="p-1.5 hover:bg-emerald-50 dark:hover:bg-[#151515]"
+                        >
+                          [{b.beneficiary_number}] {b.name} — ({b.phone || "No phone"}) [{b.status}]
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                    Showing {filteredBeneficiaries.length} of {beneficiaries.length} beneficiaries
+                  </p>
+                </div>
+              )}
             </div>
 
             {selectedBeneficiaryObj ? (
@@ -645,7 +724,39 @@ export default function NewQardHasanPage() {
           </div>
 
           {/* Allocation Rows */}
-          <div className="space-y-3">
+          {loadingGroups ? (
+            <div className="flex flex-col items-center justify-center p-8 border border-slate-200 dark:border-[#242424] rounded-xl bg-slate-50 dark:bg-[#0D0D0D]">
+              <Loader2 className="h-6 w-6 animate-spin text-emerald-500 mb-2" />
+              <span className="text-xs text-slate-500 dark:text-slate-400">Loading accounting groups and balances...</span>
+            </div>
+          ) : groupsError ? (
+            <div className="p-4 border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/30 rounded-xl text-xs space-y-2">
+              <div className="flex items-center gap-2 text-rose-800 dark:text-rose-300 font-semibold">
+                <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+                <span>Unable to load accounting groups.</span>
+              </div>
+              <p className="text-[11px] text-rose-700 dark:text-rose-400">{groupsError}</p>
+              <button
+                type="button"
+                onClick={loadGroups}
+                className="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold cursor-pointer"
+              >
+                Retry
+              </button>
+            </div>
+          ) : groups.length === 0 ? (
+            <div className="p-6 border border-dashed border-slate-300 dark:border-[#242424] rounded-xl text-center text-xs text-slate-500 dark:text-slate-400 space-y-2">
+              <p className="font-semibold text-slate-700 dark:text-slate-300">No accounting groups available in database.</p>
+              <Link
+                href="/admin/groups/new"
+                className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 hover:underline font-semibold"
+              >
+                <Plus className="h-3.5 w-3.5" />
+                Create New Group
+              </Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
             {allocations.map((row, idx) => {
               const currentGroup = groups.find((g) => String(g.id) === row.group_id);
               const groupBalance = currentGroup ? parseFloat(currentGroup.current_balance) || 0 : 0;
@@ -759,6 +870,7 @@ export default function NewQardHasanPage() {
               );
             })}
           </div>
+          )}
 
           {/* Duplicate warning */}
           {duplicateGroupIds.length > 0 && (

@@ -36,7 +36,7 @@ def get_expense_ledger(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
+    page_size: int = Query(25, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("expenses.view"))
 ) -> Any:
@@ -168,7 +168,7 @@ def get_expenses(
     start_date: Optional[date] = None,
     end_date: Optional[date] = None,
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
+    page_size: int = Query(25, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("expenses.view"))
 ) -> Any:

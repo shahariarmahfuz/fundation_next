@@ -28,7 +28,7 @@ export const Navbar: React.FC = () => {
           <FoundationLogo size="lg" />
           <div className="flex flex-col min-w-0">
             <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 leading-tight truncate">
-              {name || "Al-Birr Foundation"}
+              {name || "Foundation"}
             </span>
             <span className="text-[10px] sm:text-xs text-foundation-700 font-medium tracking-wide uppercase line-clamp-1">
               {tagline || "Ethical Group Finance & Charity"}

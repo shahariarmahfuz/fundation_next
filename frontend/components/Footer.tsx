@@ -27,7 +27,7 @@ export const Footer: React.FC = () => {
             <div className="flex items-center gap-2.5">
               <FoundationLogo size="md" />
               <span className="text-xl font-bold tracking-tight text-white">
-                {name || org.name || "Al-Birr Foundation"}
+                {name || org.name || "Foundation"}
               </span>
             </div>
             <p className="max-w-md text-sm text-slate-400 leading-relaxed">
@@ -99,7 +99,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="mt-12 border-t border-slate-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <p>© {new Date().getFullYear()} {org.name || "Al-Birr Foundation"}. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {name || org.name || "Foundation"}. All rights reserved.</p>
           <div className="flex gap-4">
             <Link href="/login" className="hover:text-slate-400 transition-colors">
               Management Portal

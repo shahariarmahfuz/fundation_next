@@ -32,10 +32,14 @@ interface AllocationRow {
 export default function NewSadaqahPage() {
   const router = useRouter();
 
-  // Reference data
+  // Reference data with decoupled loading & error states
   const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
+  const [loadingBeneficiaries, setLoadingBeneficiaries] = useState(true);
+  const [beneficiariesError, setBeneficiariesError] = useState<string | null>(null);
+
   const [groups, setGroups] = useState<any[]>([]);
-  const [loadingRefs, setLoadingRefs] = useState(true);
+  const [loadingGroups, setLoadingGroups] = useState(true);
+  const [groupsError, setGroupsError] = useState<string | null>(null);
 
   // Form State
   const [beneficiaryId, setBeneficiaryId] = useState("");
@@ -59,31 +63,43 @@ export default function NewSadaqahPage() {
   const [error, setError] = useState<string | null>(null);
   const [createdGrant, setCreatedGrant] = useState<any | null>(null);
 
-  useEffect(() => {
-    async function loadData() {
-      setLoadingRefs(true);
-      try {
-        const [bRes, gRes] = await Promise.all([
-          api.get("/beneficiaries?page=1&page_size=200"),
-          api.get("/groups"),
-        ]);
-        const bList = bRes.items || [];
-        setBeneficiaries(bList);
-        setGroups(gRes || []);
-
-        if (bList.length > 0) {
-          setBeneficiaryId(String(bList[0].id));
-        }
-        if (gRes && gRes.length > 0) {
-          setAllocations([{ group_id: String(gRes[0].id), amount: "2000.00" }]);
-        }
-      } catch (err: any) {
-        setError(err.message || "Failed to load reference data.");
-      } finally {
-        setLoadingRefs(false);
+  const loadBeneficiaries = async () => {
+    setLoadingBeneficiaries(true);
+    setBeneficiariesError(null);
+    try {
+      const bRes = await api.get("/beneficiaries?page=1&page_size=200");
+      const bList = bRes.items || [];
+      setBeneficiaries(bList);
+      if (bList.length > 0 && !beneficiaryId) {
+        setBeneficiaryId(String(bList[0].id));
       }
+    } catch (err: any) {
+      setBeneficiariesError(err.message || "Unable to load beneficiaries.");
+    } finally {
+      setLoadingBeneficiaries(false);
     }
-    loadData();
+  };
+
+  const loadGroups = async () => {
+    setLoadingGroups(true);
+    setGroupsError(null);
+    try {
+      const gRes = await api.get("/groups");
+      const gList = Array.isArray(gRes) ? gRes : [];
+      setGroups(gList);
+      if (gList.length > 0 && (!allocations[0] || !allocations[0].group_id)) {
+        setAllocations([{ group_id: String(gList[0].id), amount: amount }]);
+      }
+    } catch (err: any) {
+      setGroupsError(err.message || "Unable to load accounting groups.");
+    } finally {
+      setLoadingGroups(false);
+    }
+  };
+
+  useEffect(() => {
+    loadBeneficiaries();
+    loadGroups();
   }, []);
 
   // Update allocation amount when total amount changes (if only 1 row)
@@ -178,7 +194,10 @@ export default function NewSadaqahPage() {
 
   const canSubmit =
     !submitting &&
-    !loadingRefs &&
+    !loadingBeneficiaries &&
+    !loadingGroups &&
+    !beneficiariesError &&
+    !groupsError &&
     beneficiaryId &&
     parsedAmount > 0 &&
     description.trim().length > 0 &&
@@ -224,7 +243,7 @@ export default function NewSadaqahPage() {
 
       // Refresh groups list to reflect deducted balances
       const gRes = await api.get("/groups");
-      setGroups(gRes || []);
+      setGroups(Array.isArray(gRes) ? gRes : []);
 
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
@@ -238,12 +257,13 @@ export default function NewSadaqahPage() {
   };
 
   const filteredBeneficiaries = beneficiaries.filter((b) => {
-    if (!beneficiarySearch) return true;
-    const term = beneficiarySearch.toLowerCase();
+    if (!beneficiarySearch.trim()) return true;
+    const term = beneficiarySearch.toLowerCase().trim();
     return (
       b.name?.toLowerCase().includes(term) ||
       b.phone?.includes(term) ||
-      b.beneficiary_number?.toLowerCase().includes(term)
+      b.beneficiary_number?.toLowerCase().includes(term) ||
+      b.nid?.toLowerCase().includes(term)
     );
   });
 

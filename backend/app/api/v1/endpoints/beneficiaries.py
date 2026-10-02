@@ -28,23 +28,54 @@ from backend.app.services.code_service import CodeService
 router = APIRouter()
 
 
+def populate_beneficiaries_metrics_batch(db: Session, beneficiaries: List[Beneficiary]) -> List[BeneficiaryResponse]:
+    if not beneficiaries:
+        return []
+
+    b_ids = [b.id for b in beneficiaries]
+
+    # Batched Qard stats by beneficiary_id in 1 query
+    qard_rows = db.query(
+        QardHasan.beneficiary_id,
+        func.coalesce(func.sum(QardHasan.principal_amount), Decimal("0.00")),
+        func.coalesce(func.sum(QardHasan.total_repaid), Decimal("0.00")),
+        func.coalesce(func.sum(QardHasan.outstanding_amount), Decimal("0.00"))
+    ).filter(
+        QardHasan.beneficiary_id.in_(b_ids)
+    ).group_by(QardHasan.beneficiary_id).all()
+
+    qard_by_b: dict[int, tuple[Decimal, Decimal, Decimal]] = {
+        row[0]: (row[1], row[2], row[3]) for row in qard_rows
+    }
+
+    # Batched Sadakah sums by beneficiary_id in 1 query
+    sadakah_rows = db.query(
+        Sadakah.beneficiary_id,
+        func.coalesce(func.sum(Sadakah.amount), Decimal("0.00"))
+    ).filter(
+        Sadakah.beneficiary_id.in_(b_ids)
+    ).group_by(Sadakah.beneficiary_id).all()
+
+    sadakah_by_b: dict[int, Decimal] = {
+        row[0]: row[1] for row in sadakah_rows
+    }
+
+    results: List[BeneficiaryResponse] = []
+    for b in beneficiaries:
+        resp = BeneficiaryResponse.model_validate(b)
+        q_stats = qard_by_b.get(b.id, (Decimal("0.00"), Decimal("0.00"), Decimal("0.00")))
+        resp.total_qard_received = q_stats[0]
+        resp.total_qard_repaid = q_stats[1]
+        resp.total_qard_outstanding = q_stats[2]
+        resp.total_sadakah_received = sadakah_by_b.get(b.id, Decimal("0.00"))
+        results.append(resp)
+
+    return results
+
+
 def populate_beneficiary_metrics(db: Session, b: Beneficiary) -> BeneficiaryResponse:
-    qard_stats = db.query(
-        func.coalesce(func.sum(QardHasan.principal_amount), Decimal("0.00")).label("principal"),
-        func.coalesce(func.sum(QardHasan.total_repaid), Decimal("0.00")).label("repaid"),
-        func.coalesce(func.sum(QardHasan.outstanding_amount), Decimal("0.00")).label("outstanding")
-    ).filter(QardHasan.beneficiary_id == b.id).first()
-
-    sadakah_total = db.query(func.coalesce(func.sum(Sadakah.amount), Decimal("0.00"))).filter(
-        Sadakah.beneficiary_id == b.id
-    ).scalar() or Decimal("0.00")
-
-    resp = BeneficiaryResponse.model_validate(b)
-    resp.total_qard_received = qard_stats.principal if qard_stats else Decimal("0.00")
-    resp.total_qard_repaid = qard_stats.repaid if qard_stats else Decimal("0.00")
-    resp.total_qard_outstanding = qard_stats.outstanding if qard_stats else Decimal("0.00")
-    resp.total_sadakah_received = sadakah_total
-    return resp
+    batch = populate_beneficiaries_metrics_batch(db, [b])
+    return batch[0]
 
 
 @router.get("", response_model=PaginatedResponse[BeneficiaryResponse])
@@ -52,7 +83,7 @@ def get_beneficiaries(
     search: Optional[str] = None,
     status: Optional[str] = None,
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
+    page_size: int = Query(25, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("beneficiaries.view"))
 ) -> Any:
@@ -74,7 +105,7 @@ def get_beneficiaries(
     total_pages = (total + page_size - 1) // page_size if total > 0 else 1
 
     return {
-        "items": [populate_beneficiary_metrics(db, b) for b in items],
+        "items": populate_beneficiaries_metrics_batch(db, items),
         "total": total,
         "page": page,
         "page_size": page_size,
@@ -91,7 +122,7 @@ def get_beneficiary_ledger(
     date_to: Optional[date] = None,
     search: Optional[str] = None,
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
+    page_size: int = Query(25, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("beneficiaries.view"))
 ) -> Any:

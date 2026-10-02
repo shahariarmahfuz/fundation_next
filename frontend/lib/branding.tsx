@@ -48,18 +48,17 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   const fetchBranding = useCallback(async () => {
     try {
-      const data = await api.get("/organization");
+      const data = await api.get("/organization", { cache: "no-store" });
       if (data) {
-        setBranding((prev) => ({
-          ...prev,
-          name: data.name?.trim() || "Al-Birr Foundation",
-          tagline: data.tagline || prev.tagline,
+        setBranding({
+          name: data.name?.trim() || "Foundation",
+          tagline: data.tagline || "Empowering Communities Through Islamic Finance & Charity",
           logoUrl: data.logo_url || null,
           logoPublicId: data.logo_public_id || null,
           currencySymbol: data.currency_symbol || "৳",
           currencyCode: data.currency_code || "BDT",
           loading: false,
-        }));
+        });
       }
     } catch {
       // Fallback silently to safe defaults
@@ -69,6 +68,19 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     fetchBranding();
+    const handleUpdate = () => {
+      fetchBranding();
+    };
+    if (typeof window !== "undefined") {
+      window.addEventListener("foundation-profile-updated", handleUpdate);
+      window.addEventListener("storage", handleUpdate);
+    }
+    return () => {
+      if (typeof window !== "undefined") {
+        window.removeEventListener("foundation-profile-updated", handleUpdate);
+        window.removeEventListener("storage", handleUpdate);
+      }
+    };
   }, [fetchBranding]);
 
   return (

@@ -24,7 +24,7 @@ def get_transactions(
     date_to: Optional[date] = None,
     is_reversed: Optional[bool] = None,
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
+    page_size: int = Query(25, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("transactions.view"))
 ) -> Any:

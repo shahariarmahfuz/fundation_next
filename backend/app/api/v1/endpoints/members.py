@@ -4,7 +4,7 @@ from decimal import Decimal
 from typing import List, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query, File, UploadFile, Form
 from sqlalchemy import func, or_
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload, selectinload
 
 from backend.app.core.database import get_db
 from backend.app.models.member import Member
@@ -27,25 +27,45 @@ def generate_member_number(db: Session) -> str:
     return CodeService.process_member_code(db)
 
 
-def populate_member_metrics(db: Session, member: Member, foundation_amount: Optional[Decimal] = None) -> MemberResponse:
-    total_paid = db.query(func.coalesce(func.sum(Contribution.amount), Decimal("0.00"))).filter(
-        Contribution.member_id == member.id,
-        Contribution.status == "PAID"
-    ).scalar() or Decimal("0.00")
+def populate_members_metrics_batch(db: Session, members: List[Member], foundation_amount: Optional[Decimal] = None) -> List[MemberResponse]:
+    if not members:
+        return []
 
-    pending_count = db.query(Contribution).filter(
-        Contribution.member_id == member.id,
-        Contribution.status.in_(["DUE", "CURRENT_PENDING"])
-    ).count()
-
+    m_ids = [m.id for m in members]
     current_foundation_amount = foundation_amount if foundation_amount is not None else AccountingService.get_monthly_contribution_amount(db)
 
-    resp = MemberResponse.model_validate(member)
-    resp.monthly_contribution_amount = current_foundation_amount
-    resp.foundation_monthly_amount = current_foundation_amount
-    resp.total_contributions_paid = total_paid
-    resp.pending_contributions_count = pending_count
-    return resp
+    paid_rows = db.query(
+        Contribution.member_id,
+        func.coalesce(func.sum(Contribution.amount), Decimal("0.00"))
+    ).filter(
+        Contribution.member_id.in_(m_ids),
+        Contribution.status == "PAID"
+    ).group_by(Contribution.member_id).all()
+    paid_map = dict(paid_rows)
+
+    pending_rows = db.query(
+        Contribution.member_id,
+        func.count(Contribution.id)
+    ).filter(
+        Contribution.member_id.in_(m_ids),
+        Contribution.status.in_(["DUE", "CURRENT_PENDING"])
+    ).group_by(Contribution.member_id).all()
+    pending_map = dict(pending_rows)
+
+    results: List[MemberResponse] = []
+    for m in members:
+        resp = MemberResponse.model_validate(m)
+        resp.monthly_contribution_amount = current_foundation_amount
+        resp.foundation_monthly_amount = current_foundation_amount
+        resp.total_contributions_paid = paid_map.get(m.id, Decimal("0.00"))
+        resp.pending_contributions_count = pending_map.get(m.id, 0)
+        results.append(resp)
+    return results
+
+
+def populate_member_metrics(db: Session, member: Member, foundation_amount: Optional[Decimal] = None) -> MemberResponse:
+    batch = populate_members_metrics_batch(db, [member], foundation_amount)
+    return batch[0]
 
 
 @router.get("", response_model=PaginatedResponse[MemberResponse])
@@ -54,7 +74,7 @@ def get_members(
     status: Optional[str] = None,
     search: Optional[str] = None,
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
+    page_size: int = Query(25, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("members.view"))
 ) -> Any:
@@ -76,13 +96,19 @@ def get_members(
         )
 
     total = query.count()
-    items = query.order_by(Member.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    items = (
+        query.options(joinedload(Member.group), selectinload(Member.documents))
+        .order_by(Member.id.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
     
     total_pages = (total + page_size - 1) // page_size if total > 0 else 1
     current_foundation_amount = AccountingService.get_monthly_contribution_amount(db)
 
     return {
-        "items": [populate_member_metrics(db, m, current_foundation_amount) for m in items],
+        "items": populate_members_metrics_batch(db, items, current_foundation_amount),
         "total": total,
         "page": page,
         "page_size": page_size,

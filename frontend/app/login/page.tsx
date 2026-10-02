@@ -48,7 +48,7 @@ export default function LoginPage() {
           <div className="flex justify-center mb-2">
             <FoundationLogo size="xl" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">{name || "Al-Birr Foundation"}</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-white">{name || "Foundation"}</h2>
           <p className="text-xs text-slate-400">
             Management Portal — Secure authentication for administrators, accountants & staff
           </p>

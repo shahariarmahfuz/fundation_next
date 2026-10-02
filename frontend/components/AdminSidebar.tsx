@@ -13,7 +13,6 @@ import {
   Heart,
   Receipt,
   Gift,
-  FileBarChart2,
   Building2,
   UserCog,
   Settings,
@@ -48,7 +47,7 @@ interface NavSection {
 export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = true, onClose }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { name } = useBranding();
+  const { name, currencyCode, currencySymbol } = useBranding();
   const [user, setUser] = useState<any | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
@@ -83,7 +82,7 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
         { name: "Add Member", href: "/admin/members/new", permission: "members.create" },
         { name: "Manage Members", href: "/admin/members", permission: "members.view" },
         { name: "Member Applications", href: "/admin/applications" },
-        { name: "Member Ledger", href: "/admin/reports?tab=members" },
+        { name: "Member Ledger", href: "/admin/members/ledger", permission: "members.view" },
       ],
     },
     {
@@ -168,23 +167,6 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
         { name: "All Donations", href: "/admin/donations" },
         { name: "Add Donation", href: "/admin/donations?action=new", permission: "donations.create" },
         { name: "Donors", href: "/admin/donations?tab=donors", permission: "donors.view" },
-      ],
-    },
-    {
-      id: "reports",
-      name: "Reports",
-      href: "/admin/reports",
-      icon: FileBarChart2,
-      permission: "reports.view",
-      children: [
-        { name: "Financial Reports", href: "/admin/reports?tab=financial" },
-        { name: "Group Reports", href: "/admin/reports?tab=groups" },
-        { name: "Member Reports", href: "/admin/reports?tab=members" },
-        { name: "Contribution Reports", href: "/admin/reports?tab=contributions" },
-        { name: "Expense Reports", href: "/admin/reports?tab=expenses" },
-        { name: "Donation Reports", href: "/admin/reports?tab=donations" },
-        { name: "Qard Hasan Reports", href: "/admin/reports?tab=qard" },
-        { name: "Sadakah Reports", href: "/admin/reports?tab=sadakah" },
       ],
     },
     {
@@ -310,7 +292,7 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
             <FoundationLogo size="sm" />
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-bold text-slate-900 dark:text-[#F5F5F5] leading-tight truncate">
-                {name || "Al-Birr Foundation"}
+                {name || "Foundation"}
               </span>
               <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider truncate">
                 Management Panel
@@ -420,7 +402,7 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
         {/* Footer Info inside Sidebar */}
         <div className="p-3 border-t border-slate-200 dark:border-[#1A1A1A] bg-slate-50 dark:bg-[#050505] text-center">
           <div className="text-[10px] text-slate-500 dark:text-[#737373]">
-            Al-Birr Foundation • BDT (৳)
+            {name || "Foundation"} • {currencyCode || "BDT"} ({currencySymbol || "৳"})
           </div>
           <div className="text-[9px] text-slate-400 dark:text-[#525252] mt-0.5">
             Strict Double-Entry Fund Isolation

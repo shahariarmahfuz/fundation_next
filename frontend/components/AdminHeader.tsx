@@ -104,7 +104,7 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
           >
             <FoundationLogo size="sm" />
             <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-[#F5F5F5] leading-tight truncate">
-              {name || "Al-Birr Foundation"}
+              {name || "Foundation"}
             </span>
           </Link>
         </div>

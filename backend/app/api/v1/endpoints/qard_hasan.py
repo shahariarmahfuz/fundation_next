@@ -137,7 +137,7 @@ def get_qard_hasan_loans(
     status: Optional[str] = None,
     search: Optional[str] = None,
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
+    page_size: int = Query(25, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("qard_hasan.view"))
 ) -> Any:
@@ -185,7 +185,7 @@ def get_qard_hasan_ledger(
     status: Optional[str] = None,
     search: Optional[str] = None,
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
+    page_size: int = Query(25, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("qard_hasan.view"))
 ) -> Any:

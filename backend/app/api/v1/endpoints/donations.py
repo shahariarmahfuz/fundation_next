@@ -23,7 +23,7 @@ def get_donations(
     group_id: Optional[int] = None,
     donor_id: Optional[int] = None,
     page: int = Query(1, ge=1),
-    page_size: int = Query(25, ge=1, le=100),
+    page_size: int = Query(25, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("donations.view"))
 ) -> Any:

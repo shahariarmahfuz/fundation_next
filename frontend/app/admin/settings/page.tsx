@@ -159,10 +159,13 @@ export default function SettingsPage() {
       const updated = await api.put("/organization", orgData);
       setOrgData(updated);
       await refreshBranding();
-      setOrgSuccess("Organization settings saved successfully!");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("foundation-profile-updated"));
+      }
+      setOrgSuccess("Foundation profile updated successfully");
       setTimeout(() => setOrgSuccess(null), 4000);
     } catch (err: any) {
-      setOrgError(err.message || "Failed to save organization settings");
+      setOrgError("Unable to update foundation profile. Please try again.");
     } finally {
       setOrgSaving(false);
     }
@@ -177,10 +180,13 @@ export default function SettingsPage() {
       const updated = await api.upload("/organization/logo", fd);
       setOrgData(updated);
       await refreshBranding();
-      setLogoSuccess("Foundation logo updated successfully!");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("foundation-profile-updated"));
+      }
+      setLogoSuccess("Foundation profile updated successfully");
       setTimeout(() => setLogoSuccess(null), 4000);
     } catch (err: any) {
-      setLogoError(err.message || "Failed to upload foundation logo");
+      setLogoError("Unable to update foundation profile. Please try again.");
     } finally {
       setLogoUploading(false);
     }
@@ -194,10 +200,13 @@ export default function SettingsPage() {
       const updated = await api.delete("/organization/logo");
       setOrgData(updated);
       await refreshBranding();
-      setLogoSuccess("Foundation logo removed. Default emblem active.");
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("foundation-profile-updated"));
+      }
+      setLogoSuccess("Foundation profile updated successfully");
       setTimeout(() => setLogoSuccess(null), 4000);
     } catch (err: any) {
-      setLogoError(err.message || "Failed to remove logo");
+      setLogoError("Unable to update foundation profile. Please try again.");
     } finally {
       setLogoUploading(false);
     }
@@ -389,7 +398,7 @@ export default function SettingsPage() {
                       disabled={!canManage}
                       value={orgData.name || ""}
                       onChange={(e) => setOrgData({ ...orgData, name: e.target.value })}
-                      placeholder="e.g. Al-Birr Foundation"
+                      placeholder="e.g. Foundation Name"
                       className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none disabled:bg-slate-100 dark:disabled:bg-slate-800/50"
                     />
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
