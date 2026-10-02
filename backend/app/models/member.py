@@ -18,7 +18,6 @@ class Member(Base, TimestampMixin):
     nid_or_id = Column(String(100), nullable=True)
     joining_date = Column(Date, default=date.today, nullable=False)
     status = Column(String(20), default="ACTIVE", nullable=False, index=True)  # ACTIVE, INACTIVE, SUSPENDED
-    monthly_contribution_amount = Column(Numeric(15, 2), default=Decimal("500.00"), nullable=False)
     group_id = Column(Integer, ForeignKey("groups.id", ondelete="RESTRICT"), nullable=False, index=True)
     notes = Column(Text, nullable=True)
 

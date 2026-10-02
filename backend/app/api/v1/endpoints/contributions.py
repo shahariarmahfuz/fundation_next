@@ -71,12 +71,16 @@ def generate_monthly_dues(
     members = db.query(Member).filter(Member.status == "ACTIVE").all()
     created_count = 0
 
+    # Resolve Foundation-wide monthly contribution setting applicable for this month
+    month_amount = AccountingService.get_monthly_contribution_amount(db, gen_in.contribution_month)
+
+    existing_records = db.query(Contribution.member_id).filter(
+        Contribution.contribution_month == gen_in.contribution_month
+    ).all()
+    existing_member_ids = {r[0] for r in existing_records}
+
     for m in members:
-        existing = db.query(Contribution).filter(
-            Contribution.member_id == m.id,
-            Contribution.contribution_month == gen_in.contribution_month
-        ).first()
-        if not existing:
+        if m.id not in existing_member_ids:
             unique_code = uuid.uuid4().hex[:6].upper()
             c_num = f"CON-{gen_in.contribution_month.replace('-', '')}-{m.member_number}-{unique_code}"
             
@@ -85,7 +89,7 @@ def generate_monthly_dues(
                 member_id=m.id,
                 group_id=m.group_id,
                 contribution_month=gen_in.contribution_month,
-                amount=m.monthly_contribution_amount,
+                amount=month_amount,
                 status="DUE",
                 created_by_id=current_user.id
             )
@@ -93,7 +97,7 @@ def generate_monthly_dues(
             created_count += 1
 
     db.commit()
-    return {"success": True, "created_records": created_count, "month": gen_in.contribution_month}
+    return {"success": True, "created_records": created_count, "month": gen_in.contribution_month, "amount_per_member": str(month_amount)}
 
 
 @router.post("", response_model=ContributionResponse)
@@ -110,7 +114,7 @@ def record_contribution(
     if not member:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
 
-    amount = contrib_in.amount if contrib_in.amount is not None else member.monthly_contribution_amount
+    amount = contrib_in.amount if contrib_in.amount is not None else AccountingService.get_monthly_contribution_amount(db, contrib_in.contribution_month)
     if amount <= Decimal("0.00"):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Amount must be positive")
 

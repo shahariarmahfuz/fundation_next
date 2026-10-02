@@ -12,7 +12,6 @@ def test_member_must_belong_to_group(client, auth_headers):
     payload = {
         "full_name": "Test Stray Member",
         "phone": "+880 1812345678",
-        "monthly_contribution_amount": "500.00",
         "group_id": 99999  # Non-existent group
     }
     response = client.post("/api/v1/members", json=payload, headers=auth_headers)
@@ -41,7 +40,6 @@ def test_complete_accounting_cycle(client, auth_headers):
     member_payload = {
         "full_name": "Rahim Uddin",
         "phone": f"+880 171{unique_id}",
-        "monthly_contribution_amount": "500.00",
         "group_id": group_id,
         "status": "ACTIVE"
     }
@@ -286,7 +284,6 @@ def test_reversal_domain_state_sync_and_ledger_reconciliation(client, auth_heade
     mem_resp = client.post("/api/v1/members", json={
         "full_name": f"Anwar Hossain {unique_id}",
         "phone": f"+880 161{unique_id}",
-        "monthly_contribution_amount": "800.00",
         "group_id": group_id,
         "status": "ACTIVE"
     }, headers=auth_headers)

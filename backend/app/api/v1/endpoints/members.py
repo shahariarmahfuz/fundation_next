@@ -14,6 +14,7 @@ from backend.app.schemas.member import MemberResponse, MemberCreate, MemberUpdat
 from backend.app.schemas.common import PaginatedResponse
 from backend.app.api.deps import require_permission, get_current_user
 from backend.app.services.audit_service import AuditService
+from backend.app.services.accounting_service import AccountingService
 
 router = APIRouter()
 
@@ -23,7 +24,7 @@ def generate_member_number(db: Session) -> str:
     return f"MEM-{count:04d}"
 
 
-def populate_member_metrics(db: Session, member: Member) -> MemberResponse:
+def populate_member_metrics(db: Session, member: Member, foundation_amount: Optional[Decimal] = None) -> MemberResponse:
     total_paid = db.query(func.coalesce(func.sum(Contribution.amount), Decimal("0.00"))).filter(
         Contribution.member_id == member.id,
         Contribution.status == "PAID"
@@ -34,7 +35,11 @@ def populate_member_metrics(db: Session, member: Member) -> MemberResponse:
         Contribution.status.in_(["DUE", "CURRENT_PENDING"])
     ).count()
 
+    current_foundation_amount = foundation_amount if foundation_amount is not None else AccountingService.get_monthly_contribution_amount(db)
+
     resp = MemberResponse.model_validate(member)
+    resp.monthly_contribution_amount = current_foundation_amount
+    resp.foundation_monthly_amount = current_foundation_amount
     resp.total_contributions_paid = total_paid
     resp.pending_contributions_count = pending_count
     return resp
@@ -71,9 +76,10 @@ def get_members(
     items = query.order_by(Member.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
     
     total_pages = (total + page_size - 1) // page_size if total > 0 else 1
+    current_foundation_amount = AccountingService.get_monthly_contribution_amount(db)
 
     return {
-        "items": [populate_member_metrics(db, m) for m in items],
+        "items": [populate_member_metrics(db, m, current_foundation_amount) for m in items],
         "total": total,
         "page": page,
         "page_size": page_size,
@@ -119,7 +125,6 @@ def create_member(
         nid_or_id=member_in.nid_or_id,
         joining_date=member_in.joining_date,
         status=member_in.status,
-        monthly_contribution_amount=member_in.monthly_contribution_amount,
         group_id=member_in.group_id,
         notes=member_in.notes
     )
@@ -129,7 +134,7 @@ def create_member(
 
     AuditService.log(
         db, action="CREATE", module="members", record_id=str(member.id),
-        user=current_user, new_values={"name": member.full_name, "group_id": member.group_id, "monthly_amount": str(member.monthly_contribution_amount)}
+        user=current_user, new_values={"name": member.full_name, "group_id": member.group_id}
     )
     db.commit()
     return populate_member_metrics(db, member)
@@ -150,8 +155,7 @@ def update_member(
         "full_name": member.full_name,
         "phone": member.phone,
         "group_id": member.group_id,
-        "status": member.status,
-        "monthly_amount": str(member.monthly_contribution_amount)
+        "status": member.status
     }
 
     if member_in.group_id is not None:
@@ -172,8 +176,6 @@ def update_member(
         member.nid_or_id = member_in.nid_or_id
     if member_in.status is not None:
         member.status = member_in.status
-    if member_in.monthly_contribution_amount is not None:
-        member.monthly_contribution_amount = member_in.monthly_contribution_amount
     if member_in.notes is not None:
         member.notes = member_in.notes
 
@@ -186,8 +188,7 @@ def update_member(
         new_values={
             "full_name": member.full_name,
             "group_id": member.group_id,
-            "status": member.status,
-            "monthly_amount": str(member.monthly_contribution_amount)
+            "status": member.status
         }
     )
     db.commit()

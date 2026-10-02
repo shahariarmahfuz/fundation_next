@@ -162,7 +162,7 @@ def get_member_ledger(
         member_name=member.full_name,
         member_number=member.member_number,
         group_name=member.group.name,
-        monthly_rate=member.monthly_contribution_amount,
+        monthly_rate=AccountingService.get_monthly_contribution_amount(db),
         total_paid=total_paid,
         total_due=total_due,
         entries=entries

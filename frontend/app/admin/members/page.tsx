@@ -47,7 +47,6 @@ export default function ManageMembersPage() {
     nid_or_id: "",
     status: "ACTIVE",
     group_id: "",
-    monthly_contribution_amount: "500.00",
   });
   const [savingEdit, setSavingEdit] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
@@ -129,7 +128,6 @@ export default function ManageMembersPage() {
       nid_or_id: m.nid_or_id || "",
       status: m.status || "ACTIVE",
       group_id: String(m.group_id),
-      monthly_contribution_amount: String(m.monthly_contribution_amount || "500.00"),
     });
     setEditError(null);
   };
@@ -148,7 +146,6 @@ export default function ManageMembersPage() {
         nid_or_id: editFormData.nid_or_id,
         status: editFormData.status,
         group_id: parseInt(editFormData.group_id),
-        monthly_contribution_amount: parseFloat(editFormData.monthly_contribution_amount) || 0,
       });
       setEditingMember(null);
       setNotification({
@@ -469,18 +466,21 @@ export default function ManageMembersPage() {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Monthly Contribution (৳) *
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  required
-                  className="input-field"
-                  value={editFormData.monthly_contribution_amount}
-                  onChange={(e) => setEditFormData({ ...editFormData, monthly_contribution_amount: e.target.value })}
-                />
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/30 p-3 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-emerald-900 dark:text-emerald-200">
+                    Monthly Contribution
+                  </span>
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
+                    Source: Foundation Setting
+                  </span>
+                </div>
+                <div className="mt-1 text-base font-bold text-slate-900 dark:text-white">
+                  {formatCurrency(editingMember?.monthly_contribution_amount || 100)} / mo
+                </div>
+                <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                  Global Foundation setting applicable to all active members.
+                </p>
               </div>
 
               <div>

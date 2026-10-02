@@ -547,7 +547,7 @@ export default function ContributionsPage() {
                 type="number"
                 step="0.01"
                 min="1"
-                placeholder="500.00"
+                placeholder="100.00"
                 className="input-field text-xs font-mono"
                 value={recordAmount}
                 onChange={(e) => setRecordAmount(e.target.value)}

@@ -52,7 +52,8 @@ def test_member_application_workflow(client, auth_headers):
     new_member = mem_resp.json()
     assert new_member["full_name"] == app_payload["applicant_name"]
     assert new_member["group_id"] == general_group["id"]
-    assert Decimal(str(new_member["monthly_contribution_amount"])) == Decimal("1000.00")
+    # Monthly contribution follows the global Foundation setting (৳100), not applicant's proposed amount
+    assert Decimal(str(new_member["monthly_contribution_amount"])) == Decimal("100.00")
 
 
 def test_donation_and_transaction_reversal(client, auth_headers):

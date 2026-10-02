@@ -6,6 +6,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
+import calendar
 from backend.app.models.group import Group
 from backend.app.models.transaction import FinancialTransaction
 from backend.app.models.contribution import Contribution
@@ -13,10 +14,101 @@ from backend.app.models.qard_hasan import QardHasan, QardRepayment
 from backend.app.models.donor import Donation
 from backend.app.models.expense import Expense
 from backend.app.models.sadakah import Sadakah
+from backend.app.models.monthly_contribution_setting import MonthlyContributionSetting
 from backend.app.core.cache import cache
 
 
 class AccountingService:
+    @staticmethod
+    def get_monthly_contribution_amount(db: Session, contribution_month: Optional[str] = None) -> Decimal:
+        """
+        Resolves the Foundation Monthly Contribution amount applicable for a given month or date.
+        Uses time-based effective_from resolution.
+        """
+        if contribution_month:
+            try:
+                parts = [int(p) for p in contribution_month.split("-")]
+                last_day = calendar.monthrange(parts[0], parts[1])[1]
+                target_date = date(parts[0], parts[1], last_day)
+            except Exception:
+                target_date = date.today()
+        else:
+            target_date = date.today()
+
+        setting = db.query(MonthlyContributionSetting).filter(
+            MonthlyContributionSetting.effective_from <= target_date
+        ).order_by(MonthlyContributionSetting.effective_from.desc()).first()
+
+        if setting:
+            return setting.amount
+
+        earliest = db.query(MonthlyContributionSetting).order_by(MonthlyContributionSetting.effective_from.asc()).first()
+        if earliest:
+            return earliest.amount
+
+        return Decimal("100.00")
+
+    @staticmethod
+    def get_monthly_contribution_overview(db: Session):
+        today = date.today()
+        all_settings = db.query(MonthlyContributionSetting).order_by(MonthlyContributionSetting.effective_from.desc()).all()
+        
+        active_setting = None
+        for s in all_settings:
+            if s.effective_from <= today:
+                active_setting = s
+                break
+        
+        current_amount = active_setting.amount if active_setting else (all_settings[0].amount if all_settings else Decimal("100.00"))
+        effective_date = active_setting.effective_from if active_setting else today
+
+        scheduled = []
+        history = []
+        for s in all_settings:
+            creator_name = s.created_by.full_name if s.created_by else None
+            if s.effective_from > today:
+                status_str = "SCHEDULED"
+            elif active_setting and s.id == active_setting.id:
+                status_str = "ACTIVE"
+            else:
+                status_str = "HISTORICAL"
+            
+            entry = {
+                "id": s.id,
+                "amount": s.amount,
+                "effective_from": s.effective_from,
+                "notes": s.notes,
+                "created_at": s.created_at,
+                "updated_at": s.updated_at,
+                "created_by_id": s.created_by_id,
+                "created_by_name": creator_name,
+                "status": status_str
+            }
+            if status_str == "SCHEDULED":
+                scheduled.append(entry)
+            history.append(entry)
+
+        active_dict = None
+        if active_setting:
+            active_dict = {
+                "id": active_setting.id,
+                "amount": active_setting.amount,
+                "effective_from": active_setting.effective_from,
+                "notes": active_setting.notes,
+                "created_at": active_setting.created_at,
+                "updated_at": active_setting.updated_at,
+                "created_by_id": active_setting.created_by_id,
+                "created_by_name": active_setting.created_by.full_name if active_setting.created_by else None,
+                "status": "ACTIVE"
+            }
+
+        return {
+            "current_amount": current_amount,
+            "effective_date": effective_date,
+            "active_setting": active_dict,
+            "scheduled_settings": scheduled,
+            "history": history
+        }
     @staticmethod
     def get_group_current_balance(db: Session, group_id: int) -> Decimal:
         group = db.query(Group).filter(Group.id == group_id).first()

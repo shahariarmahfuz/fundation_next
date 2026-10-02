@@ -14,7 +14,6 @@ class MemberBase(BaseModel):
     nid_or_id: Optional[str] = None
     joining_date: date = date.today()
     status: str = "ACTIVE"
-    monthly_contribution_amount: Decimal = Decimal("500.00")
     group_id: int
     notes: Optional[str] = None
 
@@ -30,7 +29,6 @@ class MemberUpdate(BaseModel):
     address: Optional[str] = None
     nid_or_id: Optional[str] = None
     status: Optional[str] = None
-    monthly_contribution_amount: Optional[Decimal] = None
     group_id: Optional[int] = None
     notes: Optional[str] = None
 
@@ -42,5 +40,7 @@ class MemberResponse(MemberBase):
     created_at: datetime
     updated_at: datetime
     group: Optional[GroupResponse] = None
+    monthly_contribution_amount: Optional[Decimal] = None
+    foundation_monthly_amount: Optional[Decimal] = None
     total_contributions_paid: Optional[Decimal] = None
     pending_contributions_count: Optional[int] = None

@@ -202,14 +202,22 @@ export default function MemberProfilePage() {
 
         {/* Right: Financial Status */}
         <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="rounded-xl border border-slate-200 bg-white p-5 flex flex-col justify-between">
+          <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 flex flex-col justify-between">
             <div>
-              <span className="text-xs text-slate-500">Monthly Contribution Rate</span>
-              <div className="mt-1 text-2xl font-bold text-slate-900">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-slate-500 dark:text-slate-400">Monthly Contribution</span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  Foundation Setting
+                </span>
+              </div>
+              <div className="mt-2 text-2xl font-bold text-slate-900 dark:text-white">
                 {formatCurrency(member.monthly_contribution_amount)}
               </div>
             </div>
-            <span className="text-[11px] text-slate-400 mt-2">Obligatory monthly amount</span>
+            <div className="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
+              <span>Source: Foundation Setting</span>
+              <span>Obligatory rate</span>
+            </div>
           </div>
 
           <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-5 flex flex-col justify-between">

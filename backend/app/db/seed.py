@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 from sqlalchemy.orm import Session
 
@@ -8,6 +9,7 @@ from backend.app.models.user import User
 from backend.app.models.group import Group
 from backend.app.models.expense import ExpenseCategory
 from backend.app.models.organization import Organization, PublicPage
+from backend.app.models.monthly_contribution_setting import MonthlyContributionSetting
 
 
 def seed_database(db: Session):
@@ -278,6 +280,17 @@ def seed_database(db: Session):
             )
             db.add(p)
             db.flush()
+
+    # 7. Seed Monthly Contribution Setting
+    contrib_setting = db.query(MonthlyContributionSetting).first()
+    if not contrib_setting:
+        contrib_setting = MonthlyContributionSetting(
+            amount=Decimal("100.00"),
+            effective_from=date(2026, 1, 1),
+            notes="Initial Foundation Monthly Contribution Setting"
+        )
+        db.add(contrib_setting)
+        db.flush()
 
     db.commit()
     print("Database seeding completed successfully.")

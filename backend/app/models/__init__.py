@@ -14,6 +14,7 @@ from backend.app.models.qard_hasan import QardHasan, QardRepayment
 from backend.app.models.sadakah import Sadakah
 from backend.app.models.organization import Organization, PublicPage
 from backend.app.models.audit_log import AuditLog
+from backend.app.models.monthly_contribution_setting import MonthlyContributionSetting
 
 __all__ = [
     "Base",
@@ -37,5 +38,6 @@ __all__ = [
     "Sadakah",
     "Organization",
     "PublicPage",
-    "AuditLog"
+    "AuditLog",
+    "MonthlyContributionSetting"
 ]

@@ -120,7 +120,6 @@ def review_member_application(
             address=app.address,
             nid_or_id=app.nid_or_id,
             status="ACTIVE",
-            monthly_contribution_amount=app.proposed_contribution,
             group_id=group.id,
             notes=f"Approved from online application #{app.id}. {review_in.review_notes or ''}"
         )

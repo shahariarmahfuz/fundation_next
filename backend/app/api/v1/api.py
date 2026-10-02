@@ -20,7 +20,8 @@ from backend.app.api.v1.endpoints import (
     reports,
     organization,
     public_content,
-    audit_logs
+    audit_logs,
+    monthly_contribution_settings
 )
 
 api_router = APIRouter()
@@ -46,3 +47,5 @@ api_router.include_router(reports.router, prefix="/reports", tags=["reports"])
 api_router.include_router(organization.router, prefix="/organization", tags=["organization"])
 api_router.include_router(public_content.router, prefix="/public", tags=["public"])
 api_router.include_router(audit_logs.router, prefix="/audit-logs", tags=["audit-logs"])
+api_router.include_router(monthly_contribution_settings.router, prefix="/settings/monthly-contribution", tags=["settings"])
+api_router.include_router(monthly_contribution_settings.router, prefix="/monthly-contribution-settings", tags=["settings"])
