@@ -94,7 +94,7 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       icon: FolderTree,
       permission: "groups.view",
       children: [
-        { name: "Add Group", href: "/admin/groups?action=new", permission: "groups.create" },
+        { name: "Add Group", href: "/admin/groups/new", permission: "groups.create" },
         { name: "Manage Groups", href: "/admin/groups", permission: "groups.view" },
         { name: "Group Ledgers", href: "/admin/ledgers" },
       ],

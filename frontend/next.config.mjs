@@ -10,6 +10,16 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: "/dashboard/groups/new",
+        destination: "/admin/groups/new",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/groups",
+        destination: "/admin/groups",
+        permanent: false,
+      },
+      {
         source: "/dashboard/profile",
         destination: "/admin/profile",
         permanent: false,

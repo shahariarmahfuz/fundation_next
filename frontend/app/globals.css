@@ -65,3 +65,34 @@
 .card-surface {
   @apply rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 transition-colors;
 }
+
+/* Premium Flash / Toast Animations */
+@keyframes flash-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-16px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes flash-fade-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+}
+
+.animate-flash-enter {
+  animation: flash-slide-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-flash-exit {
+  animation: flash-fade-out 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}

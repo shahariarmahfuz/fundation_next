@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/lib/theme";
 import { BrandingProvider } from "@/lib/branding";
+import { FlashProvider } from "@/lib/flash";
 
 export const metadata: Metadata = {
   title: {
@@ -31,7 +32,9 @@ export default function RootLayout({
       <body className="min-h-screen bg-slate-50 text-slate-900 antialiased font-sans dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200">
         <ThemeProvider>
           <BrandingProvider>
-            {children}
+            <FlashProvider>
+              {children}
+            </FlashProvider>
           </BrandingProvider>
         </ThemeProvider>
       </body>

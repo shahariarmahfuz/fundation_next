@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
+import { useFlash, getUserFriendlyErrorMessage } from "@/lib/flash";
 import {
   ArrowLeft,
   Loader2,
@@ -88,6 +89,7 @@ const getInitialFormData = (defaultGroupId: string = "") => ({
 
 export default function NewMemberPage() {
   const router = useRouter();
+  const { flash } = useFlash();
   const [groups, setGroups] = useState<any[]>([]);
   const [foundationRate, setFoundationRate] = useState<number>(100);
   const [loading, setLoading] = useState(false);
@@ -282,6 +284,17 @@ export default function NewMemberPage() {
         group_name: groupName,
       });
 
+      flash.success(
+        "Member registered successfully",
+        `${res.full_name} has been enrolled in ${groupName}.`,
+        {
+          details: [
+            { label: "Member Code", value: memberCode },
+            { label: "Assigned Group", value: groupName },
+          ],
+        }
+      );
+
       // Reset form so the user can immediately add another member
       setFormData(getInitialFormData(groups.length > 0 ? String(groups[0].id) : ""));
       setUploadingState({});
@@ -290,7 +303,9 @@ export default function NewMemberPage() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
       // Do NOT clear form on error — keep user's input intact
-      setError(err.message || "Unable to create member. Please correct the issue and try again.");
+      const friendlyMsg = getUserFriendlyErrorMessage(err);
+      setError(friendlyMsg);
+      flash.error("Unable to register member", friendlyMsg);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } finally {
       setLoading(false);
