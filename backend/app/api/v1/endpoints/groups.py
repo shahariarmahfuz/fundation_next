@@ -19,46 +19,119 @@ from backend.app.services.audit_service import AuditService
 router = APIRouter()
 
 
-def populate_group_metrics(db: Session, group: Group) -> GroupResponse:
-    balance = AccountingService.get_group_current_balance(db, group.id)
-    
-    inflows = db.query(func.coalesce(func.sum(FinancialTransaction.amount), Decimal("0.00"))).filter(
-        FinancialTransaction.group_id == group.id,
-        FinancialTransaction.flow_type == "INFLOW"
-    ).scalar() or Decimal("0.00")
+def populate_groups_metrics_batch(db: Session, groups: List[Group]) -> List[GroupResponse]:
+    if not groups:
+        return []
 
-    outflows = db.query(func.coalesce(func.sum(FinancialTransaction.amount), Decimal("0.00"))).filter(
-        FinancialTransaction.group_id == group.id,
-        FinancialTransaction.flow_type == "OUTFLOW"
-    ).scalar() or Decimal("0.00")
+    group_ids = [g.id for g in groups]
 
-    members_count = db.query(Member).filter(Member.group_id == group.id, Member.status == "ACTIVE").count()
-    
-    qard_outstanding = db.query(func.coalesce(func.sum(QardHasan.outstanding_amount), Decimal("0.00"))).filter(
-        QardHasan.group_id == group.id,
+    # 1. Batched transaction sums (inflow & outflow) by group_id
+    tx_rows = db.query(
+        FinancialTransaction.group_id,
+        FinancialTransaction.flow_type,
+        func.coalesce(func.sum(FinancialTransaction.amount), Decimal("0.00"))
+    ).filter(
+        FinancialTransaction.group_id.in_(group_ids)
+    ).group_by(
+        FinancialTransaction.group_id,
+        FinancialTransaction.flow_type
+    ).all()
+
+    inflows_by_group: dict[int, Decimal] = {}
+    outflows_by_group: dict[int, Decimal] = {}
+    for gid, ftype, amt in tx_rows:
+        if ftype == "INFLOW":
+            inflows_by_group[gid] = amt
+        elif ftype == "OUTFLOW":
+            outflows_by_group[gid] = amt
+
+    # 2. Batched active member count by group_id
+    mem_rows = db.query(
+        Member.group_id,
+        func.count(Member.id)
+    ).filter(
+        Member.group_id.in_(group_ids),
+        Member.status == "ACTIVE"
+    ).group_by(
+        Member.group_id
+    ).all()
+    members_by_group: dict[int, int] = dict(mem_rows)
+
+    # 3. Batched active Qard Hasan outstanding by group_id
+    qard_rows = db.query(
+        QardHasan.group_id,
+        func.coalesce(func.sum(QardHasan.outstanding_amount), Decimal("0.00"))
+    ).filter(
+        QardHasan.group_id.in_(group_ids),
         QardHasan.status == "ACTIVE"
-    ).scalar() or Decimal("0.00")
+    ).group_by(
+        QardHasan.group_id
+    ).all()
+    qard_by_group: dict[int, Decimal] = dict(qard_rows)
 
-    resp = GroupResponse.model_validate(group)
-    resp.current_balance = balance
-    resp.total_income = inflows
-    resp.total_expense = outflows
-    resp.total_members = members_count
-    resp.total_qard_outstanding = qard_outstanding
-    return resp
+    results: List[GroupResponse] = []
+    for g in groups:
+        inflow = inflows_by_group.get(g.id, Decimal("0.00"))
+        outflow = outflows_by_group.get(g.id, Decimal("0.00"))
+        opening = g.opening_balance if g.opening_balance is not None else Decimal("0.00")
+        balance = opening + inflow - outflow
+
+        resp = GroupResponse.model_validate(g)
+        resp.current_balance = balance
+        resp.total_income = inflow
+        resp.total_expense = outflow
+        resp.total_members = members_by_group.get(g.id, 0)
+        resp.total_qard_outstanding = qard_by_group.get(g.id, Decimal("0.00"))
+        results.append(resp)
+
+    return results
+
+
+def populate_group_metrics(db: Session, group: Group) -> GroupResponse:
+    batch = populate_groups_metrics_batch(db, [group])
+    return batch[0]
 
 
 @router.get("", response_model=List[GroupResponse])
 def get_groups(
     status: Optional[str] = None,
+    search: Optional[str] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("groups.view"))
 ) -> Any:
+    # Check cache for fast response
+    clean_status = (status or "").strip().upper()
+    clean_search = (search or "").strip()
+    cache_key = f"groups:list:{clean_status or 'all'}:{clean_search or 'none'}"
+    cached = cache.get(cache_key)
+    if cached is not None:
+        try:
+            return [GroupResponse.model_validate(item) for item in cached]
+        except Exception:
+            pass
+
     query = db.query(Group)
-    if status:
-        query = query.filter(Group.status == status)
+    if clean_status and clean_status not in ("ALL", ""):
+        query = query.filter(Group.status == clean_status)
+
+    if clean_search:
+        search_pattern = f"%{clean_search}%"
+        query = query.filter(
+            (Group.code.ilike(search_pattern)) |
+            (Group.name.ilike(search_pattern)) |
+            (Group.description.ilike(search_pattern))
+        )
+
     groups = query.order_by(Group.id).all()
-    return [populate_group_metrics(db, g) for g in groups]
+    results = populate_groups_metrics_batch(db, groups)
+
+    # Cache for 60 seconds
+    try:
+        cache.set(cache_key, [r.model_dump(mode="json") for r in results], expire_seconds=60)
+    except Exception:
+        pass
+
+    return results
 
 
 @router.get("/{group_id}", response_model=GroupResponse)

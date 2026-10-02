@@ -53,7 +53,16 @@ def test_monthly_contribution_setting_lifecycle_and_due_calculation(client, auth
     4. Due generation applies ৳100 for 2026-05 and ৳150 for 2027-01
     5. Audit log records the change
     """
-    # 1. Schedule a future rate of ৳150 starting from 2027-01-01
+    # 1. Clean up any previous test scheduled settings to ensure test idempotency
+    from datetime import date
+    from backend.app.core.database import SessionLocal
+    from backend.app.models.monthly_contribution_setting import MonthlyContributionSetting
+    _db = SessionLocal()
+    _db.query(MonthlyContributionSetting).filter(MonthlyContributionSetting.effective_from == date(2027, 1, 1)).delete()
+    _db.commit()
+    _db.close()
+
+    # Schedule a future rate of ৳150 starting from 2027-01-01
     schedule_payload = {
         "amount": "150.00",
         "effective_from": "2027-01-01",

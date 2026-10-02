@@ -96,7 +96,13 @@ export default function ManageGroupsPage() {
     setError(null);
     try {
       const data = await api.get("/groups");
-      setGroups(data);
+      if (Array.isArray(data)) {
+        setGroups(data);
+      } else if (data && Array.isArray(data.items)) {
+        setGroups(data.items);
+      } else {
+        setGroups([]);
+      }
     } catch (err: any) {
       setError(err.message || "Failed to load groups");
     } finally {
@@ -252,7 +258,7 @@ export default function ManageGroupsPage() {
           {canEdit && (
             <button
               onClick={() => {
-                if (groups.length >= 2) {
+                if (Array.isArray(groups) && groups.length >= 2) {
                   setTransferData((prev) => ({
                     ...prev,
                     source_group_id: String(groups[0].id),
@@ -294,13 +300,6 @@ export default function ManageGroupsPage() {
         </div>
       )}
 
-      {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs sm:text-sm text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
-          <AlertCircle className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
-          <span>{error}</span>
-        </div>
-      )}
-
       {/* Search & Filter Bar */}
       <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -328,11 +327,31 @@ export default function ManageGroupsPage() {
         </div>
       </div>
 
-      {/* Grid of Groups */}
+      {/* Grid of Groups with 3 distinct states: Loading, Error with Retry, Empty */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {loading ? (
-          <div className="col-span-2 text-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin mx-auto text-emerald-600" />
+          <div className="col-span-2 text-center py-16">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto text-emerald-600 dark:text-emerald-400" />
+            <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 font-medium">Loading groups...</p>
+          </div>
+        ) : error ? (
+          <div className="col-span-2 rounded-2xl border border-rose-200 dark:border-rose-900/50 bg-rose-50/50 dark:bg-rose-950/20 p-8 text-center space-y-4">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-400">
+              <AlertCircle className="h-6 w-6" />
+            </div>
+            <div>
+              <h3 className="text-sm font-bold text-rose-900 dark:text-rose-200">Unable to load groups</h3>
+              <p className="mt-1 text-xs text-rose-600 dark:text-rose-400 max-w-md mx-auto">
+                {error || "Something went wrong while connecting to the server. Please try again."}
+              </p>
+            </div>
+            <button
+              onClick={fetchGroups}
+              type="button"
+              className="inline-flex items-center gap-2 rounded-xl bg-rose-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-rose-700 transition-colors cursor-pointer"
+            >
+              Retry
+            </button>
           </div>
         ) : filteredGroups.length === 0 ? (
           <div className="col-span-2 text-center py-12 text-slate-400 dark:text-slate-500">
