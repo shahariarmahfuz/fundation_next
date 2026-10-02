@@ -7,6 +7,20 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  async redirects() {
+    return [
+      {
+        source: "/dashboard/profile",
+        destination: "/admin/profile",
+        permanent: false,
+      },
+      {
+        source: "/dashboard",
+        destination: "/admin/dashboard",
+        permanent: false,
+      },
+    ];
+  },
   async rewrites() {
     return [
       {

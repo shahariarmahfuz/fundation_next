@@ -1,4 +1,5 @@
 from typing import Optional, List
+from datetime import datetime
 from pydantic import BaseModel, EmailStr
 
 
@@ -83,6 +84,7 @@ class UserResponse(UserBase):
     id: int
     is_superuser: bool
     role: Optional[RoleResponse] = None
+    last_login: Optional[datetime] = None
 
     class Config:
         from_attributes = True

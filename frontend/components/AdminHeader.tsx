@@ -16,7 +16,6 @@ import { getStoredUser, removeAuthToken } from "@/lib/api";
 import { useTheme } from "@/lib/theme";
 import { useBranding } from "@/lib/branding";
 import { FoundationLogo } from "./FoundationLogo";
-import { UserProfileModal } from "./UserProfileModal";
 
 interface AdminHeaderProps {
   onToggleSidebar: () => void;
@@ -29,13 +28,17 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
 
   const [user, setUser] = useState<any | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setUser(getStoredUser());
+    const syncUser = () => setUser(getStoredUser());
+    syncUser();
+    if (typeof window !== "undefined") {
+      window.addEventListener("user-profile-updated", syncUser);
+      return () => window.removeEventListener("user-profile-updated", syncUser);
+    }
   }, []);
 
   // Close dropdown on outside click or Escape key
@@ -146,12 +149,16 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                 className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-xl backdrop-blur-md dark:border-slate-800 dark:bg-slate-900 animate-in fade-in zoom-in-95 duration-150 z-50 text-slate-800 dark:text-slate-100"
               >
                 {/* 1. Current User Information */}
-                <div className="flex items-center gap-3 p-3 border-b border-slate-100 dark:border-slate-800">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white text-sm font-bold shadow-sm">
+                <Link
+                  href="/admin/profile"
+                  onClick={() => setDropdownOpen(false)}
+                  className="flex items-center gap-3 p-3 border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 rounded-t-xl transition-colors cursor-pointer group"
+                >
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white text-sm font-bold shadow-sm group-hover:bg-emerald-500 transition-colors">
                     {userAvatarInitial}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                       {user?.full_name || user?.username || "Management User"}
                     </p>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate">
@@ -163,22 +170,19 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
                       </span>
                     </div>
                   </div>
-                </div>
+                </Link>
 
                 {/* 2. Profile Actions */}
                 <div className="py-1 space-y-0.5 text-xs">
-                  <button
-                    onClick={() => {
-                      setDropdownOpen(false);
-                      setProfileModalOpen(true);
-                    }}
-                    type="button"
+                  <Link
+                    href="/admin/profile"
+                    onClick={() => setDropdownOpen(false)}
                     role="menuitem"
-                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white transition-colors text-left cursor-pointer"
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white transition-colors"
                   >
                     <UserIcon className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     <span>My Profile</span>
-                  </button>
+                  </Link>
 
                   <Link
                     href="/admin/settings"
@@ -244,13 +248,6 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
           </div>
         </div>
       </header>
-
-      {/* User Profile Modal */}
-      <UserProfileModal
-        isOpen={profileModalOpen}
-        onClose={() => setProfileModalOpen(false)}
-        onUserUpdated={(updated) => setUser(updated)}
-      />
     </>
   );
 };

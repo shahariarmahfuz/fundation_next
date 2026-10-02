@@ -101,6 +101,11 @@ def update_user_me(
 
     db.commit()
     db.refresh(current_user)
+    AuditService.log(
+        db, action="UPDATE_PROFILE", module="auth", record_id=str(current_user.id),
+        user=current_user, details=f"User {current_user.username} updated personal profile information"
+    )
+    db.commit()
     return current_user
 
 

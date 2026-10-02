@@ -22,8 +22,69 @@ import {
   PenTool,
   Trash2,
   Image as ImageIcon,
-  File as FileIcon
+  File as FileIcon,
+  UserPlus,
+  X
 } from "lucide-react";
+
+interface CreatedMemberInfo {
+  id: number;
+  full_name: string;
+  member_number: string;
+  group_name: string;
+}
+
+const getInitialFormData = (defaultGroupId: string = "") => ({
+  full_name: "",
+  group_id: defaultGroupId,
+  member_number: "",
+  joining_date: "",
+  status: "ACTIVE",
+
+  // Optional Personal
+  father_name: "",
+  mother_name: "",
+  date_of_birth: "",
+  gender: "",
+  nid_or_id: "",
+  occupation: "",
+  education: "",
+  blood_group: "",
+  marital_status: "",
+  phone: "",
+  alternative_phone: "",
+  email: "",
+  present_address: "",
+  permanent_address: "",
+
+  // Optional Emergency
+  emergency_contact_name: "",
+  emergency_contact_relationship: "",
+  emergency_contact_phone: "",
+
+  // Optional Reference
+  reference_name: "",
+  reference_phone: "",
+  reference_relationship: "",
+
+  // Optional Commitment & Docs (Cloudinary backed)
+  commitment: "",
+  photo_url: "",
+  photo_public_id: "",
+  signature_url: "",
+  signature_public_id: "",
+  document_type: "NATIONAL_ID",
+  nid_front_url: "",
+  nid_front_public_id: "",
+  nid_back_url: "",
+  nid_back_public_id: "",
+  birth_certificate_url: "",
+  birth_certificate_public_id: "",
+
+  // Optional Remarks
+  reason_for_joining: "",
+  notes: "",
+});
 
 export default function NewMemberPage() {
   const router = useRouter();
@@ -31,6 +92,7 @@ export default function NewMemberPage() {
   const [foundationRate, setFoundationRate] = useState<number>(100);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [createdMember, setCreatedMember] = useState<CreatedMemberInfo | null>(null);
 
   // Sections toggle for clean UI
   const [openSections, setOpenSections] = useState({
@@ -47,57 +109,7 @@ export default function NewMemberPage() {
   };
 
   // Form State — ONLY full_name and group_id are required
-  const [formData, setFormData] = useState({
-    full_name: "",
-    group_id: "",
-    member_number: "",
-    joining_date: "",
-    status: "ACTIVE",
-
-    // Optional Personal
-    father_name: "",
-    mother_name: "",
-    date_of_birth: "",
-    gender: "",
-    nid_or_id: "",
-    occupation: "",
-    education: "",
-    blood_group: "",
-    marital_status: "",
-    phone: "",
-    alternative_phone: "",
-    email: "",
-    present_address: "",
-    permanent_address: "",
-
-    // Optional Emergency
-    emergency_contact_name: "",
-    emergency_contact_relationship: "",
-    emergency_contact_phone: "",
-
-    // Optional Reference
-    reference_name: "",
-    reference_phone: "",
-    reference_relationship: "",
-
-    // Optional Commitment & Docs (Cloudinary backed)
-    commitment: "",
-    photo_url: "",
-    photo_public_id: "",
-    signature_url: "",
-    signature_public_id: "",
-    document_type: "National ID",
-    nid_front_url: "",
-    nid_front_public_id: "",
-    nid_back_url: "",
-    nid_back_public_id: "",
-    birth_certificate_url: "",
-    birth_certificate_public_id: "",
-
-    // Optional Remarks
-    reason_for_joining: "",
-    notes: "",
-  });
+  const [formData, setFormData] = useState(getInitialFormData());
 
   const [uploadingState, setUploadingState] = useState<Record<string, boolean>>({});
   const [uploadError, setUploadError] = useState<Record<string, string>>({});
@@ -257,11 +269,31 @@ export default function NewMemberPage() {
       };
 
       const res = await api.post("/members", payload);
-      router.push(`/admin/members/${res.id}`);
-    } catch (err: any) {
-      setError(err.message || "Failed to create member");
-      setLoading(false);
+
+      // Extract accurate group name and code from backend response
+      const assignedGroup = groups.find((g) => g.id === parseInt(formData.group_id));
+      const groupName = res.group?.name || assignedGroup?.name || "Assigned Group";
+      const memberCode = res.code || res.member_number || "M-Auto";
+
+      setCreatedMember({
+        id: res.id,
+        full_name: res.full_name,
+        member_number: memberCode,
+        group_name: groupName,
+      });
+
+      // Reset form so the user can immediately add another member
+      setFormData(getInitialFormData(groups.length > 0 ? String(groups[0].id) : ""));
+      setUploadingState({});
+      setUploadError({});
+      setError(null);
       window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err: any) {
+      // Do NOT clear form on error — keep user's input intact
+      setError(err.message || "Unable to create member. Please correct the issue and try again.");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -285,6 +317,76 @@ export default function NewMemberPage() {
           </p>
         </div>
       </div>
+
+      {/* Success Banner */}
+      {createdMember && (
+        <div className="rounded-2xl border border-emerald-200 dark:border-emerald-800/80 bg-emerald-50/90 dark:bg-emerald-950/40 p-5 sm:p-6 shadow-sm space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3.5">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm shadow-emerald-600/20">
+                <CheckCircle2 className="h-6 w-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-100 flex items-center gap-2">
+                  ✓ Member added successfully
+                </h3>
+                <p className="text-xs text-emerald-700 dark:text-emerald-300 mt-0.5">
+                  <span className="font-semibold text-emerald-950 dark:text-emerald-50">{createdMember.full_name}</span> has been added successfully.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setCreatedMember(null)}
+              className="text-emerald-600 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-200 p-1 rounded-lg transition-colors cursor-pointer"
+              title="Dismiss message"
+              aria-label="Dismiss message"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
+          {/* Member Metadata Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <div className="rounded-xl border border-emerald-200/70 dark:border-emerald-800/60 bg-white/80 dark:bg-slate-900/80 px-4 py-2.5">
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">Member ID:</span>
+              <span className="text-sm font-bold font-mono text-emerald-700 dark:text-emerald-400">
+                {createdMember.member_number}
+              </span>
+            </div>
+            <div className="rounded-xl border border-emerald-200/70 dark:border-emerald-800/60 bg-white/80 dark:bg-slate-900/80 px-4 py-2.5">
+              <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400 block">Group:</span>
+              <span className="text-sm font-bold text-slate-900 dark:text-white">
+                {createdMember.group_name}
+              </span>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-emerald-200/60 dark:border-emerald-800/60">
+            <button
+              type="button"
+              onClick={() => {
+                setCreatedMember(null);
+                const nameInput = document.getElementById("member-full-name-input");
+                nameInput?.focus();
+              }}
+              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 px-4 py-2 text-xs font-semibold text-white shadow-sm transition-colors cursor-pointer"
+            >
+              <UserPlus className="h-3.5 w-3.5" />
+              Add Another Member
+            </button>
+
+            <Link
+              href="/admin/members"
+              className="inline-flex items-center gap-2 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-900 px-4 py-2 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-slate-800 transition-colors shadow-sm cursor-pointer"
+            >
+              <Users className="h-3.5 w-3.5" />
+              Manage Members
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Global Error Banner */}
       {error && (
@@ -313,6 +415,7 @@ export default function NewMemberPage() {
                 Full Name <span className="text-rose-500">*</span>
               </label>
               <input
+                id="member-full-name-input"
                 required
                 type="text"
                 className="input-field"
@@ -1279,12 +1382,12 @@ export default function NewMemberPage() {
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition-colors disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
           >
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                Registering Member...
+                Creating Member...
               </>
             ) : (
               "Save Member"
