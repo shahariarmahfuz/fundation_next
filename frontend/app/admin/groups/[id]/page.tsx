@@ -14,7 +14,8 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Pencil
 } from "lucide-react";
 
 export default function GroupDetailsPage() {
@@ -90,6 +91,14 @@ export default function GroupDetailsPage() {
             </p>
           </div>
         </div>
+
+        <Link
+          href={`/admin/groups/${groupId}/edit`}
+          className="btn-secondary"
+        >
+          <Pencil className="h-4 w-4" />
+          Edit Group
+        </Link>
       </div>
 
       {error && (

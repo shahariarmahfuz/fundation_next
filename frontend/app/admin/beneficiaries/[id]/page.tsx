@@ -17,7 +17,8 @@ import {
   Receipt,
   CheckCircle2,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Pencil
 } from "lucide-react";
 
 export default function BeneficiaryProfilePage() {
@@ -58,25 +59,35 @@ export default function BeneficiaryProfilePage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link
-          href="/admin/beneficiaries"
-          className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
-        >
-          <ArrowLeft className="h-5 w-5" />
-        </Link>
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{b?.name}</h1>
-            <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">
-              {b?.beneficiary_number}
-            </span>
-            <StatusBadge status={b?.status} />
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/beneficiaries"
+            className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{b?.name}</h1>
+              <span className="font-mono text-xs px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">
+                {b?.beneficiary_number}
+              </span>
+              <StatusBadge status={b?.status} />
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Assistance profile, interest-free loan history, and sadakah grants
+            </p>
           </div>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Assistance profile, interest-free loan history, and sadakah grants
-          </p>
         </div>
+
+        <Link
+          href={`/admin/beneficiaries/${beneficiaryId}/edit`}
+          className="btn-secondary"
+        >
+          <Pencil className="h-4 w-4" />
+          Edit Beneficiary
+        </Link>
       </div>
 
       {error && (

@@ -37,21 +37,6 @@ export default function ManageMembersPage() {
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: "success" | "warning"; message: string } | null>(null);
 
-  // Edit Member Modal
-  const [editingMember, setEditingMember] = useState<any | null>(null);
-  const [editFormData, setEditFormData] = useState({
-    member_number: "",
-    full_name: "",
-    phone: "",
-    email: "",
-    address: "",
-    nid_or_id: "",
-    status: "ACTIVE",
-    group_id: "",
-  });
-  const [savingEdit, setSavingEdit] = useState(false);
-  const [editError, setEditError] = useState<string | null>(null);
-
   // Delete / Archive Confirmation Modal
   const [deletingMember, setDeletingMember] = useState<any | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -117,52 +102,6 @@ export default function ManageMembersPage() {
     e.preventDefault();
     setPage(1);
     fetchMembers();
-  };
-
-  const openEditModal = (m: any) => {
-    setEditingMember(m);
-    setEditFormData({
-      member_number: m.member_number || m.code || "",
-      full_name: m.full_name || "",
-      phone: m.phone || "",
-      email: m.email || "",
-      address: m.address || "",
-      nid_or_id: m.nid_or_id || "",
-      status: m.status || "ACTIVE",
-      group_id: String(m.group_id),
-    });
-    setEditError(null);
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingMember) return;
-    setSavingEdit(true);
-    setEditError(null);
-    try {
-      await api.put(`/members/${editingMember.id}`, {
-        member_number: editFormData.member_number.trim() || undefined,
-        code: editFormData.member_number.trim() || undefined,
-        full_name: editFormData.full_name.trim(),
-        phone: editFormData.phone.trim() || undefined,
-        email: editFormData.email.trim() || undefined,
-        address: editFormData.address.trim() || undefined,
-        nid_or_id: editFormData.nid_or_id.trim() || undefined,
-        status: editFormData.status,
-        group_id: parseInt(editFormData.group_id),
-      });
-      setEditingMember(null);
-      setNotification({
-        type: "success",
-        message: `Member ${editFormData.full_name} updated successfully!`,
-      });
-      setTimeout(() => setNotification(null), 5000);
-      fetchMembers();
-    } catch (err: any) {
-      setEditError(err.message || "Failed to update member");
-    } finally {
-      setSavingEdit(false);
-    }
   };
 
   const handleConfirmDelete = async () => {
@@ -345,14 +284,14 @@ export default function ManageMembersPage() {
                       </Link>
 
                       {canEdit && (
-                        <button
-                          onClick={() => openEditModal(m)}
-                          className="inline-flex items-center gap-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+                        <Link
+                          href={`/admin/members/${m.id}/edit`}
+                          className="inline-flex items-center gap-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors"
                           title="Edit Member"
                         >
                           <Edit className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                           <span className="hidden xl:inline">Edit</span>
-                        </button>
+                        </Link>
                       )}
 
                       {canDelete && (
@@ -384,171 +323,6 @@ export default function ManageMembersPage() {
           setPage(1);
         }}
       />
-
-      {/* Edit Member Modal */}
-      {editingMember && (
-        <Modal
-          isOpen={!!editingMember}
-          onClose={() => setEditingMember(null)}
-          title={`Edit Member — ${editingMember.member_number}`}
-          maxWidth="lg"
-        >
-          <form onSubmit={handleSaveEdit} className="space-y-4">
-            {editError && (
-              <div className="flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 dark:border-rose-900/40 dark:bg-rose-950/30 p-3 text-xs text-rose-700 dark:text-rose-300">
-                <AlertCircle className="h-4 w-4 shrink-0" />
-                <span>{editError}</span>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Full Name *
-                </label>
-                <input
-                  type="text"
-                  required
-                  className="input-field"
-                  value={editFormData.full_name}
-                  onChange={(e) => setEditFormData({ ...editFormData, full_name: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Member Code (Format: M-XXXX)
-                </label>
-                <input
-                  type="text"
-                  className="input-field font-mono uppercase"
-                  placeholder="e.g. M-0001"
-                  value={editFormData.member_number}
-                  onChange={(e) => setEditFormData({ ...editFormData, member_number: e.target.value.toUpperCase() })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Phone Number
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. +880 1711-000000"
-                  className="input-field"
-                  value={editFormData.phone}
-                  onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  className="input-field"
-                  value={editFormData.email}
-                  onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  NID / ID Number
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  value={editFormData.nid_or_id}
-                  onChange={(e) => setEditFormData({ ...editFormData, nid_or_id: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Accounting Group *
-                </label>
-                <select
-                  required
-                  className="input-field"
-                  value={editFormData.group_id}
-                  onChange={(e) => setEditFormData({ ...editFormData, group_id: e.target.value })}
-                >
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name} ({g.code})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/30 p-3 flex flex-col justify-between">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-emerald-900 dark:text-emerald-200">
-                    Monthly Contribution
-                  </span>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
-                    Source: Foundation Setting
-                  </span>
-                </div>
-                <div className="mt-1 text-base font-bold text-slate-900 dark:text-white">
-                  {formatCurrency(editingMember?.monthly_contribution_amount || 100)} / mo
-                </div>
-                <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
-                  Global Foundation setting applicable to all active members.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Membership Status *
-                </label>
-                <select
-                  required
-                  className="input-field"
-                  value={editFormData.status}
-                  onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
-                >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
-                  <option value="SUSPENDED">SUSPENDED</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Address
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  value={editFormData.address}
-                  onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => setEditingMember(null)}
-                className="btn-secondary text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={savingEdit}
-                className="btn-primary text-xs"
-              >
-                {savingEdit && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                Save Changes
-              </button>
-            </div>
-          </form>
-        </Modal>
-      )}
 
       {/* Delete / Archive Confirmation Modal */}
       {deletingMember && (

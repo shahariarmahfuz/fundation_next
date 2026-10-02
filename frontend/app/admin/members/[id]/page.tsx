@@ -27,7 +27,8 @@ import {
   FileText,
   Image as ImageIcon,
   PenTool,
-  ExternalLink
+  ExternalLink,
+  Pencil
 } from "lucide-react";
 
 export default function MemberProfilePage() {
@@ -228,13 +229,22 @@ export default function MemberProfilePage() {
           </div>
         </div>
 
-        <Link
-          href={`/admin/contributions/receive?member_id=${member.id}`}
-          className="btn-primary"
-        >
-          <PlusCircle className="h-4 w-4" />
-          Receive Contribution
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/admin/members/${member.id}/edit`}
+            className="btn-secondary"
+          >
+            <Pencil className="h-4 w-4" />
+            Edit Member
+          </Link>
+          <Link
+            href={`/admin/contributions/receive?member_id=${member.id}`}
+            className="btn-primary"
+          >
+            <PlusCircle className="h-4 w-4" />
+            Receive Contribution
+          </Link>
+        </div>
       </div>
 
       {/* Member Details & Financial Summary Cards */}

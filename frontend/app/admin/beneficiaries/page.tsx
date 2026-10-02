@@ -36,21 +36,6 @@ export default function ManageBeneficiariesPage() {
   const [error, setError] = useState<string | null>(null);
   const [notification, setNotification] = useState<{ type: "success" | "warning"; message: string } | null>(null);
 
-  // Edit Modal
-  const [editingBeneficiary, setEditingBeneficiary] = useState<any | null>(null);
-  const [editFormData, setEditFormData] = useState({
-    code: "",
-    name: "",
-    phone: "",
-    email: "",
-    address: "",
-    nid_or_id: "",
-    status: "ACTIVE",
-    notes: "",
-  });
-  const [savingEdit, setSavingEdit] = useState(false);
-  const [editError, setEditError] = useState<string | null>(null);
-
   // Delete Modal
   const [deletingBeneficiary, setDeletingBeneficiary] = useState<any | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -111,46 +96,6 @@ export default function ManageBeneficiariesPage() {
     e.preventDefault();
     setPage(1);
     fetchBeneficiaries();
-  };
-
-  const openEditModal = (b: any) => {
-    setEditingBeneficiary(b);
-    setEditFormData({
-      code: b.beneficiary_number || b.code || "",
-      name: b.name || "",
-      phone: b.phone || "",
-      email: b.email || "",
-      address: b.address || "",
-      nid_or_id: b.nid_or_id || "",
-      status: b.status || "ACTIVE",
-      notes: b.notes || "",
-    });
-    setEditError(null);
-  };
-
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingBeneficiary) return;
-    setSavingEdit(true);
-    setEditError(null);
-    try {
-      await api.put(`/beneficiaries/${editingBeneficiary.id}`, {
-        ...editFormData,
-        code: editFormData.code.trim() || undefined,
-        beneficiary_number: editFormData.code.trim() || undefined,
-      });
-      setEditingBeneficiary(null);
-      setNotification({
-        type: "success",
-        message: `Beneficiary ${editFormData.name} updated successfully!`,
-      });
-      setTimeout(() => setNotification(null), 5000);
-      fetchBeneficiaries();
-    } catch (err: any) {
-      setEditError(err.message || "Failed to update beneficiary");
-    } finally {
-      setSavingEdit(false);
-    }
   };
 
   const handleConfirmDelete = async () => {
@@ -324,14 +269,14 @@ export default function ManageBeneficiariesPage() {
                       </Link>
 
                       {canEdit && (
-                        <button
-                          onClick={() => openEditModal(b)}
-                          className="inline-flex items-center gap-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors cursor-pointer"
+                        <Link
+                          href={`/admin/beneficiaries/${b.id}/edit`}
+                          className="inline-flex items-center gap-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors"
                           title="Edit Beneficiary"
                         >
                           <Edit className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
                           <span className="hidden xl:inline">Edit</span>
-                        </button>
+                        </Link>
                       )}
 
                       {canDelete && (
@@ -363,149 +308,6 @@ export default function ManageBeneficiariesPage() {
           setPage(1);
         }}
       />
-
-      {/* Modal: Edit Beneficiary */}
-      {editingBeneficiary && (
-        <Modal
-          isOpen={!!editingBeneficiary}
-          onClose={() => setEditingBeneficiary(null)}
-          title={`Edit Beneficiary — ${editingBeneficiary.beneficiary_number}`}
-          maxWidth="lg"
-        >
-          <form onSubmit={handleSaveEdit} className="space-y-4">
-            {editError && (
-              <div className="rounded-lg bg-rose-50 dark:bg-rose-950/40 p-3 text-xs text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-900/40">
-                {editError}
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Full Name *
-                </label>
-                <input
-                  required
-                  type="text"
-                  className="input-field"
-                  value={editFormData.name}
-                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Beneficiary Code (Format: B-XXXX)
-                </label>
-                <input
-                  type="text"
-                  className="input-field uppercase font-mono"
-                  placeholder="e.g. B-0001"
-                  value={editFormData.code}
-                  onChange={(e) => setEditFormData({ ...editFormData, code: e.target.value.toUpperCase() })}
-                />
-                <p className="mt-1 text-[11px] text-slate-400">
-                  Must start with 'B-' prefix.
-                </p>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Phone Number *
-                </label>
-                <input
-                  required
-                  type="text"
-                  className="input-field"
-                  value={editFormData.phone}
-                  onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  className="input-field"
-                  value={editFormData.email}
-                  onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  NID / ID Number
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  value={editFormData.nid_or_id}
-                  onChange={(e) => setEditFormData({ ...editFormData, nid_or_id: e.target.value })}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Status *
-                </label>
-                <select
-                  required
-                  className="input-field"
-                  value={editFormData.status}
-                  onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
-                >
-                  <option value="ACTIVE">ACTIVE</option>
-                  <option value="INACTIVE">INACTIVE</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Residential Address
-                </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  value={editFormData.address}
-                  onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Notes & Eligibility
-              </label>
-              <textarea
-                rows={3}
-                className="input-field"
-                value={editFormData.notes}
-                onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
-              />
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-200 dark:border-slate-800">
-              <button
-                type="button"
-                onClick={() => setEditingBeneficiary(null)}
-                className="btn-secondary text-xs"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={savingEdit}
-                className="btn-primary text-xs"
-              >
-                {savingEdit && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                Save Changes
-              </button>
-            </div>
-          </form>
-        </Modal>
-      )}
 
       {/* Modal: Delete / Archive Confirmation */}
       {deletingBeneficiary && (
