@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     CORS_ORIGINS: Union[str, List[str]] = ["http://localhost:3000", "http://127.0.0.1:3000"]
     
     ENVIRONMENT: str = "development"
+    
+    # Cloudinary Media Storage (Backend only)
+    CLOUDINARY_CLOUD_NAME: Union[str, None] = None
+    CLOUDINARY_API_KEY: Union[str, None] = None
+    CLOUDINARY_API_SECRET: Union[str, None] = None
+    CLOUDINARY_URL: Union[str, None] = None
 
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod

@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel, ConfigDict, EmailStr, model_validator
 from backend.app.schemas.group import GroupResponse
 
@@ -44,10 +44,16 @@ class MemberBase(BaseModel):
     # Commitment & Documents (optional)
     commitment: Optional[str] = None
     photo_url: Optional[str] = None
+    photo_public_id: Optional[str] = None
     signature_url: Optional[str] = None
+    signature_public_id: Optional[str] = None
     document_type: Optional[str] = None
     nid_front_url: Optional[str] = None
+    nid_front_public_id: Optional[str] = None
     nid_back_url: Optional[str] = None
+    nid_back_public_id: Optional[str] = None
+    birth_certificate_url: Optional[str] = None
+    birth_certificate_public_id: Optional[str] = None
 
     # Remarks & Reason (optional)
     reason_for_joining: Optional[str] = None
@@ -88,12 +94,37 @@ class MemberUpdate(BaseModel):
     reference_relationship: Optional[str] = None
     commitment: Optional[str] = None
     photo_url: Optional[str] = None
+    photo_public_id: Optional[str] = None
     signature_url: Optional[str] = None
+    signature_public_id: Optional[str] = None
     document_type: Optional[str] = None
     nid_front_url: Optional[str] = None
+    nid_front_public_id: Optional[str] = None
     nid_back_url: Optional[str] = None
+    nid_back_public_id: Optional[str] = None
+    birth_certificate_url: Optional[str] = None
+    birth_certificate_public_id: Optional[str] = None
     reason_for_joining: Optional[str] = None
     notes: Optional[str] = None
+
+
+class MemberDocumentResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    member_id: Optional[int] = None
+    document_type: Optional[str] = None
+    document_category: str
+    cloudinary_public_id: str
+    secure_url: str
+    resource_type: str
+    format: Optional[str] = None
+    file_size: Optional[int] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+    original_filename: Optional[str] = None
+    mime_type: Optional[str] = None
+    created_at: datetime
 
 
 class MemberResponse(MemberBase):
@@ -103,6 +134,7 @@ class MemberResponse(MemberBase):
     created_at: datetime
     updated_at: datetime
     group: Optional[GroupResponse] = None
+    documents: Optional[List[MemberDocumentResponse]] = None
     monthly_contribution_amount: Optional[Decimal] = None
     foundation_monthly_amount: Optional[Decimal] = None
     total_contributions_paid: Optional[Decimal] = None

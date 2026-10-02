@@ -4,6 +4,7 @@ from backend.app.models.role import Role, Permission, role_permissions
 from backend.app.models.user import User
 from backend.app.models.group import Group
 from backend.app.models.member import Member
+from backend.app.models.member_document import MemberDocument
 from backend.app.models.member_application import MemberApplication
 from backend.app.models.transaction import FinancialTransaction
 from backend.app.models.contribution import Contribution
@@ -25,6 +26,7 @@ __all__ = [
     "User",
     "Group",
     "Member",
+    "MemberDocument",
     "MemberApplication",
     "FinancialTransaction",
     "Contribution",

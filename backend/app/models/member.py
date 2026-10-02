@@ -43,13 +43,19 @@ class Member(Base, TimestampMixin):
     reference_phone = Column(String(50), nullable=True)
     reference_relationship = Column(String(50), nullable=True)
 
-    # Commitment & Documents (optional)
+    # Commitment & Documents (optional Cloudinary assets)
     commitment = Column(Text, nullable=True)
     photo_url = Column(String(500), nullable=True)
+    photo_public_id = Column(String(255), nullable=True)
     signature_url = Column(String(500), nullable=True)
+    signature_public_id = Column(String(255), nullable=True)
     document_type = Column(String(50), nullable=True)
     nid_front_url = Column(String(500), nullable=True)
+    nid_front_public_id = Column(String(255), nullable=True)
     nid_back_url = Column(String(500), nullable=True)
+    nid_back_public_id = Column(String(255), nullable=True)
+    birth_certificate_url = Column(String(500), nullable=True)
+    birth_certificate_public_id = Column(String(255), nullable=True)
 
     # Remarks & Reason
     reason_for_joining = Column(Text, nullable=True)
@@ -58,3 +64,4 @@ class Member(Base, TimestampMixin):
     # Relationships
     group = relationship("Group", back_populates="members", lazy="joined")
     contributions = relationship("Contribution", back_populates="member", cascade="all, delete-orphan")
+    documents = relationship("MemberDocument", back_populates="member", cascade="all, delete-orphan", order_by="desc(MemberDocument.created_at)")

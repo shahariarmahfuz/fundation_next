@@ -96,4 +96,37 @@ export const api = {
     }),
   delete: <T = any>(endpoint: string, options?: RequestInit) =>
     request<T>(endpoint, { method: "DELETE", ...options }),
+  upload: <T = any>(endpoint: string, formData: FormData, options?: RequestInit): Promise<T> => {
+    const token = getAuthToken();
+    const headers: Record<string, string> = {
+      ...(options?.headers as Record<string, string>),
+    };
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    const url = `${API_URL}${cleanEndpoint}`;
+
+    return fetch(url, {
+      method: "POST",
+      body: formData,
+      ...options,
+      headers,
+    }).then(async (res) => {
+      if (!res.ok) {
+        let errMessage = `Upload failed with status ${res.status}`;
+        let errData = null;
+        try {
+          errData = await res.json();
+          if (errData?.error?.message) {
+            errMessage = errData.error.message;
+          } else if (errData?.detail) {
+            errMessage = typeof errData.detail === "string" ? errData.detail : JSON.stringify(errData.detail);
+          }
+        } catch {}
+        throw new ApiError(errMessage, res.status, errData);
+      }
+      return res.json();
+    });
+  },
 };

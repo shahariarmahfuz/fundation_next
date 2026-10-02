@@ -17,7 +17,12 @@ import {
   CheckCircle2,
   Users,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Camera,
+  PenTool,
+  Trash2,
+  Image as ImageIcon,
+  File as FileIcon
 } from "lucide-react";
 
 export default function NewMemberPage() {
@@ -75,18 +80,78 @@ export default function NewMemberPage() {
     reference_phone: "",
     reference_relationship: "",
 
-    // Optional Commitment & Docs
+    // Optional Commitment & Docs (Cloudinary backed)
     commitment: "",
     photo_url: "",
+    photo_public_id: "",
     signature_url: "",
-    document_type: "",
+    signature_public_id: "",
+    document_type: "National ID",
     nid_front_url: "",
+    nid_front_public_id: "",
     nid_back_url: "",
+    nid_back_public_id: "",
+    birth_certificate_url: "",
+    birth_certificate_public_id: "",
 
     // Optional Remarks
     reason_for_joining: "",
     notes: "",
   });
+
+  const [uploadingState, setUploadingState] = useState<Record<string, boolean>>({});
+  const [uploadError, setUploadError] = useState<Record<string, string>>({});
+
+  const handleFileUpload = async (file: File, category: string) => {
+    setUploadingState((prev) => ({ ...prev, [category]: true }));
+    setUploadError((prev) => ({ ...prev, [category]: "" }));
+
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("category", category);
+
+    try {
+      const res = await api.upload<{
+        secure_url: string;
+        public_id: string;
+        format?: string;
+        bytes?: number;
+      }>("/members/upload-temp", fd);
+
+      if (category === "PHOTO") {
+        setFormData((prev) => ({ ...prev, photo_url: res.secure_url, photo_public_id: res.public_id }));
+      } else if (category === "SIGNATURE") {
+        setFormData((prev) => ({ ...prev, signature_url: res.secure_url, signature_public_id: res.public_id }));
+      } else if (category === "NID_FRONT") {
+        setFormData((prev) => ({ ...prev, nid_front_url: res.secure_url, nid_front_public_id: res.public_id }));
+      } else if (category === "NID_BACK") {
+        setFormData((prev) => ({ ...prev, nid_back_url: res.secure_url, nid_back_public_id: res.public_id }));
+      } else if (category === "BIRTH_CERTIFICATE") {
+        setFormData((prev) => ({ ...prev, birth_certificate_url: res.secure_url, birth_certificate_public_id: res.public_id }));
+      }
+    } catch (err: any) {
+      setUploadError((prev) => ({
+        ...prev,
+        [category]: err.message || "Failed to upload file to Cloudinary.",
+      }));
+    } finally {
+      setUploadingState((prev) => ({ ...prev, [category]: false }));
+    }
+  };
+
+  const handleFileRemove = (category: string) => {
+    if (category === "PHOTO") {
+      setFormData((prev) => ({ ...prev, photo_url: "", photo_public_id: "" }));
+    } else if (category === "SIGNATURE") {
+      setFormData((prev) => ({ ...prev, signature_url: "", signature_public_id: "" }));
+    } else if (category === "NID_FRONT") {
+      setFormData((prev) => ({ ...prev, nid_front_url: "", nid_front_public_id: "" }));
+    } else if (category === "NID_BACK") {
+      setFormData((prev) => ({ ...prev, nid_back_url: "", nid_back_public_id: "" }));
+    } else if (category === "BIRTH_CERTIFICATE") {
+      setFormData((prev) => ({ ...prev, birth_certificate_url: "", birth_certificate_public_id: "" }));
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -172,13 +237,19 @@ export default function NewMemberPage() {
         reference_phone: cleanVal(formData.reference_phone),
         reference_relationship: cleanVal(formData.reference_relationship),
 
-        // Commitment & Documents
+        // Commitment & Documents (Cloudinary)
         commitment: cleanVal(formData.commitment),
         photo_url: cleanVal(formData.photo_url),
+        photo_public_id: cleanVal(formData.photo_public_id),
         signature_url: cleanVal(formData.signature_url),
+        signature_public_id: cleanVal(formData.signature_public_id),
         document_type: cleanVal(formData.document_type),
         nid_front_url: cleanVal(formData.nid_front_url),
+        nid_front_public_id: cleanVal(formData.nid_front_public_id),
         nid_back_url: cleanVal(formData.nid_back_url),
+        nid_back_public_id: cleanVal(formData.nid_back_public_id),
+        birth_certificate_url: cleanVal(formData.birth_certificate_url),
+        birth_certificate_public_id: cleanVal(formData.birth_certificate_public_id),
 
         // Reason & Remarks
         reason_for_joining: cleanVal(formData.reason_for_joining),
@@ -737,10 +808,10 @@ export default function NewMemberPage() {
           >
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                5. Documents <span className="text-slate-400 font-normal text-xs">(Optional)</span>
+                5. Documents & Media <span className="text-slate-400 font-normal text-xs">(Optional — Cloudinary Storage)</span>
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Member photo, signature, and national ID document links
+                Member photo, signature, and identity documents (all uploads are completely optional)
               </p>
             </div>
             {openSections.documents ? (
@@ -751,76 +822,395 @@ export default function NewMemberPage() {
           </button>
 
           {openSections.documents && (
-            <div className="p-6 pt-0 border-t border-slate-100 dark:border-slate-800 space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Document Type
-                  </label>
+            <div className="p-6 pt-0 border-t border-slate-100 dark:border-slate-800 space-y-6">
+              <div className="pt-4">
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Document Type
+                </label>
+                <div className="max-w-xs">
                   <select
                     className="input-field"
                     value={formData.document_type}
                     onChange={(e) => setFormData({ ...formData, document_type: e.target.value })}
                   >
-                    <option value="">Select document type (optional)</option>
                     <option value="National ID">National ID (NID)</option>
-                    <option value="Passport">Passport</option>
                     <option value="Birth Certificate">Birth Certificate</option>
+                    <option value="Passport">Passport</option>
                     <option value="Driving License">Driving License</option>
+                    <option value="Other">Other Document</option>
                   </select>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Member Photo URL
-                  </label>
-                  <input
-                    type="url"
-                    className="input-field"
-                    placeholder="https://.../photo.jpg"
-                    value={formData.photo_url}
-                    onChange={(e) => setFormData({ ...formData, photo_url: e.target.value })}
-                  />
+              {/* Upload Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {/* 1. Member Photo */}
+                <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-950/40">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <Camera className="h-4 w-4 text-foundation-600 dark:text-emerald-400" />
+                      Member Photo
+                    </span>
+                    <span className="text-[10px] text-slate-400">JPG, PNG, WEBP (Max 5MB)</span>
+                  </div>
+
+                  {formData.photo_url ? (
+                    <div className="flex items-center gap-3 p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                      <img
+                        src={formData.photo_url}
+                        alt="Member Photo"
+                        className="h-16 w-16 rounded-md object-cover border border-slate-200 dark:border-slate-700"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          <span>Uploaded to Cloudinary</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 truncate font-mono mt-0.5">
+                          {formData.photo_public_id}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleFileRemove("PHOTO")}
+                        className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-md transition-colors"
+                        title="Remove photo"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-foundation-500 dark:hover:border-emerald-500 rounded-lg p-4 cursor-pointer transition-colors bg-white dark:bg-slate-900/50">
+                        {uploadingState["PHOTO"] ? (
+                          <div className="flex items-center gap-2 text-xs text-foundation-600 dark:text-emerald-400">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Uploading to Cloudinary...</span>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            <UploadCloud className="h-6 w-6 text-slate-400 mx-auto mb-1" />
+                            <span className="text-xs font-medium text-foundation-700 dark:text-emerald-400">
+                              Upload Photo
+                            </span>
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          disabled={uploadingState["PHOTO"]}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) handleFileUpload(f, "PHOTO");
+                          }}
+                        />
+                      </label>
+                      {uploadError["PHOTO"] && (
+                        <p className="text-[11px] text-rose-500 mt-1">{uploadError["PHOTO"]}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    Signature URL
-                  </label>
-                  <input
-                    type="url"
-                    className="input-field"
-                    placeholder="https://.../signature.png"
-                    value={formData.signature_url}
-                    onChange={(e) => setFormData({ ...formData, signature_url: e.target.value })}
-                  />
+                {/* 2. Signature */}
+                <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-950/40">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <PenTool className="h-4 w-4 text-foundation-600 dark:text-emerald-400" />
+                      Signature
+                    </span>
+                    <span className="text-[10px] text-slate-400">PNG, JPG, WEBP (Max 2MB)</span>
+                  </div>
+
+                  {formData.signature_url ? (
+                    <div className="flex items-center gap-3 p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                      <img
+                        src={formData.signature_url}
+                        alt="Signature"
+                        className="h-12 w-24 object-contain bg-white dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 p-1"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                          <CheckCircle2 className="h-3.5 w-3.5" />
+                          <span>Uploaded to Cloudinary</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 truncate font-mono mt-0.5">
+                          {formData.signature_public_id}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleFileRemove("SIGNATURE")}
+                        className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-md transition-colors"
+                        title="Remove signature"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div>
+                      <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-foundation-500 dark:hover:border-emerald-500 rounded-lg p-4 cursor-pointer transition-colors bg-white dark:bg-slate-900/50">
+                        {uploadingState["SIGNATURE"] ? (
+                          <div className="flex items-center gap-2 text-xs text-foundation-600 dark:text-emerald-400">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            <span>Uploading to Cloudinary...</span>
+                          </div>
+                        ) : (
+                          <div className="text-center">
+                            <UploadCloud className="h-6 w-6 text-slate-400 mx-auto mb-1" />
+                            <span className="text-xs font-medium text-foundation-700 dark:text-emerald-400">
+                              Upload Signature
+                            </span>
+                          </div>
+                        )}
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          disabled={uploadingState["SIGNATURE"]}
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) handleFileUpload(f, "SIGNATURE");
+                          }}
+                        />
+                      </label>
+                      {uploadError["SIGNATURE"] && (
+                        <p className="text-[11px] text-rose-500 mt-1">{uploadError["SIGNATURE"]}</p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    National ID Front URL
-                  </label>
-                  <input
-                    type="url"
-                    className="input-field"
-                    placeholder="https://.../nid_front.jpg"
-                    value={formData.nid_front_url}
-                    onChange={(e) => setFormData({ ...formData, nid_front_url: e.target.value })}
-                  />
-                </div>
+                {/* 3. Document Slots based on Document Type */}
+                {formData.document_type === "Birth Certificate" ? (
+                  <div className="md:col-span-2 rounded-lg border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-950/40">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                        <FileIcon className="h-4 w-4 text-foundation-600 dark:text-emerald-400" />
+                        Birth Certificate Document
+                      </span>
+                      <span className="text-[10px] text-slate-400">PDF, JPG, PNG, WEBP (Max 10MB)</span>
+                    </div>
 
-                <div>
-                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                    National ID Back URL
-                  </label>
-                  <input
-                    type="url"
-                    className="input-field"
-                    placeholder="https://.../nid_back.jpg"
-                    value={formData.nid_back_url}
-                    onChange={(e) => setFormData({ ...formData, nid_back_url: e.target.value })}
-                  />
-                </div>
+                    {formData.birth_certificate_url ? (
+                      <div className="flex items-center gap-3 p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                        <div className="h-14 w-14 rounded-md bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
+                          <FileIcon className="h-7 w-7" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                            <CheckCircle2 className="h-3.5 w-3.5" />
+                            <span>Uploaded to Cloudinary</span>
+                          </div>
+                          <a
+                            href={formData.birth_certificate_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline block truncate mt-0.5"
+                          >
+                            View Certificate Document
+                          </a>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleFileRemove("BIRTH_CERTIFICATE")}
+                          className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-md transition-colors"
+                          title="Remove document"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-foundation-500 dark:hover:border-emerald-500 rounded-lg p-5 cursor-pointer transition-colors bg-white dark:bg-slate-900/50">
+                          {uploadingState["BIRTH_CERTIFICATE"] ? (
+                            <div className="flex items-center gap-2 text-xs text-foundation-600 dark:text-emerald-400">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              <span>Uploading to Cloudinary...</span>
+                            </div>
+                          ) : (
+                            <div className="text-center">
+                              <UploadCloud className="h-6 w-6 text-slate-400 mx-auto mb-1" />
+                              <span className="text-xs font-medium text-foundation-700 dark:text-emerald-400">
+                                Upload Birth Certificate
+                              </span>
+                            </div>
+                          )}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,application/pdf"
+                            className="hidden"
+                            disabled={uploadingState["BIRTH_CERTIFICATE"]}
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) handleFileUpload(f, "BIRTH_CERTIFICATE");
+                            }}
+                          />
+                        </label>
+                        {uploadError["BIRTH_CERTIFICATE"] && (
+                          <p className="text-[11px] text-rose-500 mt-1">{uploadError["BIRTH_CERTIFICATE"]}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    {/* NID Front */}
+                    <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-950/40">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                          <FileText className="h-4 w-4 text-foundation-600 dark:text-emerald-400" />
+                          National ID Front
+                        </span>
+                        <span className="text-[10px] text-slate-400">PDF, JPG, PNG, WEBP (Max 10MB)</span>
+                      </div>
+
+                      {formData.nid_front_url ? (
+                        <div className="flex items-center gap-3 p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                          <img
+                            src={formData.nid_front_url}
+                            alt="NID Front"
+                            className="h-14 w-20 object-cover rounded border border-slate-200 dark:border-slate-700"
+                            onError={(e: any) => {
+                              e.target.style.display = "none";
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              <span>Uploaded to Cloudinary</span>
+                            </div>
+                            <a
+                              href={formData.nid_front_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline block truncate mt-0.5"
+                            >
+                              View Document
+                            </a>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleFileRemove("NID_FRONT")}
+                            className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-md transition-colors"
+                            title="Remove document"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-foundation-500 dark:hover:border-emerald-500 rounded-lg p-4 cursor-pointer transition-colors bg-white dark:bg-slate-900/50">
+                            {uploadingState["NID_FRONT"] ? (
+                              <div className="flex items-center gap-2 text-xs text-foundation-600 dark:text-emerald-400">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span>Uploading to Cloudinary...</span>
+                              </div>
+                            ) : (
+                              <div className="text-center">
+                                <UploadCloud className="h-6 w-6 text-slate-400 mx-auto mb-1" />
+                                <span className="text-xs font-medium text-foundation-700 dark:text-emerald-400">
+                                  Upload NID Front
+                                </span>
+                              </div>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,application/pdf"
+                              className="hidden"
+                              disabled={uploadingState["NID_FRONT"]}
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) handleFileUpload(f, "NID_FRONT");
+                              }}
+                            />
+                          </label>
+                          {uploadError["NID_FRONT"] && (
+                            <p className="text-[11px] text-rose-500 mt-1">{uploadError["NID_FRONT"]}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* NID Back */}
+                    <div className="rounded-lg border border-slate-200 dark:border-slate-800 p-4 bg-slate-50/50 dark:bg-slate-950/40">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                          <FileText className="h-4 w-4 text-foundation-600 dark:text-emerald-400" />
+                          National ID Back
+                        </span>
+                        <span className="text-[10px] text-slate-400">PDF, JPG, PNG, WEBP (Max 10MB)</span>
+                      </div>
+
+                      {formData.nid_back_url ? (
+                        <div className="flex items-center gap-3 p-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800">
+                          <img
+                            src={formData.nid_back_url}
+                            alt="NID Back"
+                            className="h-14 w-20 object-cover rounded border border-slate-200 dark:border-slate-700"
+                            onError={(e: any) => {
+                              e.target.style.display = "none";
+                            }}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              <span>Uploaded to Cloudinary</span>
+                            </div>
+                            <a
+                              href={formData.nid_back_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[11px] text-blue-600 dark:text-blue-400 hover:underline block truncate mt-0.5"
+                            >
+                              View Document
+                            </a>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleFileRemove("NID_BACK")}
+                            className="p-1.5 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 rounded-md transition-colors"
+                            title="Remove document"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <label className="flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-foundation-500 dark:hover:border-emerald-500 rounded-lg p-4 cursor-pointer transition-colors bg-white dark:bg-slate-900/50">
+                            {uploadingState["NID_BACK"] ? (
+                              <div className="flex items-center gap-2 text-xs text-foundation-600 dark:text-emerald-400">
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                <span>Uploading to Cloudinary...</span>
+                              </div>
+                            ) : (
+                              <div className="text-center">
+                                <UploadCloud className="h-6 w-6 text-slate-400 mx-auto mb-1" />
+                                <span className="text-xs font-medium text-foundation-700 dark:text-emerald-400">
+                                  Upload NID Back
+                                </span>
+                              </div>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp,application/pdf"
+                              className="hidden"
+                              disabled={uploadingState["NID_BACK"]}
+                              onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) handleFileUpload(f, "NID_BACK");
+                              }}
+                            />
+                          </label>
+                          {uploadError["NID_BACK"] && (
+                            <p className="text-[11px] text-rose-500 mt-1">{uploadError["NID_BACK"]}</p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}
