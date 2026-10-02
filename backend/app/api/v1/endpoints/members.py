@@ -192,3 +192,41 @@ def update_member(
     )
     db.commit()
     return populate_member_metrics(db, member)
+
+
+@router.delete("/{member_id}")
+def delete_member(
+    member_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("members.delete"))
+) -> Any:
+    member = db.query(Member).filter(Member.id == member_id).first()
+    if not member:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
+
+    # Check for linked financial contributions
+    has_contributions = db.query(Contribution).filter(Contribution.member_id == member.id).first()
+    if has_contributions:
+        # Protect financial audit trail: Archive/Deactivate instead of hard deleting
+        member.status = "INACTIVE"
+        db.commit()
+        AuditService.log(
+            db, action="ARCHIVE", module="members", record_id=str(member.id),
+            user=current_user, details=f"Member {member.member_number} ({member.full_name}) has financial records. Soft-archived and set to INACTIVE to preserve ledger audit trail."
+        )
+        db.commit()
+        return {
+            "success": True,
+            "archived": True,
+            "message": f"Member {member.member_number} has historical financial contributions. Safely archived and marked INACTIVE to preserve financial ledger integrity."
+        }
+
+    # If no financial contributions exist, safe to hard delete
+    db.delete(member)
+    db.commit()
+    AuditService.log(
+        db, action="DELETE", module="members", record_id=str(member_id),
+        user=current_user, details=f"Member {member.member_number} ({member.full_name}) permanently deleted."
+    )
+    db.commit()
+    return {"success": True, "archived": False, "message": f"Member {member.member_number} deleted successfully."}

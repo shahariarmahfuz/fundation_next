@@ -190,3 +190,44 @@ def transfer_group_funds(
         inflow_transaction_number=inflow_txn.transaction_number,
         message=f"Successfully transferred ৳{transfer_in.amount:,.2f}"
     )
+
+
+@router.delete("/{group_id}")
+def delete_group(
+    group_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("groups.delete"))
+) -> Any:
+    group = db.query(Group).filter(Group.id == group_id).first()
+    if not group:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Group not found")
+
+    # Check for active members or financial transactions
+    has_members = db.query(Member).filter(Member.group_id == group.id).first()
+    has_transactions = db.query(FinancialTransaction).filter(FinancialTransaction.group_id == group.id).first()
+
+    if has_transactions or has_members:
+        # Group is a financial entity with historical transactions or members - NEVER hard delete
+        group.status = "INACTIVE"
+        db.commit()
+        cache.invalidate_financial_caches(group.id)
+        AuditService.log(
+            db, action="ARCHIVE", module="groups", record_id=str(group.id),
+            user=current_user, details=f"Group {group.name} ({group.code}) has linked financial transactions or members. Soft-archived and set to INACTIVE to preserve double-entry accounting ledger."
+        )
+        db.commit()
+        return {
+            "success": True,
+            "archived": True,
+            "message": f"Group '{group.name}' has active members or financial transactions. Safely archived (status set to INACTIVE) to protect double-entry ledger history."
+        }
+
+    db.delete(group)
+    db.commit()
+    cache.invalidate_financial_caches()
+    AuditService.log(
+        db, action="DELETE", module="groups", record_id=str(group_id),
+        user=current_user, details=f"Group {group.code} ({group.name}) permanently deleted."
+    )
+    db.commit()
+    return {"success": True, "archived": False, "message": f"Group '{group.name}' deleted successfully."}

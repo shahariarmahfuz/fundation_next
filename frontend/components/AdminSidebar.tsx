@@ -78,8 +78,8 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       icon: Users,
       permission: "members.view",
       children: [
-        { name: "All Members", href: "/admin/members" },
         { name: "Add Member", href: "/admin/members/new", permission: "members.create" },
+        { name: "Manage Members", href: "/admin/members", permission: "members.view" },
         { name: "Member Applications", href: "/admin/applications" },
         { name: "Member Ledger", href: "/admin/reports?tab=members" },
       ],
@@ -91,8 +91,8 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       icon: FolderTree,
       permission: "groups.view",
       children: [
-        { name: "All Groups", href: "/admin/groups" },
         { name: "Add Group", href: "/admin/groups?action=new", permission: "groups.create" },
+        { name: "Manage Groups", href: "/admin/groups", permission: "groups.view" },
         { name: "Group Ledgers", href: "/admin/ledgers" },
       ],
     },
@@ -116,8 +116,8 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       icon: HandHeart,
       permission: "beneficiaries.view",
       children: [
-        { name: "All Beneficiaries", href: "/admin/beneficiaries" },
         { name: "Add Beneficiary", href: "/admin/beneficiaries?action=new", permission: "beneficiaries.create" },
+        { name: "Manage Beneficiaries", href: "/admin/beneficiaries", permission: "beneficiaries.view" },
       ],
     },
     {

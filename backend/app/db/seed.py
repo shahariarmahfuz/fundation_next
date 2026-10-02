@@ -23,6 +23,7 @@ def seed_database(db: Session):
         ("groups.view", "View Groups", "groups", "Can view financial groups and balances"),
         ("groups.create", "Create Group", "groups", "Can create accounting groups"),
         ("groups.update", "Update Group", "groups", "Can update group info"),
+        ("groups.delete", "Delete Group", "groups", "Can archive or delete groups"),
 
         # Contributions
         ("contributions.view", "View Contributions", "contributions", "Can view monthly contributions"),
@@ -44,6 +45,7 @@ def seed_database(db: Session):
         ("beneficiaries.view", "View Beneficiaries", "beneficiaries", "Can view beneficiary profiles"),
         ("beneficiaries.create", "Create Beneficiary", "beneficiaries", "Can register new beneficiaries"),
         ("beneficiaries.update", "Update Beneficiary", "beneficiaries", "Can update beneficiary profiles"),
+        ("beneficiaries.delete", "Delete Beneficiary", "beneficiaries", "Can archive or delete beneficiaries"),
 
         # Qard Hasan
         ("qard_hasan.view", "View Qard Hasan", "qard_hasan", "Can view loan ledgers and statuses"),

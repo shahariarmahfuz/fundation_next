@@ -165,3 +165,42 @@ def update_beneficiary(
     db.commit()
     db.refresh(b)
     return populate_beneficiary_metrics(db, b)
+
+
+@router.delete("/{beneficiary_id}")
+def delete_beneficiary(
+    beneficiary_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("beneficiaries.delete"))
+) -> Any:
+    b = db.query(Beneficiary).filter(Beneficiary.id == beneficiary_id).first()
+    if not b:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Beneficiary not found")
+
+    # Check for historical Qard Hasan or Sadakah assistance
+    has_qard = db.query(QardHasan).filter(QardHasan.beneficiary_id == b.id).first()
+    has_sadakah = db.query(Sadakah).filter(Sadakah.beneficiary_id == b.id).first()
+
+    if has_qard or has_sadakah:
+        # Beneficiary has financial history - preserve records and archive
+        b.status = "INACTIVE"
+        db.commit()
+        AuditService.log(
+            db, action="ARCHIVE", module="beneficiaries", record_id=str(b.id),
+            user=current_user, details=f"Beneficiary {b.beneficiary_number} ({b.name}) has financial assistance history. Safely archived and marked INACTIVE to preserve audit trail."
+        )
+        db.commit()
+        return {
+            "success": True,
+            "archived": True,
+            "message": f"Beneficiary {b.beneficiary_number} has historical assistance records (Qard Hasan/Sadakah). Safely archived and set to INACTIVE to preserve financial ledger records."
+        }
+
+    db.delete(b)
+    db.commit()
+    AuditService.log(
+        db, action="DELETE", module="beneficiaries", record_id=str(beneficiary_id),
+        user=current_user, details=f"Beneficiary {b.beneficiary_number} ({b.name}) permanently deleted."
+    )
+    db.commit()
+    return {"success": True, "archived": False, "message": f"Beneficiary {b.beneficiary_number} deleted successfully."}
