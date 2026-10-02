@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased font-sans selection:bg-foundation-500 selection:text-white;
+  }
+}
+
+.table-container {
+  @apply overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm;
+}
+
+.table-custom {
+  @apply min-w-full divide-y divide-slate-200 text-left text-sm;
+}
+
+.table-custom thead {
+  @apply bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-600;
+}
+
+.table-custom th {
+  @apply px-4 py-3.5 whitespace-nowrap;
+}
+
+.table-custom td {
+  @apply px-4 py-3.5 whitespace-nowrap text-slate-700;
+}
+
+.table-custom tbody tr {
+  @apply hover:bg-slate-50/80 transition-colors;
+}
+
+.input-field {
+  @apply w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 placeholder-slate-400 focus:border-foundation-600 focus:outline-none focus:ring-1 focus:ring-foundation-600 disabled:bg-slate-100;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-foundation-700 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-foundation-800 focus:outline-none focus:ring-2 focus:ring-foundation-600 focus:ring-offset-2 transition-all disabled:opacity-50;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 transition-all;
+}
+
+.btn-danger {
+  @apply inline-flex items-center justify-center gap-2 rounded-lg bg-rose-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-rose-700 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2 transition-all;
+}
