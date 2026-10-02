@@ -50,6 +50,7 @@ export default function ManageGroupsPage() {
   // Edit Group Modal
   const [editingGroup, setEditingGroup] = useState<any | null>(null);
   const [editFormData, setEditFormData] = useState({
+    code: "",
     name: "",
     description: "",
     status: "ACTIVE",
@@ -128,6 +129,7 @@ export default function ManageGroupsPage() {
     try {
       await api.post("/groups", {
         ...formData,
+        code: formData.code.trim() || undefined,
         opening_balance: parseFloat(formData.opening_balance) || 0,
       });
       setIsModalOpen(false);
@@ -154,6 +156,7 @@ export default function ManageGroupsPage() {
   const openEditModal = (g: any) => {
     setEditingGroup(g);
     setEditFormData({
+      code: g.code || "",
       name: g.name || "",
       description: g.description || "",
       status: g.status || "ACTIVE",
@@ -167,7 +170,10 @@ export default function ManageGroupsPage() {
     setSavingEdit(true);
     setEditError(null);
     try {
-      await api.put(`/groups/${editingGroup.id}`, editFormData);
+      await api.put(`/groups/${editingGroup.id}`, {
+        ...editFormData,
+        code: editFormData.code.trim() || undefined,
+      });
       setEditingGroup(null);
       setNotification({
         type: "success",
@@ -461,16 +467,18 @@ export default function ManageGroupsPage() {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              Group Code <span className="text-rose-500">*</span>
+              Group Code <span className="text-slate-400 font-normal">(Optional)</span>
             </label>
             <input
-              required
               type="text"
-              placeholder="e.g. DIS (Disaster Relief)"
+              placeholder="Leave blank to generate automatically (e.g. G-0001)"
               className="input-field uppercase font-mono"
               value={formData.code}
               onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
             />
+            <p className="mt-1 text-[11px] text-slate-400">
+              Format: G-XXXX (e.g. G-0001, G-5000). System will auto-generate next serial if left blank.
+            </p>
           </div>
 
           <div>
@@ -546,6 +554,22 @@ export default function ManageGroupsPage() {
                 {editError}
               </div>
             )}
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Group Code (Format: G-XXXX)
+              </label>
+              <input
+                type="text"
+                className="input-field uppercase font-mono"
+                placeholder="e.g. G-0001"
+                value={editFormData.code}
+                onChange={(e) => setEditFormData({ ...editFormData, code: e.target.value.toUpperCase() })}
+              />
+              <p className="mt-1 text-[11px] text-slate-400">
+                Must start with 'G-' prefix.
+              </p>
+            </div>
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">

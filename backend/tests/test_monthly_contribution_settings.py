@@ -22,7 +22,7 @@ def test_member_has_no_custom_monthly_contribution_amount(client, auth_headers):
     """Verifies that member registration ignores/does not allow a custom member contribution amount."""
     unique_id = uuid.uuid4().hex[:6].upper()
     grp_resp = client.post("/api/v1/groups", json={
-        "code": f"TMC{unique_id}",
+        "code": f"G-TMC{unique_id}",
         "name": f"Test Contrib Group {unique_id}",
         "opening_balance": "5000.00",
         "status": "ACTIVE"
@@ -89,7 +89,7 @@ def test_monthly_contribution_setting_lifecycle_and_due_calculation(client, auth
     # 3. Test resolution via API generate-month dues
     unique_id = uuid.uuid4().hex[:6].upper()
     grp_resp = client.post("/api/v1/groups", json={
-        "code": f"TDU{unique_id}",
+        "code": f"G-TDU{unique_id}",
         "name": f"Due Calc Group {unique_id}",
         "opening_balance": "5000.00",
         "status": "ACTIVE"

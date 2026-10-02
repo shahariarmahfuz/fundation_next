@@ -15,6 +15,7 @@ from backend.app.schemas.group import GroupResponse, GroupCreate, GroupUpdate, G
 from backend.app.api.deps import require_permission, get_current_user
 from backend.app.services.accounting_service import AccountingService
 from backend.app.services.audit_service import AuditService
+from backend.app.services.code_service import CodeService
 
 router = APIRouter()
 
@@ -152,14 +153,16 @@ def create_group(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("groups.create"))
 ) -> Any:
-    existing = db.query(Group).filter(
-        (Group.code == group_in.code) | (Group.name == group_in.name)
-    ).first()
-    if existing:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Group code or name already exists")
+    # Check if group name already exists
+    existing_name = db.query(Group).filter(Group.name == group_in.name).first()
+    if existing_name:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Group name already exists")
+
+    # Concurrency-safe code generation or custom code validation
+    group_code = CodeService.process_group_code(db, code=group_in.code)
 
     group = Group(
-        code=group_in.code.upper(),
+        code=group_code,
         name=group_in.name,
         description=group_in.description,
         status=group_in.status,
@@ -191,14 +194,12 @@ def update_group(
 
     old_vals = {"name": group.name, "code": group.code, "status": group.status}
 
-    if group_in.code and group_in.code != group.code:
-        existing = db.query(Group).filter(Group.code == group_in.code).first()
-        if existing:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Group code already in use")
-        group.code = group_in.code.upper()
+    if group_in.code and group_in.code.strip() and group_in.code.strip().upper() != group.code.upper():
+        new_code = CodeService.process_group_code(db, code=group_in.code, exclude_id=group.id)
+        group.code = new_code
 
     if group_in.name and group_in.name != group.name:
-        existing = db.query(Group).filter(Group.name == group_in.name).first()
+        existing = db.query(Group).filter(Group.name == group_in.name, Group.id != group.id).first()
         if existing:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Group name already in use")
         group.name = group_in.name

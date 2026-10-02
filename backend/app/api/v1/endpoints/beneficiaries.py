@@ -13,6 +13,7 @@ from backend.app.schemas.beneficiary import BeneficiaryResponse, BeneficiaryCrea
 from backend.app.schemas.common import PaginatedResponse
 from backend.app.api.deps import require_permission, get_current_user
 from backend.app.services.audit_service import AuditService
+from backend.app.services.code_service import CodeService
 
 router = APIRouter()
 
@@ -111,8 +112,8 @@ def create_beneficiary(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("beneficiaries.create"))
 ) -> Any:
-    count = db.query(Beneficiary).count() + 1
-    b_num = f"BEN-{count:04d}"
+    input_code = ben_in.code or ben_in.beneficiary_number
+    b_num = CodeService.process_beneficiary_code(db, code=input_code)
 
     b = Beneficiary(
         beneficiary_number=b_num,
@@ -147,6 +148,18 @@ def update_beneficiary(
     if not b:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Beneficiary not found")
 
+    old_vals = {
+        "beneficiary_number": b.beneficiary_number,
+        "name": b.name,
+        "phone": b.phone,
+        "status": b.status
+    }
+
+    input_code = ben_in.code or ben_in.beneficiary_number
+    if input_code is not None and input_code.strip() and input_code.strip().upper() != b.beneficiary_number.upper():
+        new_code = CodeService.process_beneficiary_code(db, code=input_code, exclude_id=b.id)
+        b.beneficiary_number = new_code
+
     if ben_in.name is not None:
         b.name = ben_in.name
     if ben_in.phone is not None:
@@ -164,6 +177,18 @@ def update_beneficiary(
 
     db.commit()
     db.refresh(b)
+
+    AuditService.log(
+        db, action="UPDATE", module="beneficiaries", record_id=str(b.id),
+        user=current_user, old_values=old_vals,
+        new_values={
+            "beneficiary_number": b.beneficiary_number,
+            "name": b.name,
+            "phone": b.phone,
+            "status": b.status
+        }
+    )
+    db.commit()
     return populate_beneficiary_metrics(db, b)
 
 

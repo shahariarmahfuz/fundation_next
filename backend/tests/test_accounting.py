@@ -23,7 +23,7 @@ def test_complete_accounting_cycle(client, auth_headers):
     # 1. Create a dedicated test Group
     unique_id = uuid.uuid4().hex[:6].upper()
     group_payload = {
-        "code": f"TST{unique_id}",
+        "code": f"G-TST{unique_id}",
         "name": f"Test Accounting Group {unique_id}",
         "description": "Group for testing atomic accounting rules",
         "opening_balance": "10000.00",
@@ -195,7 +195,7 @@ def test_inter_group_transfer(client, auth_headers):
     
     # 1. Create source and destination groups
     grp_a_resp = client.post("/api/v1/groups", json={
-        "code": f"TGA{unique_id}",
+        "code": f"G-TGA{unique_id}",
         "name": f"Transfer Group Alpha {unique_id}",
         "description": "Source test group",
         "opening_balance": "10000.00",
@@ -205,7 +205,7 @@ def test_inter_group_transfer(client, auth_headers):
     group_a_id = grp_a_resp.json()["id"]
 
     grp_b_resp = client.post("/api/v1/groups", json={
-        "code": f"TGB{unique_id}",
+        "code": f"G-TGB{unique_id}",
         "name": f"Transfer Group Beta {unique_id}",
         "description": "Destination test group",
         "opening_balance": "5000.00",
@@ -271,7 +271,7 @@ def test_reversal_domain_state_sync_and_ledger_reconciliation(client, auth_heade
 
     # 1. Create a dedicated Group
     grp_resp = client.post("/api/v1/groups", json={
-        "code": f"TRE{unique_id}",
+        "code": f"G-TRE{unique_id}",
         "name": f"Reversal Test Group {unique_id}",
         "description": "Group for testing reversal state synchronization",
         "opening_balance": "20000.00",

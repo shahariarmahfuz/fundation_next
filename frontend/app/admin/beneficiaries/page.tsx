@@ -38,6 +38,7 @@ export default function ManageBeneficiariesPage() {
   // New Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
+    code: "",
     name: "",
     phone: "",
     email: "",
@@ -52,6 +53,7 @@ export default function ManageBeneficiariesPage() {
   // Edit Modal
   const [editingBeneficiary, setEditingBeneficiary] = useState<any | null>(null);
   const [editFormData, setEditFormData] = useState({
+    code: "",
     name: "",
     phone: "",
     email: "",
@@ -130,9 +132,14 @@ export default function ManageBeneficiariesPage() {
     setSubmitting(true);
     setSubmitError(null);
     try {
-      await api.post("/beneficiaries", formData);
+      await api.post("/beneficiaries", {
+        ...formData,
+        code: formData.code.trim() || undefined,
+        beneficiary_number: formData.code.trim() || undefined,
+      });
       setIsModalOpen(false);
       setFormData({
+        code: "",
         name: "",
         phone: "",
         email: "",
@@ -157,6 +164,7 @@ export default function ManageBeneficiariesPage() {
   const openEditModal = (b: any) => {
     setEditingBeneficiary(b);
     setEditFormData({
+      code: b.beneficiary_number || b.code || "",
       name: b.name || "",
       phone: b.phone || "",
       email: b.email || "",
@@ -174,7 +182,11 @@ export default function ManageBeneficiariesPage() {
     setSavingEdit(true);
     setEditError(null);
     try {
-      await api.put(`/beneficiaries/${editingBeneficiary.id}`, editFormData);
+      await api.put(`/beneficiaries/${editingBeneficiary.id}`, {
+        ...editFormData,
+        code: editFormData.code.trim() || undefined,
+        beneficiary_number: editFormData.code.trim() || undefined,
+      });
       setEditingBeneficiary(null);
       setNotification({
         type: "success",
@@ -418,6 +430,22 @@ export default function ManageBeneficiariesPage() {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Beneficiary Code <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="text"
+                placeholder="Leave blank to generate automatically (e.g. B-0001)"
+                className="input-field uppercase font-mono"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+              />
+              <p className="mt-1 text-[11px] text-slate-400">
+                Format: B-XXXX (e.g. B-0001, B-2026-001). Auto-generates next serial if left blank.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Phone Number *
               </label>
               <input
@@ -545,6 +573,22 @@ export default function ManageBeneficiariesPage() {
                   value={editFormData.name}
                   onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Beneficiary Code (Format: B-XXXX)
+                </label>
+                <input
+                  type="text"
+                  className="input-field uppercase font-mono"
+                  placeholder="e.g. B-0001"
+                  value={editFormData.code}
+                  onChange={(e) => setEditFormData({ ...editFormData, code: e.target.value.toUpperCase() })}
+                />
+                <p className="mt-1 text-[11px] text-slate-400">
+                  Must start with 'B-' prefix.
+                </p>
               </div>
 
               <div>

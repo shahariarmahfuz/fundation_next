@@ -1,4 +1,5 @@
 import uuid
+from datetime import date
 from decimal import Decimal
 from typing import List, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
@@ -15,13 +16,13 @@ from backend.app.schemas.common import PaginatedResponse
 from backend.app.api.deps import require_permission, get_current_user
 from backend.app.services.audit_service import AuditService
 from backend.app.services.accounting_service import AccountingService
+from backend.app.services.code_service import CodeService
 
 router = APIRouter()
 
 
 def generate_member_number(db: Session) -> str:
-    count = db.query(Member).count() + 1
-    return f"MEM-{count:04d}"
+    return CodeService.process_member_code(db)
 
 
 def populate_member_metrics(db: Session, member: Member, foundation_amount: Optional[Decimal] = None) -> MemberResponse:
@@ -105,27 +106,51 @@ def create_member(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("members.create"))
 ) -> Any:
+    if not member_in.full_name or not member_in.full_name.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Full name is required.")
+
     # 1. Enforce that member MUST belong to a Group
     group = db.query(Group).filter(Group.id == member_in.group_id).first()
     if not group:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Assigned group does not exist. A member MUST belong to a valid Group.")
 
-    member_num = member_in.member_number or generate_member_number(db)
-    
-    # Check uniqueness of member_number
-    if db.query(Member).filter(Member.member_number == member_num).first():
-        member_num = f"MEM-{uuid.uuid4().hex[:6].upper()}"
+    input_code = member_in.code or member_in.member_number
+    member_num = CodeService.process_member_code(db, code=input_code)
 
     member = Member(
         member_number=member_num,
-        full_name=member_in.full_name,
+        full_name=member_in.full_name.strip(),
+        group_id=member_in.group_id,
+        status=member_in.status or "ACTIVE",
+        joining_date=member_in.joining_date or date.today(),
         email=member_in.email,
         phone=member_in.phone,
+        alternative_phone=member_in.alternative_phone,
         address=member_in.address,
+        present_address=member_in.present_address,
+        permanent_address=member_in.permanent_address,
         nid_or_id=member_in.nid_or_id,
-        joining_date=member_in.joining_date,
-        status=member_in.status,
-        group_id=member_in.group_id,
+        father_name=member_in.father_name,
+        mother_name=member_in.mother_name,
+        date_of_birth=member_in.date_of_birth,
+        gender=member_in.gender,
+        occupation=member_in.occupation,
+        education=member_in.education,
+        blood_group=member_in.blood_group,
+        marital_status=member_in.marital_status,
+        emergency_contact_name=member_in.emergency_contact_name,
+        emergency_contact_relationship=member_in.emergency_contact_relationship,
+        emergency_contact_phone=member_in.emergency_contact_phone,
+        reference_name=member_in.reference_name,
+        reference_phone=member_in.reference_phone,
+        reference_relationship=member_in.reference_relationship,
+        commitment=member_in.commitment,
+        photo_url=member_in.photo_url,
+        signature_url=member_in.signature_url,
+        document_type=member_in.document_type,
+        nid_front_url=member_in.nid_front_url,
+        nid_back_url=member_in.nid_back_url,
+        reason_for_joining=member_in.reason_for_joining,
         notes=member_in.notes
     )
     db.add(member)
@@ -134,7 +159,7 @@ def create_member(
 
     AuditService.log(
         db, action="CREATE", module="members", record_id=str(member.id),
-        user=current_user, new_values={"name": member.full_name, "group_id": member.group_id}
+        user=current_user, new_values={"name": member.full_name, "member_number": member.member_number, "group_id": member.group_id}
     )
     db.commit()
     return populate_member_metrics(db, member)
@@ -152,11 +177,18 @@ def update_member(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
 
     old_vals = {
+        "member_number": member.member_number,
         "full_name": member.full_name,
         "phone": member.phone,
         "group_id": member.group_id,
         "status": member.status
     }
+
+    # Code update validation if provided
+    input_code = member_in.code or member_in.member_number
+    if input_code is not None and input_code.strip() and input_code.strip().upper() != member.member_number.upper():
+        new_code = CodeService.process_member_code(db, code=input_code, exclude_id=member.id)
+        member.member_number = new_code
 
     if member_in.group_id is not None:
         group = db.query(Group).filter(Group.id == member_in.group_id).first()
@@ -164,20 +196,19 @@ def update_member(
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Assigned group does not exist.")
         member.group_id = member_in.group_id
 
-    if member_in.full_name is not None:
-        member.full_name = member_in.full_name
-    if member_in.email is not None:
-        member.email = member_in.email
-    if member_in.phone is not None:
-        member.phone = member_in.phone
-    if member_in.address is not None:
-        member.address = member_in.address
-    if member_in.nid_or_id is not None:
-        member.nid_or_id = member_in.nid_or_id
-    if member_in.status is not None:
-        member.status = member_in.status
-    if member_in.notes is not None:
-        member.notes = member_in.notes
+    optional_fields = [
+        "full_name", "email", "phone", "alternative_phone", "address", "present_address",
+        "permanent_address", "nid_or_id", "father_name", "mother_name", "date_of_birth",
+        "gender", "occupation", "education", "blood_group", "marital_status",
+        "emergency_contact_name", "emergency_contact_relationship", "emergency_contact_phone",
+        "reference_name", "reference_phone", "reference_relationship",
+        "commitment", "photo_url", "signature_url", "document_type",
+        "nid_front_url", "nid_back_url", "reason_for_joining", "status", "notes", "joining_date"
+    ]
+    for field in optional_fields:
+        val = getattr(member_in, field, None)
+        if val is not None:
+            setattr(member, field, val)
 
     db.commit()
     db.refresh(member)
@@ -186,6 +217,7 @@ def update_member(
         db, action="UPDATE", module="members", record_id=str(member.id),
         user=current_user, old_values=old_vals,
         new_values={
+            "member_number": member.member_number,
             "full_name": member.full_name,
             "group_id": member.group_id,
             "status": member.status

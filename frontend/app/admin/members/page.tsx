@@ -40,6 +40,7 @@ export default function ManageMembersPage() {
   // Edit Member Modal
   const [editingMember, setEditingMember] = useState<any | null>(null);
   const [editFormData, setEditFormData] = useState({
+    member_number: "",
     full_name: "",
     phone: "",
     email: "",
@@ -121,6 +122,7 @@ export default function ManageMembersPage() {
   const openEditModal = (m: any) => {
     setEditingMember(m);
     setEditFormData({
+      member_number: m.member_number || m.code || "",
       full_name: m.full_name || "",
       phone: m.phone || "",
       email: m.email || "",
@@ -139,11 +141,13 @@ export default function ManageMembersPage() {
     setEditError(null);
     try {
       await api.put(`/members/${editingMember.id}`, {
-        full_name: editFormData.full_name,
-        phone: editFormData.phone,
-        email: editFormData.email,
-        address: editFormData.address,
-        nid_or_id: editFormData.nid_or_id,
+        member_number: editFormData.member_number.trim() || undefined,
+        code: editFormData.member_number.trim() || undefined,
+        full_name: editFormData.full_name.trim(),
+        phone: editFormData.phone.trim() || undefined,
+        email: editFormData.email.trim() || undefined,
+        address: editFormData.address.trim() || undefined,
+        nid_or_id: editFormData.nid_or_id.trim() || undefined,
         status: editFormData.status,
         group_id: parseInt(editFormData.group_id),
       });
@@ -413,11 +417,24 @@ export default function ManageMembersPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  Phone Number *
+                  Member Code (Format: M-XXXX)
                 </label>
                 <input
                   type="text"
-                  required
+                  className="input-field font-mono uppercase"
+                  placeholder="e.g. M-0001"
+                  value={editFormData.member_number}
+                  onChange={(e) => setEditFormData({ ...editFormData, member_number: e.target.value.toUpperCase() })}
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. +880 1711-000000"
                   className="input-field"
                   value={editFormData.phone}
                   onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}

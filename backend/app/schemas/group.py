@@ -5,7 +5,7 @@ from pydantic import BaseModel, ConfigDict
 
 
 class GroupBase(BaseModel):
-    code: str
+    code: Optional[str] = None
     name: str
     description: Optional[str] = None
     status: str = "ACTIVE"
@@ -27,6 +27,7 @@ class GroupResponse(GroupBase):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    code: str
     created_at: datetime
     updated_at: datetime
     # Calculated financial metrics

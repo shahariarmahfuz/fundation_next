@@ -162,11 +162,13 @@ export default function MemberProfilePage() {
               </strong>
             </div>
 
-            <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-              <Phone className="h-4 w-4 text-foundation-700 dark:text-emerald-400 shrink-0" />
-              <span>Phone:</span>
-              <strong className="text-slate-900 dark:text-white">{member.phone}</strong>
-            </div>
+            {member.phone && (
+              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
+                <Phone className="h-4 w-4 text-foundation-700 dark:text-emerald-400 shrink-0" />
+                <span>Phone:</span>
+                <strong className="text-slate-900 dark:text-white">{member.phone}</strong>
+              </div>
+            )}
 
             {member.email && (
               <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">

@@ -108,9 +108,9 @@ def review_member_application(
         if not group:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Assigned group not found")
 
-        # Generate unique member number
-        count = db.query(Member).count() + 1
-        member_num = f"MEM-{count:04d}"
+        # Concurrency-safe unique member code generation
+        from backend.app.services.code_service import CodeService
+        member_num = CodeService.process_member_code(db)
 
         new_member = Member(
             member_number=member_num,
