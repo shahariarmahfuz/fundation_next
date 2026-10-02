@@ -10,6 +10,7 @@ from backend.app.models.transaction import FinancialTransaction
 from backend.app.models.group import Group
 from backend.app.models.member import Member
 from backend.app.models.contribution import Contribution
+from backend.app.models.donor import Donation
 from backend.app.models.qard_hasan import QardHasan
 from backend.app.models.user import User
 from backend.app.schemas.report import FinancialReportResponse, MemberLedgerResponse, MemberLedgerEntry
@@ -156,6 +157,25 @@ def get_member_ledger(
             status=c.status,
             reference=c.reference
         ))
+
+    # Traceable member donations
+    member_donations = db.query(Donation).filter(
+        Donation.member_id == member.id
+    ).order_by(Donation.donation_date.desc()).all()
+
+    for d in member_donations:
+        total_paid += d.amount
+        entries.append(MemberLedgerEntry(
+            date=d.donation_date,
+            type="Member Donation",
+            description=f"Donation credited to {d.group.name if d.group else 'Group'}",
+            amount=d.amount,
+            status="PAID",
+            reference=d.reference or d.donation_number
+        ))
+
+    # Sort all entries chronologically descending
+    entries.sort(key=lambda x: x.date, reverse=True)
 
     return MemberLedgerResponse(
         member_id=member.id,

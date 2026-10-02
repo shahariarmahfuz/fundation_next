@@ -1,9 +1,10 @@
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, model_validator
 from backend.app.schemas.group import GroupResponse
 from backend.app.schemas.transaction import TransactionResponse
+from backend.app.schemas.member import MemberResponse
 
 
 class DonorBase(BaseModel):
@@ -16,11 +17,14 @@ class DonorBase(BaseModel):
 
 
 class DonorCreate(DonorBase):
-    pass
+    donor_number: Optional[str] = None
+    code: Optional[str] = None
 
 
 class DonorUpdate(BaseModel):
     name: Optional[str] = None
+    donor_number: Optional[str] = None
+    code: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[EmailStr] = None
     address: Optional[str] = None
@@ -40,7 +44,9 @@ class DonorResponse(DonorBase):
 
 
 class DonationBase(BaseModel):
+    source_type: str = "DONOR"  # "DONOR" or "MEMBER"
     donor_id: Optional[int] = None
+    member_id: Optional[int] = None
     group_id: int
     amount: Decimal
     donation_date: date = date.today()
@@ -50,7 +56,23 @@ class DonationBase(BaseModel):
 
 
 class DonationCreate(DonationBase):
-    pass
+    @model_validator(mode="after")
+    def validate_source(self):
+        if self.source_type == "DONOR":
+            if not self.donor_id:
+                raise ValueError("donor_id is required when source_type is DONOR")
+            if self.member_id is not None:
+                raise ValueError("member_id must be None when source_type is DONOR")
+        elif self.source_type == "MEMBER":
+            if not self.member_id:
+                raise ValueError("member_id is required when source_type is MEMBER")
+            if self.donor_id is not None:
+                raise ValueError("donor_id must be None when source_type is MEMBER")
+        else:
+            raise ValueError(f"Invalid source_type: '{self.source_type}'. Must be 'DONOR' or 'MEMBER'")
+        if self.amount <= 0:
+            raise ValueError("Amount must be greater than 0")
+        return self
 
 
 class DonationResponse(DonationBase):
@@ -63,5 +85,6 @@ class DonationResponse(DonationBase):
     created_at: datetime
     updated_at: datetime
     donor: Optional[DonorResponse] = None
+    member: Optional[MemberResponse] = None
     group: Optional[GroupResponse] = None
     transaction: Optional[TransactionResponse] = None

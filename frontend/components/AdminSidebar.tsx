@@ -13,6 +13,7 @@ import {
   Heart,
   Receipt,
   Gift,
+  HeartHandshake,
   Building2,
   UserCog,
   Settings,
@@ -158,15 +159,26 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       ],
     },
     {
+      id: "donors",
+      name: "Donors",
+      href: "/admin/donors",
+      icon: HeartHandshake,
+      permission: "donors.view",
+      children: [
+        { name: "Add Donor", href: "/admin/donors/new", permission: "donors.create" },
+        { name: "Manage Donors", href: "/admin/donors", permission: "donors.view" },
+      ],
+    },
+    {
       id: "donations",
       name: "Donations",
       href: "/admin/donations",
       icon: Gift,
       permission: "donations.view",
       children: [
-        { name: "All Donations", href: "/admin/donations" },
-        { name: "Add Donation", href: "/admin/donations?action=new", permission: "donations.create" },
-        { name: "Donors", href: "/admin/donations?tab=donors", permission: "donors.view" },
+        { name: "Record Donation", href: "/admin/donations/new", permission: "donations.create" },
+        { name: "Manage Donations", href: "/admin/donations", permission: "donations.view" },
+        { name: "Donations Ledger", href: "/admin/donations/ledger", permission: "donations.view" },
       ],
     },
     {

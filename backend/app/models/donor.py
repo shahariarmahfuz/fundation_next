@@ -26,7 +26,9 @@ class Donation(Base, TimestampMixin):
 
     id = Column(Integer, primary_key=True, index=True)
     donation_number = Column(String(60), unique=True, nullable=False, index=True)
+    source_type = Column(String(20), default="DONOR", nullable=False, index=True)
     donor_id = Column(Integer, ForeignKey("donors.id", ondelete="SET NULL"), nullable=True, index=True)
+    member_id = Column(Integer, ForeignKey("members.id", ondelete="SET NULL"), nullable=True, index=True)
     group_id = Column(Integer, ForeignKey("groups.id", ondelete="RESTRICT"), nullable=False, index=True)
     amount = Column(Numeric(15, 2), nullable=False)
     donation_date = Column(Date, default=date.today, nullable=False, index=True)
@@ -43,6 +45,7 @@ class Donation(Base, TimestampMixin):
 
     # Relationships
     donor = relationship("Donor", back_populates="donations", lazy="joined")
+    member = relationship("Member", foreign_keys=[member_id], lazy="joined")
     group = relationship("Group", back_populates="donations", lazy="joined")
     transaction = relationship("FinancialTransaction", foreign_keys=[transaction_id])
     created_by = relationship("User", foreign_keys=[created_by_id])
