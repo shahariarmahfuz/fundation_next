@@ -4,9 +4,13 @@ from pydantic import BaseModel, ConfigDict
 
 
 class OrganizationBase(BaseModel):
-    name: str = "Humanity First Foundation"
+    name: str = "Al-Birr Foundation"
     tagline: Optional[str] = "Empowering Communities Through Islamic Finance & Charity"
     logo_url: Optional[str] = None
+    logo_public_id: Optional[str] = None
+    logo_resource_type: Optional[str] = "image"
+    logo_format: Optional[str] = None
+    logo_updated_at: Optional[datetime] = None
     description: Optional[str] = None
     address: Optional[str] = None
     phone: Optional[str] = None

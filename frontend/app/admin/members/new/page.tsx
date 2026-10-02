@@ -835,9 +835,6 @@ export default function NewMemberPage() {
                   >
                     <option value="National ID">National ID (NID)</option>
                     <option value="Birth Certificate">Birth Certificate</option>
-                    <option value="Passport">Passport</option>
-                    <option value="Driving License">Driving License</option>
-                    <option value="Other">Other Document</option>
                   </select>
                 </div>
               </div>

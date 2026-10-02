@@ -181,19 +181,19 @@ def create_member(
         ))
     if member.nid_front_url:
         docs_to_record.append(MemberDocument(
-            member_id=member.id, document_type=member.document_type or "National ID", document_category="NID_FRONT",
+            member_id=member.id, document_type="NATIONAL_ID", document_category="NID_FRONT",
             cloudinary_public_id=member.nid_front_public_id or f"nid_front_{member.id}",
             secure_url=member.nid_front_url, resource_type="auto", uploaded_by=current_user.id
         ))
     if member.nid_back_url:
         docs_to_record.append(MemberDocument(
-            member_id=member.id, document_type=member.document_type or "National ID", document_category="NID_BACK",
+            member_id=member.id, document_type="NATIONAL_ID", document_category="NID_BACK",
             cloudinary_public_id=member.nid_back_public_id or f"nid_back_{member.id}",
             secure_url=member.nid_back_url, resource_type="auto", uploaded_by=current_user.id
         ))
     if member.birth_certificate_url:
         docs_to_record.append(MemberDocument(
-            member_id=member.id, document_type=member.document_type or "Birth Certificate", document_category="BIRTH_CERTIFICATE",
+            member_id=member.id, document_type="BIRTH_CERTIFICATE", document_category="BIRTH_CERTIFICATE",
             cloudinary_public_id=member.birth_certificate_public_id or f"bc_{member.id}",
             secure_url=member.birth_certificate_url, resource_type="auto", uploaded_by=current_user.id
         ))
@@ -345,6 +345,13 @@ def upload_temp_file(
     Uploads file to Cloudinary and returns secure URL and metadata.
     """
     category_norm = category.upper().strip()
+    allowed_categories = ("PHOTO", "SIGNATURE", "NID_FRONT", "NID_BACK", "BIRTH_CERTIFICATE")
+    if category_norm not in allowed_categories:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid upload category '{category}'. Allowed categories: {', '.join(allowed_categories)}"
+        )
+
     file_bytes, clean_filename, mime_type = CloudinaryService.validate_file(file, category=category_norm)
 
     folder = f"foundation/members/temp/{category_norm.lower()}"
@@ -592,24 +599,43 @@ def delete_member_signature(
 def upload_member_document(
     member_id: int,
     file: UploadFile = File(...),
-    document_type: str = Form("National ID"),
+    document_type: Optional[str] = Form(None),
     document_category: str = Form("NID_FRONT"),
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("members.update"))
 ) -> Any:
     """
-    Uploads or replaces Member document (NID Front, NID Back, Birth Certificate, etc.) in Cloudinary.
+    Uploads or replaces Member document (NID Front, NID Back, Birth Certificate) in Cloudinary.
     Folder:
       - foundation/members/{member_id}/documents/nid-front
       - foundation/members/{member_id}/documents/nid-back
       - foundation/members/{member_id}/documents/birth-certificate
-      - foundation/members/{member_id}/documents/other
     """
     member = db.query(Member).filter(Member.id == member_id).first()
     if not member:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
 
     category_norm = document_category.upper().strip()
+    if category_norm not in ("NID_FRONT", "NID_BACK", "BIRTH_CERTIFICATE"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid document category '{document_category}'. Allowed categories: NID_FRONT, NID_BACK, BIRTH_CERTIFICATE."
+        )
+
+    # Validate document_type
+    doc_type_val = "NATIONAL_ID" if category_norm in ("NID_FRONT", "NID_BACK") else "BIRTH_CERTIFICATE"
+    if document_type and document_type.strip():
+        dt_norm = document_type.upper().replace(" ", "_").replace("-", "_").strip()
+        if dt_norm in ("NATIONAL_ID", "NID", "NATIONAL_ID_(NID)"):
+            doc_type_val = "NATIONAL_ID"
+        elif dt_norm in ("BIRTH_CERTIFICATE", "BIRTHCERTIFICATE"):
+            doc_type_val = "BIRTH_CERTIFICATE"
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid document type '{document_type}'. Allowed types are 'NATIONAL_ID' and 'BIRTH_CERTIFICATE'."
+            )
+
     file_bytes, clean_filename, mime_type = CloudinaryService.validate_file(file, category=category_norm)
 
     folder_map = {
@@ -617,7 +643,7 @@ def upload_member_document(
         "NID_BACK": f"foundation/members/{member.id}/documents/nid-back",
         "BIRTH_CERTIFICATE": f"foundation/members/{member.id}/documents/birth-certificate"
     }
-    folder = folder_map.get(category_norm, f"foundation/members/{member.id}/documents/other")
+    folder = folder_map[category_norm]
     resource_type = "auto"
 
     # Check for existing document in this category to safely replace
@@ -639,7 +665,7 @@ def upload_member_document(
     )
 
     # Update Member shortcuts
-    member.document_type = document_type
+    member.document_type = doc_type_val
     if category_norm == "NID_FRONT":
         member.nid_front_url = upload_res["secure_url"]
         member.nid_front_public_id = upload_res["public_id"]
@@ -653,14 +679,14 @@ def upload_member_document(
     if not existing_doc:
         doc = MemberDocument(
             member_id=member.id,
-            document_type=document_type,
+            document_type=doc_type_val,
             document_category=category_norm,
             uploaded_by=current_user.id
         )
         db.add(doc)
     else:
         doc = existing_doc
-        doc.document_type = document_type
+        doc.document_type = doc_type_val
 
     doc.cloudinary_public_id = upload_res["public_id"]
     doc.secure_url = upload_res["secure_url"]

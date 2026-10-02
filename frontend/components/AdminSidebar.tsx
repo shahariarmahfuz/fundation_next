@@ -22,6 +22,8 @@ import {
   X
 } from "lucide-react";
 import { getStoredUser } from "@/lib/api";
+import { useBranding } from "@/lib/branding";
+import { FoundationLogo } from "./FoundationLogo";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -47,6 +49,7 @@ interface NavSection {
 export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = true, onClose }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { name } = useBranding();
   const [user, setUser] = useState<any | null>(null);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
@@ -310,21 +313,23 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
             : "lg:-translate-x-full lg:w-0 lg:border-r-0 lg:overflow-hidden lg:opacity-0"
         }`}
       >
-        {/* Mobile Header Inside Drawer */}
-        <div className="flex h-16 items-center justify-between px-5 border-b border-slate-200 dark:border-slate-800 lg:hidden bg-slate-50 dark:bg-slate-900/50">
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white">
-              <Coins className="h-4 w-4" />
+        {/* Sidebar Header with Foundation Logo and Foundation Name */}
+        <div className="flex h-16 items-center justify-between px-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50">
+          <Link href="/admin/dashboard" onClick={onClose} className="flex items-center gap-2.5 min-w-0 group">
+            <FoundationLogo size="sm" />
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs font-bold text-slate-900 dark:text-white leading-tight truncate">
+                {name || "Al-Birr Foundation"}
+              </span>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase tracking-wider truncate">
+                Management Panel
+              </span>
             </div>
-            <div className="flex flex-col">
-              <span className="text-xs font-bold text-slate-900 dark:text-white leading-tight">Admin Navigation</span>
-              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Management Panel</span>
-            </div>
-          </div>
+          </Link>
           <button
             onClick={onClose}
             type="button"
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white transition-colors"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white transition-colors lg:hidden shrink-0"
             aria-label="Close navigation menu"
           >
             <X className="h-5 w-5" />

@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { api } from "@/lib/api";
-import { formatCurrency, formatDate } from "@/lib/utils";
 import {
   Settings,
   Building2,
@@ -23,11 +21,25 @@ import {
   History,
   Clock,
   Info,
-  ShieldCheck
+  ShieldCheck,
+  UploadCloud,
+  Trash2,
+  RefreshCw
 } from "lucide-react";
+import { api, getStoredUser } from "@/lib/api";
+import { useBranding } from "@/lib/branding";
+import { FoundationLogo } from "@/components/FoundationLogo";
+import { formatCurrency, formatDate } from "@/lib/utils";
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<"org" | "contribution" | "cms">("org");
+  const { refreshBranding } = useBranding();
+  const [user, setUser] = useState<any | null>(null);
+
+  // Logo upload state
+  const [logoUploading, setLogoUploading] = useState(false);
+  const [logoSuccess, setLogoSuccess] = useState<string | null>(null);
+  const [logoError, setLogoError] = useState<string | null>(null);
 
   // Organization State
   const [orgData, setOrgData] = useState<any>({
@@ -128,10 +140,16 @@ export default function SettingsPage() {
         setActiveTab("cms");
       }
     }
+    setUser(getStoredUser());
     fetchOrg();
     fetchMonthlyContribution();
     fetchPages();
   }, []);
+
+  const canManage =
+    user?.is_superuser ||
+    user?.role?.name === "Super Admin" ||
+    user?.role?.permissions?.some((p: any) => p.code === "settings.manage" || p.code === "organization.update");
 
   const handleSaveOrg = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,12 +158,48 @@ export default function SettingsPage() {
     try {
       const updated = await api.put("/organization", orgData);
       setOrgData(updated);
+      await refreshBranding();
       setOrgSuccess("Organization settings saved successfully!");
       setTimeout(() => setOrgSuccess(null), 4000);
     } catch (err: any) {
       setOrgError(err.message || "Failed to save organization settings");
     } finally {
       setOrgSaving(false);
+    }
+  };
+
+  const handleUploadLogo = async (file: File) => {
+    setLogoUploading(true);
+    setLogoError(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const updated = await api.upload("/organization/logo", fd);
+      setOrgData(updated);
+      await refreshBranding();
+      setLogoSuccess("Foundation logo updated successfully!");
+      setTimeout(() => setLogoSuccess(null), 4000);
+    } catch (err: any) {
+      setLogoError(err.message || "Failed to upload foundation logo");
+    } finally {
+      setLogoUploading(false);
+    }
+  };
+
+  const handleRemoveLogo = async () => {
+    if (!confirm("Are you sure you want to remove the custom Foundation logo? The default emblem will be used instead.")) return;
+    setLogoUploading(true);
+    setLogoError(null);
+    try {
+      const updated = await api.delete("/organization/logo");
+      setOrgData(updated);
+      await refreshBranding();
+      setLogoSuccess("Foundation logo removed. Default emblem active.");
+      setTimeout(() => setLogoSuccess(null), 4000);
+    } catch (err: any) {
+      setLogoError(err.message || "Failed to remove logo");
+    } finally {
+      setLogoUploading(false);
     }
   };
 
@@ -291,31 +345,159 @@ export default function SettingsPage() {
                 </div>
               )}
 
-              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">
-                    Organization Official Name *
-                  </label>
-                  <input
-                    required
-                    type="text"
-                    value={orgData.name || ""}
-                    onChange={(e) => setOrgData({ ...orgData, name: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
-                  />
+              {/* FOUNDATION BRANDING */}
+              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-5 space-y-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200 dark:border-slate-800 pb-3">
+                  <div>
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-white flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                      Foundation Branding & Logo
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      Used across the admin panel, sidebar, header, authentication screens, and public website.
+                    </p>
+                  </div>
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 w-fit shrink-0">
+                    <ShieldCheck className="h-3 w-3" />
+                    Centralized
+                  </span>
                 </div>
 
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">
-                    Tagline / Motto
-                  </label>
-                  <input
-                    type="text"
-                    value={orgData.tagline || ""}
-                    onChange={(e) => setOrgData({ ...orgData, tagline: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
-                  />
+                {logoSuccess && (
+                  <div className="flex items-center gap-2 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-xs text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-200">
+                    <CheckCircle className="h-4 w-4 text-emerald-600 shrink-0" />
+                    <span>{logoSuccess}</span>
+                  </div>
+                )}
+
+                {logoError && (
+                  <div className="flex items-center gap-2 rounded-xl bg-rose-50 border border-rose-200 p-3 text-xs text-rose-800 dark:bg-rose-950/40 dark:border-rose-800 dark:text-rose-200">
+                    <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
+                    <span>{logoError}</span>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+                  {/* Foundation Name */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                      Foundation Name *
+                    </label>
+                    <input
+                      required
+                      type="text"
+                      disabled={!canManage}
+                      value={orgData.name || ""}
+                      onChange={(e) => setOrgData({ ...orgData, name: e.target.value })}
+                      placeholder="e.g. Al-Birr Foundation"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none disabled:bg-slate-100 dark:disabled:bg-slate-800/50"
+                    />
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Synchronized everywhere in the application.
+                    </p>
+                  </div>
+
+                  {/* Foundation Logo Upload & Management */}
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                      Foundation Logo (Cloudinary Storage)
+                    </label>
+
+                    <div className="flex items-center gap-3.5 p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+                      {/* Logo Preview */}
+                      <div className="h-16 w-16 shrink-0 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-1.5 flex items-center justify-center overflow-hidden">
+                        {orgData.logo_url ? (
+                          <img
+                            src={orgData.logo_url}
+                            alt="Foundation Logo Preview"
+                            className="h-full w-full object-contain"
+                          />
+                        ) : (
+                          <FoundationLogo size="lg" />
+                        )}
+                      </div>
+
+                      {/* Controls */}
+                      <div className="flex-1 space-y-1 min-w-0">
+                        <div className="text-xs font-medium text-slate-800 dark:text-slate-200">
+                          {orgData.logo_url ? (
+                            <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 text-[11px]">
+                              <CheckCircle className="h-3 w-3" />
+                              Custom Logo Configured
+                            </span>
+                          ) : (
+                            <span className="text-slate-400 text-[11px]">
+                              Default Fallback Active
+                            </span>
+                          )}
+                        </div>
+
+                        {canManage && (
+                          <div className="flex items-center gap-2 pt-1">
+                            <label className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium cursor-pointer transition-colors ${
+                              logoUploading
+                                ? "bg-slate-200 text-slate-500 cursor-not-allowed"
+                                : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                            }`}>
+                              {logoUploading ? (
+                                <>
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                  <span>Uploading...</span>
+                                </>
+                              ) : orgData.logo_url ? (
+                                <>
+                                  <RefreshCw className="h-3.5 w-3.5" />
+                                  <span>Replace Logo</span>
+                                </>
+                              ) : (
+                                <>
+                                  <UploadCloud className="h-3.5 w-3.5" />
+                                  <span>Upload Logo</span>
+                                </>
+                              )}
+                              <input
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp,image/svg+xml"
+                                className="hidden"
+                                disabled={logoUploading}
+                                onChange={(e) => {
+                                  const f = e.target.files?.[0];
+                                  if (f) handleUploadLogo(f);
+                                }}
+                              />
+                            </label>
+
+                            {orgData.logo_url && (
+                              <button
+                                type="button"
+                                disabled={logoUploading}
+                                onClick={handleRemoveLogo}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 transition-colors"
+                                title="Remove custom logo"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                                <span>Remove</span>
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-300 mb-1">
+                  Tagline / Motto
+                </label>
+                <input
+                  type="text"
+                  disabled={!canManage}
+                  value={orgData.tagline || ""}
+                  onChange={(e) => setOrgData({ ...orgData, tagline: e.target.value })}
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none disabled:bg-slate-100 dark:disabled:bg-slate-800/50"
+                />
               </div>
 
               <div>

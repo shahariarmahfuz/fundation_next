@@ -4,8 +4,11 @@ import React from "react";
 import Link from "next/link";
 import { HeartHandshake, MapPin, Phone, Mail, Globe } from "lucide-react";
 import { useOrganization } from "@/lib/useCms";
+import { useBranding } from "@/lib/branding";
+import { FoundationLogo } from "./FoundationLogo";
 
 export const Footer: React.FC = () => {
+  const { name } = useBranding();
   const { org } = useOrganization({
     name: "Al-Birr Foundation",
     description:
@@ -22,11 +25,9 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-foundation-600 text-white shadow-md">
-                <HeartHandshake className="h-6 w-6" />
-              </div>
+              <FoundationLogo size="md" />
               <span className="text-xl font-bold tracking-tight text-white">
-                {org.name || "Al-Birr Foundation"}
+                {name || org.name || "Al-Birr Foundation"}
               </span>
             </div>
             <p className="max-w-md text-sm text-slate-400 leading-relaxed">

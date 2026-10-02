@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { getStoredUser, removeAuthToken } from "@/lib/api";
 import { useTheme } from "@/lib/theme";
+import { useBranding } from "@/lib/branding";
+import { FoundationLogo } from "./FoundationLogo";
 import { UserProfileModal } from "./UserProfileModal";
 
 interface AdminHeaderProps {
@@ -23,6 +25,7 @@ interface AdminHeaderProps {
 export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => {
   const router = useRouter();
   const { theme, toggleTheme } = useTheme();
+  const { name } = useBranding();
 
   const [user, setUser] = useState<any | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -94,10 +97,11 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
           {/* Foundation Brand Typography */}
           <Link
             href="/admin/dashboard"
-            className="flex items-center gap-2 group min-w-0"
+            className="flex items-center gap-2.5 group min-w-0"
           >
+            <FoundationLogo size="sm" />
             <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-white leading-tight truncate">
-              Al-Birr Foundation
+              {name || "Al-Birr Foundation"}
             </span>
           </Link>
         </div>

@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, setAuthToken, setStoredUser } from "@/lib/api";
 import { ShieldCheck, Lock, User, AlertCircle, Loader2, ArrowLeft } from "lucide-react";
+import { useBranding } from "@/lib/branding";
+import { FoundationLogo } from "@/components/FoundationLogo";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { name } = useBranding();
   const [formData, setFormData] = useState({
     username_or_email: "admin",
     password: "AdminPassword123!",
@@ -42,12 +45,12 @@ export default function LoginPage() {
             <ArrowLeft className="h-4 w-4" />
             Back to Public Website
           </Link>
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-foundation-600 text-white mx-auto shadow-lg shadow-foundation-900/50">
-            <ShieldCheck className="h-7 w-7" />
+          <div className="flex justify-center mb-2">
+            <FoundationLogo size="xl" />
           </div>
-          <h2 className="text-2xl font-bold tracking-tight text-white">Management Portal</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-white">{name || "Al-Birr Foundation"}</h2>
           <p className="text-xs text-slate-400">
-            Secure authentication for foundation administrators, accountants & staff
+            Management Portal — Secure authentication for administrators, accountants & staff
           </p>
         </div>
 

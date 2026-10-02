@@ -1,8 +1,14 @@
+from enum import Enum
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional, List
-from pydantic import BaseModel, ConfigDict, EmailStr, model_validator
+from typing import Optional, List, Any
+from pydantic import BaseModel, ConfigDict, EmailStr, model_validator, field_validator
 from backend.app.schemas.group import GroupResponse
+
+
+class DocumentTypeEnum(str, Enum):
+    NATIONAL_ID = "NATIONAL_ID"
+    BIRTH_CERTIFICATE = "BIRTH_CERTIFICATE"
 
 
 class MemberBase(BaseModel):
@@ -59,6 +65,21 @@ class MemberBase(BaseModel):
     reason_for_joining: Optional[str] = None
     notes: Optional[str] = None
 
+    @field_validator("document_type", mode="before")
+    @classmethod
+    def validate_document_type(cls, v: Any) -> Optional[str]:
+        if v is None or v == "":
+            return None
+        v_str = str(v).strip()
+        if not v_str:
+            return None
+        v_norm = v_str.upper().replace(" ", "_").replace("-", "_")
+        if v_norm in ("NATIONAL_ID", "NID", "NATIONAL_ID_(NID)"):
+            return "NATIONAL_ID"
+        if v_norm in ("BIRTH_CERTIFICATE", "BIRTHCERTIFICATE"):
+            return "BIRTH_CERTIFICATE"
+        raise ValueError("Invalid document type. Allowed values are 'NATIONAL_ID' and 'BIRTH_CERTIFICATE'")
+
 
 class MemberCreate(MemberBase):
     pass
@@ -106,6 +127,21 @@ class MemberUpdate(BaseModel):
     birth_certificate_public_id: Optional[str] = None
     reason_for_joining: Optional[str] = None
     notes: Optional[str] = None
+
+    @field_validator("document_type", mode="before")
+    @classmethod
+    def validate_document_type(cls, v: Any) -> Optional[str]:
+        if v is None or v == "":
+            return None
+        v_str = str(v).strip()
+        if not v_str:
+            return None
+        v_norm = v_str.upper().replace(" ", "_").replace("-", "_")
+        if v_norm in ("NATIONAL_ID", "NID", "NATIONAL_ID_(NID)"):
+            return "NATIONAL_ID"
+        if v_norm in ("BIRTH_CERTIFICATE", "BIRTHCERTIFICATE"):
+            return "BIRTH_CERTIFICATE"
+        raise ValueError("Invalid document type. Allowed values are 'NATIONAL_ID' and 'BIRTH_CERTIFICATE'")
 
 
 class MemberDocumentResponse(BaseModel):

@@ -16,6 +16,7 @@ logger = logging.getLogger(__name__)
 MAX_SIZES = {
     "PHOTO": 5 * 1024 * 1024,        # 5 MB
     "SIGNATURE": 2 * 1024 * 1024,    # 2 MB
+    "LOGO": 5 * 1024 * 1024,         # 5 MB
     "NID_FRONT": 10 * 1024 * 1024,   # 10 MB
     "NID_BACK": 10 * 1024 * 1024,    # 10 MB
     "BIRTH_CERTIFICATE": 10 * 1024 * 1024,  # 10 MB
@@ -28,6 +29,13 @@ ALLOWED_IMAGE_MIMES = {
     "image/jpeg": [".jpg", ".jpeg"],
     "image/png": [".png"],
     "image/webp": [".webp"]
+}
+
+ALLOWED_LOGO_MIMES = {
+    "image/jpeg": [".jpg", ".jpeg"],
+    "image/png": [".png"],
+    "image/webp": [".webp"],
+    "image/svg+xml": [".svg"]
 }
 
 ALLOWED_DOCUMENT_MIMES = {
@@ -98,6 +106,9 @@ class CloudinaryService:
         if category_upper in ("PHOTO", "SIGNATURE"):
             valid_mimes = ALLOWED_IMAGE_MIMES
             type_label = "Image (JPEG, PNG, WEBP)"
+        elif category_upper == "LOGO":
+            valid_mimes = ALLOWED_LOGO_MIMES
+            type_label = "Image (JPEG, PNG, WEBP, SVG)"
         else:
             valid_mimes = ALLOWED_DOCUMENT_MIMES
             type_label = "Document or Image (PDF, JPEG, PNG, WEBP)"

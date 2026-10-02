@@ -46,20 +46,22 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException):
     )
 
 
+from fastapi.encoders import jsonable_encoder
+
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     errors = exc.errors()
     msg = errors[0].get("msg") if errors else "Validation error"
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={
+        content=jsonable_encoder({
             "success": False,
             "error": {
                 "code": "VALIDATION_ERROR",
                 "message": msg,
                 "details": errors
             }
-        }
+        })
     )
 
 

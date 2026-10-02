@@ -4,15 +4,13 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X, HeartHandshake, ShieldCheck, UserPlus, ArrowRight } from "lucide-react";
-import { useOrganization } from "@/lib/useCms";
+import { useBranding } from "@/lib/branding";
+import { FoundationLogo } from "./FoundationLogo";
 
 export const Navbar: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const { org } = useOrganization({
-    name: "Al-Birr Foundation",
-    tagline: "Ethical Group Finance & Charity",
-  });
+  const { name, tagline } = useBranding();
 
   const navLinks = [
     { name: "Home", href: "/" },
@@ -26,16 +24,14 @@ export const Navbar: React.FC = () => {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 h-16 sm:h-20">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-foundation-700 text-white shadow-md shadow-foundation-800/20">
-            <HeartHandshake className="h-6 w-6" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 leading-tight">
-              {org.name || "Al-Birr Foundation"}
+        <Link href="/" className="flex items-center gap-2.5 min-w-0">
+          <FoundationLogo size="lg" />
+          <div className="flex flex-col min-w-0">
+            <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 leading-tight truncate">
+              {name || "Al-Birr Foundation"}
             </span>
             <span className="text-[10px] sm:text-xs text-foundation-700 font-medium tracking-wide uppercase line-clamp-1">
-              {org.tagline || "Ethical Group Finance & Charity"}
+              {tagline || "Ethical Group Finance & Charity"}
             </span>
           </div>
         </Link>
