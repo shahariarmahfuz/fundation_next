@@ -13,7 +13,8 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [desktopSidebarOpen, setDesktopSidebarOpen] = useState(true);
   const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
@@ -24,6 +25,14 @@ export default function AdminLayout({
       setCheckingAuth(false);
     }
   }, [router]);
+
+  const toggleSidebar = () => {
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      setMobileSidebarOpen((prev) => !prev);
+    } else {
+      setDesktopSidebarOpen((prev) => !prev);
+    }
+  };
 
   if (checkingAuth) {
     return (
@@ -39,11 +48,15 @@ export default function AdminLayout({
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased transition-colors">
       {/* 1. Full-width Management Header across top */}
-      <AdminHeader onToggleSidebar={() => setSidebarOpen((prev) => !prev)} />
+      <AdminHeader onToggleSidebar={toggleSidebar} />
 
       {/* 2. Management Body: Persistent Left Sidebar + Scrollable Main Content */}
       <div className="flex flex-1 overflow-hidden relative">
-        <AdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <AdminSidebar
+          isOpen={mobileSidebarOpen}
+          isDesktopOpen={desktopSidebarOpen}
+          onClose={() => setMobileSidebarOpen(false)}
+        />
 
         <main className="flex-1 overflow-y-auto bg-slate-50 dark:bg-slate-900/50 px-3 py-4 sm:px-6 sm:py-6 lg:px-8 lg:py-8 transition-colors">
           <div className="mx-auto max-w-7xl">{children}</div>

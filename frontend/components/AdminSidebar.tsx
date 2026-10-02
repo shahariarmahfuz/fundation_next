@@ -25,6 +25,7 @@ import { getStoredUser } from "@/lib/api";
 
 interface SidebarProps {
   isOpen: boolean;
+  isDesktopOpen?: boolean;
   onClose: () => void;
 }
 
@@ -43,7 +44,7 @@ interface NavSection {
   children?: SubMenuItem[];
 }
 
-export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = true, onClose }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [user, setUser] = useState<any | null>(null);
@@ -296,8 +297,12 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Sidebar Container */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${
-          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-all duration-300 ease-in-out lg:static ${
+          isOpen ? "translate-x-0 shadow-2xl w-72" : "-translate-x-full w-72"
+        } ${
+          isDesktopOpen
+            ? "lg:translate-x-0 lg:w-72 lg:opacity-100"
+            : "lg:-translate-x-full lg:w-0 lg:border-r-0 lg:overflow-hidden lg:opacity-0"
         }`}
       >
         {/* Mobile Header Inside Drawer */}
