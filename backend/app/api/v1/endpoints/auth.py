@@ -5,9 +5,9 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from backend.app.core.database import get_db
-from backend.app.core.security import verify_password, create_access_token
+from backend.app.core.security import verify_password, create_access_token, get_password_hash
 from backend.app.models.user import User
-from backend.app.schemas.auth import Token, LoginRequest, UserResponse
+from backend.app.schemas.auth import Token, LoginRequest, UserResponse, ProfileUpdate
 from backend.app.api.deps import get_current_user
 from backend.app.services.audit_service import AuditService
 
@@ -79,6 +79,28 @@ def login_access_token(
 def read_user_me(
     current_user: User = Depends(get_current_user)
 ) -> Any:
+    return current_user
+
+
+@router.put("/me", response_model=UserResponse)
+def update_user_me(
+    profile_in: ProfileUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> Any:
+    if profile_in.email and profile_in.email != current_user.email:
+        existing = db.query(User).filter(User.email == profile_in.email, User.id != current_user.id).first()
+        if existing:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered")
+        current_user.email = profile_in.email
+
+    if profile_in.full_name is not None:
+        current_user.full_name = profile_in.full_name
+    if profile_in.password:
+        current_user.hashed_password = get_password_hash(profile_in.password)
+
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 

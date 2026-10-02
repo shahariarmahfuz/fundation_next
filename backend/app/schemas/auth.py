@@ -73,6 +73,12 @@ class UserUpdate(BaseModel):
     password: Optional[str] = None
 
 
+class ProfileUpdate(BaseModel):
+    full_name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
+
+
 class UserResponse(UserBase):
     id: int
     is_superuser: bool

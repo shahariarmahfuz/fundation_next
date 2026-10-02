@@ -86,7 +86,7 @@ export default function NewMemberPage() {
         </div>
       )}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div className="sm:col-span-2">

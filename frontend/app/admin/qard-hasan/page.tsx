@@ -164,7 +164,7 @@ export default function QardHasanPage() {
       )}
 
       {/* Filter */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs flex items-center justify-between">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-xs font-semibold text-slate-700">Filter Status:</span>
           <select

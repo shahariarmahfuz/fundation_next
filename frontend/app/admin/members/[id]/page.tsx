@@ -148,7 +148,7 @@ export default function MemberProfilePage() {
       {/* Member Details & Financial Summary Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left: Info Card */}
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
           <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500">
             Member Information
           </h3>

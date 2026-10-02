@@ -118,7 +118,7 @@ export default function BeneficiariesPage() {
       )}
 
       {/* Search */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <form onSubmit={handleSearch} className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />

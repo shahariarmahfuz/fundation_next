@@ -175,7 +175,7 @@ export default function GroupsListPage() {
           groups.map((g) => (
             <div
               key={g.id}
-              className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col justify-between"
+              className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between"
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-3">

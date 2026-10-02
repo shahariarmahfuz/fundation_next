@@ -160,7 +160,7 @@ export default function ExpensesPage() {
       )}
 
       {/* Filters */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+      <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="block text-[11px] font-semibold text-slate-500 mb-1">Filter by Group</label>

@@ -1,188 +1,423 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   LayoutDashboard,
   Users,
   FolderTree,
   Coins,
-  Receipt,
-  Gift,
   HandHeart,
   Scale,
   Heart,
-  BookOpen,
+  Receipt,
+  Gift,
   FileBarChart2,
-  UserCheck,
+  Building2,
   UserCog,
-  Settings,
   History,
-  LogOut,
-  ChevronRight,
-  Shield,
-  Home
+  Settings,
+  ChevronDown,
+  X
 } from "lucide-react";
-import { removeAuthToken, getStoredUser } from "@/lib/api";
+import { getStoredUser } from "@/lib/api";
 
 interface SidebarProps {
   isOpen: boolean;
-  onClose?: () => void;
+  onClose: () => void;
+}
+
+interface SubMenuItem {
+  name: string;
+  href: string;
+  permission?: string;
+}
+
+interface NavSection {
+  id: string;
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  permission?: string;
+  children?: SubMenuItem[];
 }
 
 export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const pathname = usePathname();
-  const router = useRouter();
-  const user = getStoredUser();
+  const searchParams = useSearchParams();
+  const [user, setUser] = useState<any | null>(null);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
 
-  const handleLogout = () => {
-    removeAuthToken();
-    router.push("/login");
+  useEffect(() => {
+    setUser(getStoredUser());
+  }, []);
+
+  // Check user permission
+  const hasAccess = (permission?: string): boolean => {
+    if (!permission) return true;
+    if (!user) return false;
+    if (user.is_superuser || user.role?.name === "Super Admin") return true;
+    const userPerms: string[] = user.role?.permissions?.map((p: any) => p.code) || [];
+    return userPerms.includes(permission);
   };
 
-  const navSections = [
+  const navItems: NavSection[] = [
     {
-      title: "Core Operations",
-      items: [
-        { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-        { name: "Members", href: "/admin/members", icon: Users },
-        { name: "Member Applications", href: "/admin/applications", icon: UserCheck },
-        { name: "Accounting Groups", href: "/admin/groups", icon: FolderTree },
-        { name: "Monthly Contributions", href: "/admin/contributions", icon: Coins },
+      id: "dashboard",
+      name: "Dashboard",
+      href: "/admin/dashboard",
+      icon: LayoutDashboard,
+      permission: "dashboard.view",
+    },
+    {
+      id: "members",
+      name: "Members",
+      href: "/admin/members",
+      icon: Users,
+      permission: "members.view",
+      children: [
+        { name: "All Members", href: "/admin/members" },
+        { name: "Add Member", href: "/admin/members/new", permission: "members.create" },
+        { name: "Member Applications", href: "/admin/applications" },
+        { name: "Member Ledger", href: "/admin/reports?tab=members" },
       ],
     },
     {
-      title: "Assistance & Welfare",
-      items: [
-        { name: "Beneficiaries", href: "/admin/beneficiaries", icon: HandHeart },
-        { name: "Qard Hasan (Loans)", href: "/admin/qard-hasan", icon: Scale },
-        { name: "Sadakah Aid", href: "/admin/sadakah", icon: Heart },
+      id: "groups",
+      name: "Groups",
+      href: "/admin/groups",
+      icon: FolderTree,
+      permission: "groups.view",
+      children: [
+        { name: "All Groups", href: "/admin/groups" },
+        { name: "Add Group", href: "/admin/groups?action=new", permission: "groups.create" },
+        { name: "Group Ledgers", href: "/admin/ledgers" },
       ],
     },
     {
-      title: "Income & Outflow",
-      items: [
-        { name: "Expenses", href: "/admin/expenses", icon: Receipt },
-        { name: "Donors & Donations", href: "/admin/donations", icon: Gift },
+      id: "contributions",
+      name: "Contributions",
+      href: "/admin/contributions",
+      icon: Coins,
+      permission: "contributions.view",
+      children: [
+        { name: "Record Contribution", href: "/admin/contributions?action=record", permission: "contributions.create" },
+        { name: "Manage Contributions", href: "/admin/contributions" },
+        { name: "Due Contributions", href: "/admin/contributions?status=DUE" },
+        { name: "Contribution Ledger", href: "/admin/ledgers" },
       ],
     },
     {
-      title: "Accounting & Audit",
-      items: [
-        { name: "Group Ledgers", href: "/admin/ledgers", icon: BookOpen },
-        { name: "Financial Reports", href: "/admin/reports", icon: FileBarChart2 },
-        { name: "Audit Trail", href: "/admin/audit-logs", icon: History },
+      id: "beneficiaries",
+      name: "Beneficiaries",
+      href: "/admin/beneficiaries",
+      icon: HandHeart,
+      permission: "beneficiaries.view",
+      children: [
+        { name: "All Beneficiaries", href: "/admin/beneficiaries" },
+        { name: "Add Beneficiary", href: "/admin/beneficiaries?action=new", permission: "beneficiaries.create" },
       ],
     },
     {
-      title: "Administration",
-      items: [
-        { name: "Users & Roles", href: "/admin/users", icon: UserCog },
-        { name: "Organization & CMS", href: "/admin/settings", icon: Settings },
+      id: "qard-hasan",
+      name: "Qard Hasan",
+      href: "/admin/qard-hasan",
+      icon: Scale,
+      permission: "qard_hasan.view",
+      children: [
+        { name: "All Qard Hasan", href: "/admin/qard-hasan" },
+        { name: "Add Qard Hasan", href: "/admin/qard-hasan?action=new", permission: "qard_hasan.create" },
+        { name: "Repayments", href: "/admin/qard-hasan?tab=repayments" },
+        { name: "Outstanding Qard", href: "/admin/qard-hasan?status=ACTIVE" },
       ],
+    },
+    {
+      id: "sadakah",
+      name: "Sadakah",
+      href: "/admin/sadakah",
+      icon: Heart,
+      permission: "sadakah.view",
+      children: [
+        { name: "All Sadakah", href: "/admin/sadakah" },
+        { name: "Record Sadakah", href: "/admin/sadakah?action=new", permission: "sadakah.create" },
+      ],
+    },
+    {
+      id: "expenses",
+      name: "Expenses",
+      href: "/admin/expenses",
+      icon: Receipt,
+      permission: "expenses.view",
+      children: [
+        { name: "All Expenses", href: "/admin/expenses" },
+        { name: "Add Expense", href: "/admin/expenses?action=new", permission: "expenses.create" },
+        { name: "Categories", href: "/admin/expenses?tab=categories" },
+        { name: "Expense Reports", href: "/admin/reports?tab=expenses" },
+      ],
+    },
+    {
+      id: "donations",
+      name: "Donations",
+      href: "/admin/donations",
+      icon: Gift,
+      permission: "donations.view",
+      children: [
+        { name: "All Donations", href: "/admin/donations" },
+        { name: "Add Donation", href: "/admin/donations?action=new", permission: "donations.create" },
+        { name: "Donors", href: "/admin/donations?tab=donors", permission: "donors.view" },
+      ],
+    },
+    {
+      id: "reports",
+      name: "Reports",
+      href: "/admin/reports",
+      icon: FileBarChart2,
+      permission: "reports.view",
+      children: [
+        { name: "Financial Reports", href: "/admin/reports?tab=financial" },
+        { name: "Group Reports", href: "/admin/reports?tab=groups" },
+        { name: "Member Reports", href: "/admin/reports?tab=members" },
+        { name: "Contribution Reports", href: "/admin/reports?tab=contributions" },
+        { name: "Expense Reports", href: "/admin/reports?tab=expenses" },
+        { name: "Donation Reports", href: "/admin/reports?tab=donations" },
+        { name: "Qard Hasan Reports", href: "/admin/reports?tab=qard" },
+        { name: "Sadakah Reports", href: "/admin/reports?tab=sadakah" },
+      ],
+    },
+    {
+      id: "organization",
+      name: "Organization",
+      href: "/admin/settings",
+      icon: Building2,
+      permission: "settings.manage",
+      children: [
+        { name: "Foundation Information", href: "/admin/settings?tab=org" },
+        { name: "Public Pages", href: "/admin/settings?tab=cms" },
+        { name: "Goals", href: "/admin/settings?tab=cms&page=goals" },
+        { name: "Mission", href: "/admin/settings?tab=cms&page=mission" },
+        { name: "Activities", href: "/admin/settings?tab=cms&page=activities" },
+        { name: "Contact Information", href: "/admin/settings?tab=cms&page=contact" },
+      ],
+    },
+    {
+      id: "users-access",
+      name: "Users & Access",
+      href: "/admin/users",
+      icon: UserCog,
+      permission: "users.manage",
+      children: [
+        { name: "Users", href: "/admin/users?tab=users" },
+        { name: "Roles", href: "/admin/users?tab=roles" },
+        { name: "Permissions", href: "/admin/users?tab=roles" },
+      ],
+    },
+    {
+      id: "audit-logs",
+      name: "Audit Logs",
+      href: "/admin/audit-logs",
+      icon: History,
+      permission: "audit.view",
+    },
+    {
+      id: "settings",
+      name: "Settings",
+      href: "/admin/settings",
+      icon: Settings,
+      permission: "settings.manage",
     },
   ];
 
+  // Auto-expand section that contains active route
+  useEffect(() => {
+    if (!pathname) return;
+    const currentQuery = searchParams ? searchParams.toString() : "";
+    const activeSection = navItems.find((item) => {
+      if (item.href === pathname) return true;
+      if (item.children) {
+        return item.children.some((child) => {
+          const [childPath, childQuery] = child.href.split("?");
+          if (childPath === pathname) {
+            if (!childQuery) return true;
+            return currentQuery.includes(childQuery);
+          }
+          return false;
+        });
+      }
+      return false;
+    });
+
+    if (activeSection?.children) {
+      setExpandedSections((prev) => ({
+        ...prev,
+        [activeSection.id]: true,
+      }));
+    }
+  }, [pathname, searchParams]);
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [sectionId]: !prev[sectionId],
+    }));
+  };
+
+  // Determine if a specific child link is active
+  const isChildActive = (href: string) => {
+    const [targetPath, targetQuery] = href.split("?");
+    if (pathname !== targetPath) return false;
+    if (!targetQuery) {
+      return !searchParams.toString() || searchParams.toString() === "";
+    }
+    const currentQuery = searchParams.toString();
+    return currentQuery.includes(targetQuery);
+  };
+
+  // Determine if top-level nav item is active
+  const isParentActive = (item: NavSection) => {
+    if (item.href === pathname && !item.children) return true;
+    if (pathname.startsWith(item.href) && item.href !== "/admin/settings") return true;
+    if (item.children) {
+      return item.children.some((child) => isChildActive(child.href));
+    }
+    return false;
+  };
+
   return (
     <>
-      {/* Mobile backdrop */}
+      {/* Mobile Drawer Backdrop */}
       {isOpen && (
         <div
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-slate-950/75 backdrop-blur-xs transition-opacity lg:hidden"
+          aria-hidden="true"
         />
       )}
 
+      {/* Sidebar Container */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-slate-200 bg-white transition-transform duration-300 lg:static lg:translate-x-0 ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-white dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 transition-all duration-300 ease-in-out lg:static lg:translate-x-0 ${
+          isOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
         }`}
       >
-        {/* Brand */}
-        <div className="flex h-16 sm:h-20 items-center justify-between px-6 border-b border-slate-100 bg-slate-50/50">
-          <Link href="/admin/dashboard" className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-foundation-700 text-white shadow-sm">
-              <Shield className="h-5 w-5" />
+        {/* Mobile Header Inside Drawer */}
+        <div className="flex h-16 items-center justify-between px-5 border-b border-slate-200 dark:border-slate-800 lg:hidden bg-slate-50 dark:bg-slate-900/50">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600 text-white">
+              <Coins className="h-4 w-4" />
             </div>
             <div className="flex flex-col">
-              <span className="text-sm font-bold text-slate-900">Al-Birr Foundation</span>
-              <span className="text-[10px] text-foundation-700 font-semibold tracking-wide uppercase">
-                Management System
-              </span>
+              <span className="text-xs font-bold text-slate-900 dark:text-white leading-tight">Admin Navigation</span>
+              <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold uppercase">Management Panel</span>
             </div>
-          </Link>
-          <Link
-            href="/"
-            title="Public Website"
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+          </div>
+          <button
+            onClick={onClose}
+            type="button"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-white transition-colors"
+            aria-label="Close navigation menu"
           >
-            <Home className="h-4 w-4" />
-          </Link>
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
-        {/* Scrollable Navigation */}
-        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-6">
-          {navSections.map((section) => (
-            <div key={section.title} className="space-y-1">
-              <h5 className="px-3 text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                {section.title}
-              </h5>
-              <div className="mt-1 space-y-0.5">
-                {section.items.map((item) => {
-                  const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.name}
-                      href={item.href}
-                      onClick={onClose}
-                      className={`flex items-center justify-between rounded-lg px-3 py-2 text-xs font-medium transition-all ${
-                        isActive
-                          ? "bg-foundation-50 text-foundation-900 font-semibold shadow-xs border-l-4 border-foundation-700"
-                          : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <Icon
-                          className={`h-4 w-4 shrink-0 ${
-                            isActive ? "text-foundation-700" : "text-slate-400"
+        {/* Section Label */}
+        <div className="px-5 pt-4 pb-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 border-b border-slate-100 dark:border-slate-900 hidden lg:block">
+          Accounting & Operations
+        </div>
+
+        {/* Scrollable Navigation List */}
+        <nav className="flex-1 overflow-y-auto px-3 py-3 space-y-1 text-xs select-none">
+          {navItems.map((item) => {
+            if (!hasAccess(item.permission)) return null;
+
+            const Icon = item.icon;
+            const hasChildren = item.children && item.children.length > 0;
+            const isExpanded = !!expandedSections[item.id];
+            const active = isParentActive(item);
+
+            if (!hasChildren) {
+              return (
+                <Link
+                  key={item.id}
+                  href={item.href}
+                  onClick={onClose}
+                  className={`flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium transition-all ${
+                    active
+                      ? "bg-emerald-50 text-emerald-800 font-semibold border-l-2 border-emerald-600 shadow-sm dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500"
+                      : "text-slate-700 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white"
+                  }`}
+                >
+                  <Icon className={`h-4 w-4 shrink-0 ${active ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`} />
+                  <span className="truncate">{item.name}</span>
+                </Link>
+              );
+            }
+
+            return (
+              <div key={item.id} className="space-y-0.5">
+                {/* Parent Row Toggle */}
+                <button
+                  type="button"
+                  onClick={() => toggleSection(item.id)}
+                  className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-medium transition-all ${
+                    active
+                      ? "bg-slate-100 text-slate-900 font-semibold dark:bg-slate-900/80 dark:text-white"
+                      : "text-slate-700 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900/60 dark:hover:text-white"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Icon className={`h-4 w-4 shrink-0 ${active ? "text-emerald-600 dark:text-emerald-400" : "text-slate-400"}`} />
+                    <span className="truncate">{item.name}</span>
+                  </div>
+                  <ChevronDown
+                    className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${
+                      isExpanded ? "rotate-180 text-emerald-600 dark:text-emerald-400" : ""
+                    }`}
+                  />
+                </button>
+
+                {/* Submenu Accordion */}
+                {isExpanded && (
+                  <div className="ml-5 pl-2 border-l border-slate-200 dark:border-slate-800/80 space-y-0.5 py-1">
+                    {item.children?.map((child) => {
+                      if (!hasAccess(child.permission)) return null;
+                      const childActive = isChildActive(child.href);
+
+                      return (
+                        <Link
+                          key={child.name + child.href}
+                          href={child.href}
+                          onClick={onClose}
+                          className={`flex items-center gap-2 rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-all ${
+                            childActive
+                              ? "bg-emerald-50 text-emerald-700 font-semibold dark:bg-emerald-500/20 dark:text-emerald-300"
+                              : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-200"
                           }`}
-                        />
-                        <span>{item.name}</span>
-                      </div>
-                      {isActive && <ChevronRight className="h-3 w-3 text-foundation-600" />}
-                    </Link>
-                  );
-                })}
+                        >
+                          <span
+                            className={`h-1.5 w-1.5 rounded-full shrink-0 ${
+                              childActive ? "bg-emerald-600 dark:bg-emerald-400" : "bg-slate-300 dark:bg-slate-600"
+                            }`}
+                          />
+                          <span className="truncate">{child.name}</span>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
-        </div>
+            );
+          })}
+        </nav>
 
-        {/* User profile / Logout bottom bar */}
-        <div className="border-t border-slate-100 bg-slate-50/50 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5 truncate">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-foundation-200 text-xs font-bold text-foundation-800">
-                {user?.full_name ? user.full_name.charAt(0).toUpperCase() : "A"}
-              </div>
-              <div className="flex flex-col truncate">
-                <span className="text-xs font-medium text-slate-800 truncate">
-                  {user?.full_name || "Administrator"}
-                </span>
-                <span className="text-[10px] text-slate-500 truncate">
-                  {user?.role?.name || (user?.is_superuser ? "Super Admin" : "Staff")}
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={handleLogout}
-              title="Logout"
-              className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-colors"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+        {/* Footer Info inside Sidebar */}
+        <div className="p-3 border-t border-slate-200 dark:border-slate-900 bg-slate-50 dark:bg-slate-950/60 text-center">
+          <div className="text-[10px] text-slate-500 dark:text-slate-400">
+            Al-Birr Foundation • BDT (৳)
+          </div>
+          <div className="text-[9px] text-slate-400 dark:text-slate-500 mt-0.5">
+            Strict Double-Entry Fund Isolation
           </div>
         </div>
       </aside>
