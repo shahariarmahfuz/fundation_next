@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { formatFoundationDate, formatFoundationDateTime } from "./timezone";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -16,32 +17,17 @@ export function formatCurrency(amount: number | string | null | undefined): stri
   });
 }
 
-export function formatDate(dateStr: string | null | undefined): string {
-  if (!dateStr) return "-";
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
-  } catch {
-    return dateStr;
-  }
+/**
+ * Formats a date using the centralized Foundation timezone.
+ * Pure calendar dates ("YYYY-MM-DD") are preserved without offset shift.
+ */
+export function formatDate(dateStr: string | null | undefined, timeZone?: string): string {
+  return formatFoundationDate(dateStr, timeZone);
 }
 
-export function formatDateTime(dateStr: string | null | undefined): string {
-  if (!dateStr) return "-";
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return dateStr;
-  }
+/**
+ * Formats a timestamp into date and time in the centralized Foundation timezone.
+ */
+export function formatDateTime(dateStr: string | null | undefined, timeZone?: string): string {
+  return formatFoundationDateTime(dateStr, timeZone);
 }

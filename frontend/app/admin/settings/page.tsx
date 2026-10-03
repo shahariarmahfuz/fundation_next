@@ -30,9 +30,11 @@ import { api, getStoredUser } from "@/lib/api";
 import { useBranding } from "@/lib/branding";
 import { FoundationLogo } from "@/components/FoundationLogo";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { TimezoneSettings } from "@/components/TimezoneSettings";
+import { getFoundationTodayDate } from "@/lib/timezone";
 
 export default function SettingsPage() {
-  const [activeTab, setActiveTab] = useState<"org" | "contribution" | "cms">("org");
+  const [activeTab, setActiveTab] = useState<"system" | "org" | "contribution" | "cms">("org");
   const { refreshBranding } = useBranding();
   const [user, setUser] = useState<any | null>(null);
 
@@ -67,7 +69,7 @@ export default function SettingsPage() {
   const [mcError, setMcError] = useState<string | null>(null);
   const [mcFormData, setMcFormData] = useState({
     amount: "100.00",
-    effective_from: new Date().toISOString().split("T")[0],
+    effective_from: getFoundationTodayDate(),
     notes: "",
   });
 
@@ -134,10 +136,14 @@ export default function SettingsPage() {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const tabParam = params.get("tab");
-      if (tabParam === "contribution") {
+      if (tabParam === "system") {
+        setActiveTab("system");
+      } else if (tabParam === "contribution") {
         setActiveTab("contribution");
       } else if (tabParam === "cms") {
         setActiveTab("cms");
+      } else if (tabParam === "org") {
+        setActiveTab("org");
       }
     }
     setUser(getStoredUser());
@@ -294,6 +300,18 @@ export default function SettingsPage() {
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
         <button
+          onClick={() => setActiveTab("system")}
+          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
+            activeTab === "system"
+              ? "bg-slate-900 text-white dark:bg-emerald-600"
+              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-700"
+          }`}
+        >
+          <Settings className="h-4 w-4" />
+          System Settings (Timezone)
+        </button>
+
+        <button
           onClick={() => setActiveTab("org")}
           className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
             activeTab === "org"
@@ -329,6 +347,9 @@ export default function SettingsPage() {
           Public Website CMS Pages
         </button>
       </div>
+
+      {/* TAB 0: SYSTEM SETTINGS (TIMEZONE) */}
+      {activeTab === "system" && <TimezoneSettings canManage={canManage} />}
 
       {/* TAB 1: ORGANIZATION PROFILE */}
       {activeTab === "org" && (

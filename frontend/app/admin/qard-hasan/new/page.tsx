@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
+import { getFoundationTodayDate } from "@/lib/timezone";
 import {
   Scale,
   Plus,
@@ -46,7 +47,7 @@ export default function NewQardHasanPage() {
   const [beneficiarySearch, setBeneficiarySearch] = useState("");
   const [principalAmount, setPrincipalAmount] = useState("10000.00");
   const [monthlyRepayment, setMonthlyRepayment] = useState("1000.00");
-  const [disbursedDate, setDisbursedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [disbursedDate, setDisbursedDate] = useState(getFoundationTodayDate());
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [reference, setReference] = useState("");
   const [scheduleNotes, setScheduleNotes] = useState("10 installments of ৳1,000");

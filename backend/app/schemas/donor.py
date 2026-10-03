@@ -49,7 +49,7 @@ class DonationBase(BaseModel):
     member_id: Optional[int] = None
     group_id: int
     amount: Decimal
-    donation_date: date = date.today()
+    donation_date: Optional[date] = None
     payment_method: str = "CASH"
     reference: Optional[str] = None
     notes: Optional[str] = None

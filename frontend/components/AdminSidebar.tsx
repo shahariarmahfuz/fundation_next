@@ -208,6 +208,7 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       icon: Settings,
       permission: "settings.manage",
       children: [
+        { name: "System Settings", href: "/admin/settings?tab=system" },
         { name: "Monthly Contribution", href: "/admin/settings?tab=contribution" },
         { name: "Foundation Profile", href: "/admin/settings?tab=org" },
         { name: "Public Website CMS", href: "/admin/settings?tab=cms" },

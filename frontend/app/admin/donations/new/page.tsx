@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
+import { getFoundationTodayDate } from "@/lib/timezone";
 import {
   Gift,
   HeartHandshake,
@@ -41,7 +42,7 @@ export default function RecordDonationPage() {
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
   const [amount, setAmount] = useState<string>("5000.00");
   const [paymentMethod, setPaymentMethod] = useState<string>("BANK_TRANSFER");
-  const [donationDate, setDonationDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [donationDate, setDonationDate] = useState<string>(getFoundationTodayDate());
   const [reference, setReference] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
 

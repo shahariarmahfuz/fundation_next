@@ -16,6 +16,7 @@ from backend.app.models.expense import Expense
 from backend.app.models.sadakah import Sadakah
 from backend.app.models.monthly_contribution_setting import MonthlyContributionSetting
 from backend.app.core.cache import cache
+from backend.app.services.timezone_service import TimezoneService
 
 
 class AccountingService:
@@ -31,9 +32,9 @@ class AccountingService:
                 last_day = calendar.monthrange(parts[0], parts[1])[1]
                 target_date = date(parts[0], parts[1], last_day)
             except Exception:
-                target_date = date.today()
+                target_date = TimezoneService.today(db)
         else:
-            target_date = date.today()
+            target_date = TimezoneService.today(db)
 
         setting = db.query(MonthlyContributionSetting).filter(
             MonthlyContributionSetting.effective_from <= target_date
@@ -50,7 +51,7 @@ class AccountingService:
 
     @staticmethod
     def get_monthly_contribution_overview(db: Session):
-        today = date.today()
+        today = TimezoneService.today(db)
         all_settings = db.query(MonthlyContributionSetting).order_by(MonthlyContributionSetting.effective_from.desc()).all()
         
         active_setting = None

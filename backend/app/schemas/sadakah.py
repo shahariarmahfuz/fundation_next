@@ -37,7 +37,7 @@ class SadakahCreate(BaseModel):
     amount: Decimal
     description: Optional[str] = None
     purpose: Optional[str] = None
-    disbursement_date: date = date.today()
+    disbursement_date: Optional[date] = None
     payment_method: str = "CASH"
     reference: Optional[str] = None
     notes: Optional[str] = None

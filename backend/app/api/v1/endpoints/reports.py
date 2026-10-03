@@ -16,6 +16,7 @@ from backend.app.models.user import User
 from backend.app.schemas.report import FinancialReportResponse, MemberLedgerResponse, MemberLedgerEntry
 from backend.app.api.deps import require_permission
 from backend.app.services.accounting_service import AccountingService
+from backend.app.services.timezone_service import TimezoneService
 
 router = APIRouter()
 
@@ -38,9 +39,11 @@ def get_financial_report(
             query = query.filter(FinancialTransaction.group_id == group_id)
 
     if date_from:
-        query = query.filter(FinancialTransaction.transaction_date >= datetime.combine(date_from, datetime.min.time()))
+        start_utc = TimezoneService.date_start_utc(date_from, db)
+        query = query.filter(FinancialTransaction.transaction_date >= start_utc)
     if date_to:
-        query = query.filter(FinancialTransaction.transaction_date <= datetime.combine(date_to, datetime.max.time()))
+        end_utc = TimezoneService.date_end_utc(date_to, db)
+        query = query.filter(FinancialTransaction.transaction_date <= end_utc)
 
     txns = query.order_by(FinancialTransaction.transaction_date.asc()).all()
 
@@ -149,8 +152,9 @@ def get_member_ledger(
         else:
             total_due += c.amount
 
+        fallback_date = TimezoneService.to_foundation_tz(c.created_at, db).date() if c.created_at else TimezoneService.today(db)
         entries.append(MemberLedgerEntry(
-            date=c.payment_date or c.created_at.date(),
+            date=c.payment_date or fallback_date,
             type="Monthly Contribution",
             description=f"Contribution for month {c.contribution_month}",
             amount=c.amount,

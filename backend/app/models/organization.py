@@ -24,6 +24,7 @@ class Organization(Base, TimestampMixin):
     social_links = Column(JSON, default=dict, nullable=False)
     currency_symbol = Column(String(10), default="৳", nullable=False)
     currency_code = Column(String(10), default="BDT", nullable=False)
+    timezone = Column(String(100), default="Asia/Dhaka", nullable=False)
     
     updated_by_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     updated_by = relationship("User")

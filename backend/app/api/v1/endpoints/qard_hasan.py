@@ -32,6 +32,7 @@ from backend.app.schemas.common import PaginatedResponse
 from backend.app.api.deps import require_permission, get_current_user
 from backend.app.services.accounting_service import AccountingService
 from backend.app.services.audit_service import AuditService
+from backend.app.services.timezone_service import TimezoneService
 
 router = APIRouter()
 
@@ -424,8 +425,9 @@ def disburse_qard_hasan(
             )
 
     # 4. Create Qard Hasan Record
+    actual_date = qard_in.disbursed_date or TimezoneService.today(db)
     unique_code = uuid.uuid4().hex[:6].upper()
-    q_num = f"QRD-{qard_in.disbursed_date.strftime('%Y%m%d')}-{unique_code}"
+    q_num = f"QRD-{actual_date.strftime('%Y%m%d')}-{unique_code}"
     primary_group_id = sorted_group_ids[0]
 
     qard = QardHasan(
@@ -436,7 +438,7 @@ def disburse_qard_hasan(
         monthly_repayment_amount=qard_in.monthly_repayment_amount,
         total_repaid=Decimal("0.00"),
         outstanding_amount=qard_in.principal_amount,
-        disbursed_date=qard_in.disbursed_date,
+        disbursed_date=actual_date,
         interest_rate=Decimal("0.00"),
         status="ACTIVE",
         repayment_schedule_notes=qard_in.repayment_schedule_notes,
@@ -535,8 +537,9 @@ def record_qard_repayment(
     distribution = calculate_repayment_distribution(qard.funding_allocations, rep_in.amount)
 
     beneficiary = qard.beneficiary
+    actual_date = rep_in.repayment_date or TimezoneService.today(db)
     unique_code = uuid.uuid4().hex[:6].upper()
-    r_num = f"REP-{rep_in.repayment_date.strftime('%Y%m%d')}-{unique_code}"
+    r_num = f"REP-{actual_date.strftime('%Y%m%d')}-{unique_code}"
 
     # Lock groups
     group_ids = sorted(list({fa.group_id for fa, _ in distribution}))
@@ -553,7 +556,7 @@ def record_qard_repayment(
         group_id=primary_group_id,
         beneficiary_id=beneficiary.id,
         amount=rep_in.amount,
-        repayment_date=rep_in.repayment_date,
+        repayment_date=actual_date,
         payment_method=rep_in.payment_method,
         reference=rep_in.reference,
         notes=rep_in.notes,

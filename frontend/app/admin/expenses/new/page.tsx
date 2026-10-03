@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
+import { getFoundationTodayDate } from "@/lib/timezone";
 import {
   Receipt,
   Plus,
@@ -32,7 +33,7 @@ export default function NewExpensePage() {
   const [categoryId, setCategoryId] = useState("");
   const [amount, setAmount] = useState("");
   const [expenseDate, setExpenseDate] = useState(
-    new Date().toISOString().split("T")[0]
+    getFoundationTodayDate()
   );
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [payee, setPayee] = useState("");

@@ -19,6 +19,7 @@ from backend.app.services.audit_service import AuditService
 from backend.app.services.accounting_service import AccountingService
 from backend.app.services.code_service import CodeService
 from backend.app.services.cloudinary_service import CloudinaryService
+from backend.app.services.timezone_service import TimezoneService
 
 router = APIRouter()
 
@@ -150,7 +151,7 @@ def create_member(
         full_name=member_in.full_name.strip(),
         group_id=member_in.group_id,
         status=member_in.status or "ACTIVE",
-        joining_date=member_in.joining_date or date.today(),
+        joining_date=member_in.joining_date or TimezoneService.today(db),
         email=member_in.email,
         phone=member_in.phone,
         alternative_phone=member_in.alternative_phone,

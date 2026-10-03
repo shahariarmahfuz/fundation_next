@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
+import { getFoundationTodayDate } from "@/lib/timezone";
 import {
   Heart,
   Plus,
@@ -47,7 +48,7 @@ export default function NewSadaqahPage() {
   const [amount, setAmount] = useState("2000.00");
   const [description, setDescription] = useState("Emergency medical assistance");
   const [disbursementDate, setDisbursementDate] = useState(
-    new Date().toISOString().split("T")[0]
+    getFoundationTodayDate()
   );
   const [paymentMethod, setPaymentMethod] = useState("CASH");
   const [reference, setReference] = useState("");

@@ -52,7 +52,7 @@ class QardHasanCreate(BaseModel):
     beneficiary_id: int
     principal_amount: Decimal
     monthly_repayment_amount: Decimal
-    disbursed_date: date = date.today()
+    disbursed_date: Optional[date] = None
     funding_allocations: Optional[List[FundingAllocationCreate]] = None
     group_id: Optional[int] = None  # Single-group fallback
     repayment_schedule_notes: Optional[str] = None
@@ -78,7 +78,7 @@ class QardHasanCreate(BaseModel):
 class QardRepaymentCreate(BaseModel):
     qard_hasan_id: int
     amount: Decimal
-    repayment_date: date = date.today()
+    repayment_date: Optional[date] = None
     payment_method: str = "CASH"
     reference: Optional[str] = None
     notes: Optional[str] = None

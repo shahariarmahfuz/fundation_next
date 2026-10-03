@@ -27,6 +27,7 @@ from backend.app.schemas.common import PaginatedResponse
 from backend.app.api.deps import require_permission, get_current_user
 from backend.app.services.accounting_service import AccountingService
 from backend.app.services.audit_service import AuditService
+from backend.app.services.timezone_service import TimezoneService
 
 router = APIRouter()
 
@@ -72,7 +73,7 @@ def get_applicable_contribution_amount(
     current_user: User = Depends(get_current_user)
 ) -> Any:
     """Returns the configured Foundation monthly contribution amount for the specified month."""
-    month_str = contribution_month or date.today().strftime("%Y-%m")
+    month_str = contribution_month or TimezoneService.current_month(db)
     amount = AccountingService.get_monthly_contribution_amount(db, month_str)
     return {
         "contribution_month": month_str,
@@ -130,7 +131,7 @@ def get_member_contribution_periods(
     if not member:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Member not found")
 
-    today = date.today()
+    today = TimezoneService.today(db)
     current_year = today.year
     current_month_str = today.strftime("%Y-%m")
     target_year = year or current_year
@@ -314,7 +315,7 @@ def receive_multiple_contributions(
         month_rates.append((m, rate))
         total_amount += rate
 
-    pay_date = batch_in.payment_date or date.today()
+    pay_date = batch_in.payment_date or TimezoneService.today(db)
     months_display = ", ".join(sorted_months)
 
     # 1. Create single Financial Transaction in member's group (atomic inflow)
@@ -461,7 +462,7 @@ def record_contribution(
         contrib = existing
         contrib.amount = amount
         contrib.status = "PAID"
-        contrib.payment_date = date.today()
+        contrib.payment_date = TimezoneService.today(db)
         contrib.payment_method = contrib_in.payment_method or "CASH"
         contrib.reference = contrib_in.reference
         contrib.notes = contrib_in.notes
@@ -476,7 +477,7 @@ def record_contribution(
             contribution_month=contrib_in.contribution_month,
             amount=amount,
             status="PAID",
-            payment_date=date.today(),
+            payment_date=TimezoneService.today(db),
             payment_method=contrib_in.payment_method or "CASH",
             reference=contrib_in.reference,
             notes=contrib_in.notes,
@@ -518,7 +519,7 @@ def pay_existing_contribution(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Contribution is already paid")
 
     member = contrib.member
-    pay_date = pay_in.payment_date or date.today()
+    pay_date = pay_in.payment_date or TimezoneService.today(db)
 
     txn = AccountingService.create_transaction(
         db=db,

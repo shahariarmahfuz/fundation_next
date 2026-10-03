@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { getFoundationTodayDate } from "@/lib/timezone";
 import { StatusBadge } from "@/components/StatusBadge";
 import {
   Scale,
@@ -40,7 +41,7 @@ export default function QardHasanRepayPage({ params }: PageProps) {
   // Repayment Form State
   const [amount, setAmount] = useState<string>("");
   const [repaymentDate, setRepaymentDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
+    getFoundationTodayDate()
   );
   const [paymentMethod, setPaymentMethod] = useState<string>("CASH");
   const [reference, setReference] = useState<string>("");

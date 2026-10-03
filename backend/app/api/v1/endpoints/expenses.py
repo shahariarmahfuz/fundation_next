@@ -27,6 +27,7 @@ from backend.app.schemas.common import PaginatedResponse
 from backend.app.api.deps import require_permission, get_current_user
 from backend.app.services.accounting_service import AccountingService
 from backend.app.services.audit_service import AuditService
+from backend.app.services.timezone_service import TimezoneService
 
 router = APIRouter()
 
@@ -389,15 +390,16 @@ def create_expense(
         check_sufficient_funds=True
     )
 
+    exp_date = exp_in.expense_date or TimezoneService.today(db)
     unique_code = uuid.uuid4().hex[:6].upper()
-    exp_num = f"EXP-{exp_in.expense_date.strftime('%Y%m%d')}-{unique_code}"
+    exp_num = f"EXP-{exp_date.strftime('%Y%m%d')}-{unique_code}"
 
     expense = Expense(
         expense_number=exp_num,
         category_id=cat.id,
         group_id=group.id,
         amount=exp_in.amount,
-        expense_date=exp_in.expense_date,
+        expense_date=exp_date,
         payment_method=exp_in.payment_method,
         reference=exp_in.reference,
         payee=exp_in.payee,

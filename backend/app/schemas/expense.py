@@ -37,7 +37,7 @@ class ExpenseBase(BaseModel):
     category_id: int
     group_id: int
     amount: Decimal
-    expense_date: date = date.today()
+    expense_date: Optional[date] = None
     payment_method: str = "CASH"
     reference: Optional[str] = None
     payee: Optional[str] = None

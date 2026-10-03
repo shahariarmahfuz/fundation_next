@@ -19,6 +19,7 @@ class OrganizationBase(BaseModel):
     social_links: Dict[str, Any] = {}
     currency_symbol: str = "৳"
     currency_code: str = "BDT"
+    timezone: str = "Asia/Dhaka"
 
 
 class OrganizationUpdate(BaseModel):
@@ -33,6 +34,7 @@ class OrganizationUpdate(BaseModel):
     social_links: Optional[Dict[str, Any]] = None
     currency_symbol: Optional[str] = None
     currency_code: Optional[str] = None
+    timezone: Optional[str] = None
 
 
 class OrganizationResponse(OrganizationBase):

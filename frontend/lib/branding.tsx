@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { api } from "./api";
+import { DEFAULT_FOUNDATION_TIMEZONE, setFoundationTimezone, getFoundationTimezone } from "./timezone";
 
 export interface BrandingData {
   name: string;
@@ -10,6 +11,7 @@ export interface BrandingData {
   logoPublicId?: string | null;
   currencySymbol: string;
   currencyCode: string;
+  timezone: string;
   loading: boolean;
   refreshBranding: () => Promise<void>;
 }
@@ -21,6 +23,7 @@ const defaultBranding: BrandingData = {
   logoPublicId: null,
   currencySymbol: "৳",
   currencyCode: "BDT",
+  timezone: DEFAULT_FOUNDATION_TIMEZONE,
   loading: true,
   refreshBranding: async () => {},
 };
@@ -35,6 +38,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     logoPublicId: string | null;
     currencySymbol: string;
     currencyCode: string;
+    timezone: string;
     loading: boolean;
   }>({
     name: "Al-Birr Foundation",
@@ -43,6 +47,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     logoPublicId: null,
     currencySymbol: "৳",
     currencyCode: "BDT",
+    timezone: getFoundationTimezone(),
     loading: true,
   });
 
@@ -50,6 +55,8 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       const data = await api.get("/organization", { cache: "no-store" });
       if (data) {
+        const tz = data.timezone || DEFAULT_FOUNDATION_TIMEZONE;
+        setFoundationTimezone(tz);
         setBranding({
           name: data.name?.trim() || "Foundation",
           tagline: data.tagline || "Empowering Communities Through Islamic Finance & Charity",
@@ -57,6 +64,7 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           logoPublicId: data.logo_public_id || null,
           currencySymbol: data.currency_symbol || "৳",
           currencyCode: data.currency_code || "BDT",
+          timezone: tz,
           loading: false,
         });
       }
@@ -71,13 +79,20 @@ export const BrandingProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const handleUpdate = () => {
       fetchBranding();
     };
+    const handleTzUpdate = (e: any) => {
+      if (e?.detail?.timezone) {
+        setBranding((prev) => ({ ...prev, timezone: e.detail.timezone }));
+      }
+    };
     if (typeof window !== "undefined") {
       window.addEventListener("foundation-profile-updated", handleUpdate);
+      window.addEventListener("foundation-timezone-updated", handleTzUpdate);
       window.addEventListener("storage", handleUpdate);
     }
     return () => {
       if (typeof window !== "undefined") {
         window.removeEventListener("foundation-profile-updated", handleUpdate);
+        window.removeEventListener("foundation-timezone-updated", handleTzUpdate);
         window.removeEventListener("storage", handleUpdate);
       }
     };

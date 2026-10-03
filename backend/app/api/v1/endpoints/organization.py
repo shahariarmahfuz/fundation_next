@@ -11,6 +11,7 @@ from backend.app.schemas.organization import OrganizationResponse, OrganizationU
 from backend.app.api.deps import require_permission, get_current_user
 from backend.app.services.audit_service import AuditService
 from backend.app.services.cloudinary_service import CloudinaryService
+from backend.app.services.timezone_service import TimezoneService
 
 router = APIRouter()
 
@@ -79,6 +80,15 @@ def update_organization_settings(
         org.currency_symbol = org_in.currency_symbol
     if org_in.currency_code is not None:
         org.currency_code = org_in.currency_code
+    if org_in.timezone is not None:
+        clean_tz = org_in.timezone.strip()
+        if not TimezoneService.is_valid_timezone(clean_tz):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid IANA timezone identifier '{org_in.timezone}'. Examples: 'Asia/Dhaka', 'Asia/Kolkata', 'Europe/London', 'America/New_York'."
+            )
+        org.timezone = clean_tz
+        TimezoneService.clear_cache()
 
     org.updated_by_id = current_user.id
     org.updated_at = datetime.now(timezone.utc)
@@ -86,6 +96,7 @@ def update_organization_settings(
     db.commit()
     db.refresh(org)
     cache.delete("org:settings")
+    TimezoneService.clear_cache()
 
     AuditService.log(
         db, action="UPDATE", module="organization", record_id=str(org.id),

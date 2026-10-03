@@ -23,6 +23,7 @@ from backend.app.schemas.common import PaginatedResponse
 from backend.app.api.deps import require_permission, get_current_user
 from backend.app.services.accounting_service import AccountingService
 from backend.app.services.audit_service import AuditService
+from backend.app.services.timezone_service import TimezoneService
 
 router = APIRouter()
 
@@ -286,8 +287,9 @@ def disburse_sadakah(
             )
 
     # 4. Generate unique serial Sadaqah identifier
+    actual_date = sad_in.disbursement_date or TimezoneService.today(db)
     unique_code = uuid.uuid4().hex[:6].upper()
-    s_num = f"SDQ-{sad_in.disbursement_date.strftime('%Y%m%d')}-{unique_code}"
+    s_num = f"SDQ-{actual_date.strftime('%Y%m%d')}-{unique_code}"
     primary_group_id = sorted_group_ids[0]
 
     # 5. Create Sadakah record
@@ -296,7 +298,7 @@ def disburse_sadakah(
         group_id=primary_group_id,
         beneficiary_id=beneficiary.id,
         amount=sad_in.amount,
-        disbursement_date=sad_in.disbursement_date,
+        disbursement_date=actual_date,
         payment_method=sad_in.payment_method,
         description=sad_in.description or "Direct humanitarian Sadaqah aid",
         reference=sad_in.reference,

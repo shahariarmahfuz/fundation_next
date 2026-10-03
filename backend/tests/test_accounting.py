@@ -120,7 +120,7 @@ def test_complete_accounting_cycle(client, auth_headers):
     }
     overpay_resp = client.post("/api/v1/qard-hasan/repayments", json=overpay_payload, headers=auth_headers)
     assert overpay_resp.status_code == 400
-    assert "exceeds outstanding principal" in overpay_resp.json()["error"]["message"]
+    assert "exceeds outstanding" in overpay_resp.json()["error"]["message"]
 
     # 8. Test: Qard repayment increases Group balance and reduces outstanding Qard
     repay_payload = {
@@ -167,7 +167,7 @@ def test_complete_accounting_cycle(client, auth_headers):
     }
     excess_resp = client.post("/api/v1/expenses", json=excess_exp_payload, headers=auth_headers)
     assert excess_resp.status_code == 400
-    assert "Insufficient funds in Group" in excess_resp.json()["error"]["message"]
+    assert "Insufficient" in excess_resp.json()["error"]["message"] and "balance" in excess_resp.json()["error"]["message"]
 
     # Balance remains unchanged at 5000.00
     grp_check = client.get(f"/api/v1/groups/{group_id}", headers=auth_headers).json()

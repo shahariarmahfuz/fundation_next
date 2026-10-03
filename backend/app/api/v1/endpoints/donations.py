@@ -17,6 +17,7 @@ from backend.app.schemas.common import PaginatedResponse
 from backend.app.api.deps import require_permission, get_current_user
 from backend.app.services.accounting_service import AccountingService
 from backend.app.services.audit_service import AuditService
+from backend.app.services.timezone_service import TimezoneService
 
 router = APIRouter()
 
@@ -145,8 +146,9 @@ def record_donation(
             check_sufficient_funds=False
         )
 
+        actual_date = don_in.donation_date or TimezoneService.today(db)
         unique_code = uuid.uuid4().hex[:6].upper()
-        don_num = f"DON-{don_in.donation_date.strftime('%Y%m%d')}-{unique_code}"
+        don_num = f"DON-{actual_date.strftime('%Y%m%d')}-{unique_code}"
 
         donation = Donation(
             donation_number=don_num,
@@ -155,7 +157,7 @@ def record_donation(
             member_id=effective_member_id,
             group_id=group.id,
             amount=don_in.amount,
-            donation_date=don_in.donation_date,
+            donation_date=actual_date,
             payment_method=don_in.payment_method,
             reference=don_in.reference,
             notes=don_in.notes,

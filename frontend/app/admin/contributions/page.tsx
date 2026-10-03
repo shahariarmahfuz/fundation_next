@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { getFoundationTodayDate, getFoundationCurrentMonth } from "@/lib/timezone";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Pagination } from "@/components/Pagination";
 import { Modal } from "@/components/Modal";
@@ -40,13 +41,13 @@ export default function ContributionsPage() {
   const [selectedContrib, setSelectedContrib] = useState<any | null>(null);
   const [payMethod, setPayMethod] = useState("CASH");
   const [payRef, setPayRef] = useState("");
-  const [payDate, setPayDate] = useState(new Date().toISOString().split("T")[0]);
+  const [payDate, setPayDate] = useState(getFoundationTodayDate());
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
 
   // Generate Month Modal
   const [genModalOpen, setGenModalOpen] = useState(false);
-  const [genMonth, setGenMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [genMonth, setGenMonth] = useState(getFoundationCurrentMonth());
   const [generating, setGenerating] = useState(false);
   const [genResult, setGenResult] = useState<any | null>(null);
 
