@@ -20,6 +20,8 @@ import {
   Mail,
   MapPin,
   FileText,
+  User,
+  Activity,
   X,
   List
 } from "lucide-react";
@@ -262,13 +264,16 @@ export default function EditDonorPage() {
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               Full Name or Organization Name <span className="text-rose-500">*</span>
             </label>
-            <input
-              required
-              type="text"
-              className="input-field"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
+            <div className="relative">
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
+              <input
+                required
+                type="text"
+                className="input-field pl-10"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
           </div>
 
           {/* Donor Code */}
@@ -277,11 +282,11 @@ export default function EditDonorPage() {
               Donor ID / Code <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <Tag className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
               <input
                 required
                 type="text"
-                className="input-field pl-9 font-mono uppercase"
+                className="input-field pl-10 font-mono uppercase"
                 value={formData.donor_number}
                 onChange={(e) => setFormData({ ...formData, donor_number: e.target.value.toUpperCase() })}
               />
@@ -296,15 +301,18 @@ export default function EditDonorPage() {
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               Status <span className="text-rose-500">*</span>
             </label>
-            <select
-              required
-              className="input-field"
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            >
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="INACTIVE">INACTIVE</option>
-            </select>
+            <div className="relative">
+              <Activity className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
+              <select
+                required
+                className="input-field pl-10"
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              >
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="INACTIVE">INACTIVE</option>
+              </select>
+            </div>
           </div>
 
           {/* Phone */}
@@ -313,10 +321,10 @@ export default function EditDonorPage() {
               Phone Number
             </label>
             <div className="relative">
-              <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
               <input
                 type="tel"
-                className="input-field pl-9"
+                className="input-field pl-10"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
@@ -329,10 +337,10 @@ export default function EditDonorPage() {
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
               <input
                 type="email"
-                className="input-field pl-9"
+                className="input-field pl-10"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
@@ -345,10 +353,10 @@ export default function EditDonorPage() {
               Mailing / Physical Address
             </label>
             <div className="relative">
-              <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
               <input
                 type="text"
-                className="input-field pl-9"
+                className="input-field pl-10"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               />
@@ -361,10 +369,10 @@ export default function EditDonorPage() {
               Background Notes / Preferences
             </label>
             <div className="relative">
-              <FileText className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <FileText className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
               <textarea
                 rows={3}
-                className="input-field pl-9"
+                className="input-field pl-10 pt-2.5"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               />

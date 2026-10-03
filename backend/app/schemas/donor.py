@@ -10,7 +10,7 @@ from backend.app.schemas.member import MemberResponse
 class DonorBase(BaseModel):
     name: str
     phone: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     address: Optional[str] = None
     status: str = "ACTIVE"
     notes: Optional[str] = None
@@ -26,7 +26,7 @@ class DonorUpdate(BaseModel):
     donor_number: Optional[str] = None
     code: Optional[str] = None
     phone: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     address: Optional[str] = None
     status: Optional[str] = None
     notes: Optional[str] = None
@@ -80,6 +80,7 @@ class DonationResponse(DonationBase):
 
     id: int
     donation_number: str
+    status: Optional[str] = "COMPLETED"
     transaction_id: int
     created_by_id: Optional[int] = None
     created_at: datetime

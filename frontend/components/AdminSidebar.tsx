@@ -162,26 +162,16 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       ],
     },
     {
-      id: "donors",
-      name: "Donors",
-      href: "/admin/donors",
-      icon: HeartHandshake,
-      permission: "donors.view",
-      children: [
-        { name: "Add Donor", href: "/admin/donors/new", permission: "donors.create" },
-        { name: "Manage Donors", href: "/admin/donors", permission: "donors.view" },
-      ],
-    },
-    {
       id: "donations",
       name: "Donations",
       href: "/admin/donations",
       icon: Gift,
       permission: "donations.view",
       children: [
-        { name: "Record Donation", href: "/admin/donations/new", permission: "donations.create" },
-        { name: "Manage Donations", href: "/admin/donations", permission: "donations.view" },
-        { name: "Donations Ledger", href: "/admin/donations/ledger", permission: "donations.view" },
+        { name: "All Donations", href: "/admin/donations", permission: "donations.view" },
+        { name: "Add Donation", href: "/admin/donations/new", permission: "donations.create" },
+        { name: "Donation Ledger", href: "/admin/donations/ledger", permission: "donations.view" },
+        { name: "Donors", href: "/admin/donors", permission: "donors.view" },
       ],
     },
     {
@@ -262,12 +252,17 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
   // Determine if a specific child link is active
   const isChildActive = (href: string) => {
     const [targetPath, targetQuery] = href.split("?");
-    if (pathname !== targetPath) return false;
-    if (!targetQuery) {
-      return !searchParams.toString() || searchParams.toString() === "";
+    if (pathname === targetPath) {
+      if (!targetQuery) {
+        return !searchParams.toString() || searchParams.toString() === "";
+      }
+      const currentQuery = searchParams.toString();
+      return currentQuery.includes(targetQuery);
     }
-    const currentQuery = searchParams.toString();
-    return currentQuery.includes(targetQuery);
+    if (targetPath === "/admin/donors" && pathname.startsWith("/admin/donors/")) {
+      return true;
+    }
+    return false;
   };
 
   // Determine if top-level nav item is active

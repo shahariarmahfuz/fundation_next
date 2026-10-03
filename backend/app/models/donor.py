@@ -49,3 +49,10 @@ class Donation(Base, TimestampMixin):
     group = relationship("Group", back_populates="donations", lazy="joined")
     transaction = relationship("FinancialTransaction", foreign_keys=[transaction_id])
     created_by = relationship("User", foreign_keys=[created_by_id])
+
+    @property
+    def status(self) -> str:
+        if self.transaction and getattr(self.transaction, "is_reversed", False):
+            return "REVERSED"
+        return "COMPLETED"
+

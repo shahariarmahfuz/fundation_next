@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 from typing import List, Any, Optional
 import uuid
@@ -26,6 +27,11 @@ def get_donations(
     donor_id: Optional[int] = None,
     member_id: Optional[int] = None,
     source_type: Optional[str] = None,
+    payment_method: Optional[str] = None,
+    from_date: Optional[date] = None,
+    to_date: Optional[date] = None,
+    date_from: Optional[date] = None,
+    date_to: Optional[date] = None,
     search: Optional[str] = None,
     page: int = Query(1, ge=1),
     page_size: int = Query(25, ge=1, le=500),
@@ -47,12 +53,23 @@ def get_donations(
         query = query.filter(Donation.member_id == member_id)
     if source_type:
         query = query.filter(Donation.source_type == source_type.upper())
+    if payment_method:
+        query = query.filter(Donation.payment_method == payment_method.upper())
+
+    eff_from = from_date or date_from
+    if eff_from:
+        query = query.filter(Donation.donation_date >= eff_from)
+    eff_to = to_date or date_to
+    if eff_to:
+        query = query.filter(Donation.donation_date <= eff_to)
+
     if search:
         search_term = f"%{search.strip()}%"
         query = query.outerjoin(Donation.donor).outerjoin(Donation.member).filter(
             or_(
                 Donation.donation_number.ilike(search_term),
                 Donation.reference.ilike(search_term),
+                Donation.notes.ilike(search_term),
                 Donor.name.ilike(search_term),
                 Donor.donor_number.ilike(search_term),
                 Member.full_name.ilike(search_term),

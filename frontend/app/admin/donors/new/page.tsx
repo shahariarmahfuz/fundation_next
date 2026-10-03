@@ -17,7 +17,9 @@ import {
   Mail,
   MapPin,
   FileText,
-  Tag
+  Tag,
+  User,
+  Activity
 } from "lucide-react";
 
 export default function AddDonorPage() {
@@ -229,14 +231,17 @@ export default function AddDonorPage() {
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               Full Name or Organization Name <span className="text-rose-500">*</span>
             </label>
-            <input
-              required
-              type="text"
-              placeholder="e.g. Haji Nurul Islam or Al-Barakah Foundation"
-              className="input-field"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
+            <div className="relative">
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
+              <input
+                required
+                type="text"
+                placeholder="e.g. Haji Nurul Islam or Al-Barakah Foundation"
+                className="input-field pl-10"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
           </div>
 
           {/* Donor Code */}
@@ -245,11 +250,11 @@ export default function AddDonorPage() {
               Donor ID / Code (Optional)
             </label>
             <div className="relative">
-              <Tag className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Tag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
               <input
                 type="text"
                 placeholder="e.g. DNR-0001 (Leave empty to auto-generate)"
-                className="input-field pl-9 font-mono uppercase"
+                className="input-field pl-10 font-mono uppercase"
                 value={formData.donor_number}
                 onChange={(e) => setFormData({ ...formData, donor_number: e.target.value.toUpperCase() })}
               />
@@ -264,15 +269,18 @@ export default function AddDonorPage() {
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               Status <span className="text-rose-500">*</span>
             </label>
-            <select
-              required
-              className="input-field"
-              value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-            >
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="INACTIVE">INACTIVE</option>
-            </select>
+            <div className="relative">
+              <Activity className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
+              <select
+                required
+                className="input-field pl-10"
+                value={formData.status}
+                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+              >
+                <option value="ACTIVE">ACTIVE</option>
+                <option value="INACTIVE">INACTIVE</option>
+              </select>
+            </div>
           </div>
 
           {/* Phone */}
@@ -281,11 +289,11 @@ export default function AddDonorPage() {
               Phone Number
             </label>
             <div className="relative">
-              <Phone className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
               <input
                 type="tel"
                 placeholder="e.g. +880 1711 000000"
-                className="input-field pl-9"
+                className="input-field pl-10"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               />
@@ -298,11 +306,11 @@ export default function AddDonorPage() {
               Email Address
             </label>
             <div className="relative">
-              <Mail className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
               <input
                 type="email"
                 placeholder="e.g. donor@example.com"
-                className="input-field pl-9"
+                className="input-field pl-10"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
@@ -315,11 +323,11 @@ export default function AddDonorPage() {
               Mailing / Physical Address
             </label>
             <div className="relative">
-              <MapPin className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
               <input
                 type="text"
                 placeholder="e.g. House 42, Road 7, Dhanmondi, Dhaka"
-                className="input-field pl-9"
+                className="input-field pl-10"
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               />
@@ -332,11 +340,11 @@ export default function AddDonorPage() {
               Background Notes / Philanthropic Focus
             </label>
             <div className="relative">
-              <FileText className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <FileText className="absolute left-3.5 top-3.5 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
               <textarea
                 rows={3}
                 placeholder="Optional notes regarding donor background, specific causes supported, or preferred contact times..."
-                className="input-field pl-9"
+                className="input-field pl-10 pt-2.5"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
               />
