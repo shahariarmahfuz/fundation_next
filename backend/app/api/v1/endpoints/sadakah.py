@@ -41,7 +41,7 @@ def get_sadakah_ledger(
     Comprehensive ledger of all non-repayable Sadaqah disbursements with
     exact group allocations and audit trails.
     """
-    query = db.query(Sadakah).join(Beneficiary, Sadakah.beneficiary_id == Beneficiary.id)
+    query = db.query(Sadakah).outerjoin(Beneficiary, Sadakah.beneficiary_id == Beneficiary.id)
 
     if group_id:
         query = query.filter(
@@ -71,7 +71,7 @@ def get_sadakah_ledger(
             )
         )
 
-    # Calculate summary metrics
+    # Calculate summary metrics safely
     summary_data = query.with_entities(
         func.coalesce(func.sum(Sadakah.amount), Decimal("0.00")).label("total_amount"),
         func.count(Sadakah.id).label("total_count"),
@@ -82,7 +82,7 @@ def get_sadakah_ledger(
     total_pages = (total + page_size - 1) // page_size if total > 0 else 1
 
     records = query.order_by(
-        Sadakah.disbursement_date.desc(),
+        Sadakah.disbursement_date.desc().nullslast(),
         Sadakah.id.desc()
     ).offset((page - 1) * page_size).limit(page_size).all()
 
@@ -106,8 +106,8 @@ def get_sadakah_ledger(
             beneficiary_name=s.beneficiary.name if s.beneficiary else "Unknown",
             beneficiary_number=s.beneficiary.beneficiary_number if s.beneficiary else "",
             amount=s.amount,
-            description=s.description,
-            payment_method=s.payment_method,
+            description=s.description or "",
+            payment_method=s.payment_method or "CASH",
             reference=s.reference,
             created_by_name=creator_name,
             funding_groups=funding_groups,
@@ -115,9 +115,9 @@ def get_sadakah_ledger(
         ))
 
     summary = {
-        "total_amount": str(summary_data.total_amount if summary_data else "0.00"),
+        "total_amount": str(getattr(summary_data, "total_amount", None) or "0.00"),
         "total_count": total,
-        "beneficiary_count": summary_data.beneficiary_count if summary_data else 0,
+        "beneficiary_count": getattr(summary_data, "beneficiary_count", None) or 0,
     }
 
     return SadakahLedgerResponse(
@@ -130,16 +130,23 @@ def get_sadakah_ledger(
     )
 
 
-@router.get("/{sadakah_id}", response_model=SadakahResponse)
-def get_sadakah_detail(
-    sadakah_id: int,
+@router.get("/summary")
+def get_sadakah_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("sadakah.view"))
 ) -> Any:
-    grant = db.query(Sadakah).filter(Sadakah.id == sadakah_id).first()
-    if not grant:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sadaqah grant record not found")
-    return grant
+    """Safe aggregated summary metrics for Sadaqah humanitarian assistance."""
+    summary_data = db.query(
+        func.coalesce(func.sum(Sadakah.amount), Decimal("0.00")).label("total_amount"),
+        func.count(Sadakah.id).label("total_count"),
+        func.count(func.distinct(Sadakah.beneficiary_id)).label("beneficiary_count")
+    ).first()
+
+    return {
+        "total_amount": str(getattr(summary_data, "total_amount", None) or "0.00"),
+        "total_count": getattr(summary_data, "total_count", None) or 0,
+        "beneficiary_count": getattr(summary_data, "beneficiary_count", None) or 0,
+    }
 
 
 @router.get("", response_model=PaginatedResponse[SadakahResponse])
@@ -152,7 +159,7 @@ def get_sadakah_grants(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("sadakah.view"))
 ) -> Any:
-    query = db.query(Sadakah).join(Beneficiary, Sadakah.beneficiary_id == Beneficiary.id)
+    query = db.query(Sadakah).outerjoin(Beneficiary, Sadakah.beneficiary_id == Beneficiary.id)
 
     if group_id:
         query = query.filter(
@@ -184,7 +191,7 @@ def get_sadakah_grants(
 
     total = query.count()
     items = query.order_by(
-        Sadakah.disbursement_date.desc(),
+        Sadakah.disbursement_date.desc().nullslast(),
         Sadakah.id.desc()
     ).offset((page - 1) * page_size).limit(page_size).all()
     total_pages = (total + page_size - 1) // page_size if total > 0 else 1
@@ -196,6 +203,18 @@ def get_sadakah_grants(
         "page_size": page_size,
         "total_pages": total_pages
     }
+
+
+@router.get("/{sadakah_id}", response_model=SadakahResponse)
+def get_sadakah_detail(
+    sadakah_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("sadakah.view"))
+) -> Any:
+    grant = db.query(Sadakah).filter(Sadakah.id == sadakah_id).first()
+    if not grant:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Sadaqah grant record not found")
+    return grant
 
 
 @router.post("", response_model=SadakahResponse)

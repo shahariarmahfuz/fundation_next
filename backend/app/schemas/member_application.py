@@ -37,6 +37,7 @@ class MemberApplicationResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
+    request_id: Optional[str] = None
     applicant_name: str
     full_name: Optional[str] = None
     group_id: Optional[int] = None
@@ -49,11 +50,25 @@ class MemberApplicationResponse(BaseModel):
     reason_for_joining: Optional[str] = None
     status: str
     review_notes: Optional[str] = None
+    rejection_reason: Optional[str] = None
     reviewed_by_id: Optional[int] = None
     reviewed_at: Optional[datetime] = None
+    approved_at: Optional[datetime] = None
+    rejected_at: Optional[datetime] = None
     created_member_id: Optional[int] = None
+    member_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
     group: Optional[GroupResponse] = None
     assigned_group: Optional[GroupResponse] = None
+
+
+class PublicApplicationStatusResponse(BaseModel):
+    request_id: str
+    applicant_name: str
+    group_name: str
+    status: str
+    submitted_date: str
+    member_id: Optional[str] = None  # Human-readable member code (e.g. M-0128)
+    rejection_reason: Optional[str] = None
 

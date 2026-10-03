@@ -28,11 +28,18 @@ class MemberApplication(Base, TimestampMixin):
     reviewed_at = Column(DateTime(timezone=True), nullable=True)
     created_member_id = Column(Integer, ForeignKey("members.id", ondelete="SET NULL"), nullable=True)
 
+    request_id = Column(String(50), unique=True, nullable=False, index=True)
+    rejection_reason = Column(Text, nullable=True)
+    approved_at = Column(DateTime(timezone=True), nullable=True)
+    rejected_at = Column(DateTime(timezone=True), nullable=True)
+    member_id = Column(Integer, ForeignKey("members.id", ondelete="SET NULL"), nullable=True)
+
     # Relationships
     group = relationship("Group", foreign_keys=[group_id])
     assigned_group = relationship("Group", foreign_keys=[assigned_group_id])
     reviewed_by = relationship("User", foreign_keys=[reviewed_by_id])
     created_member = relationship("Member", foreign_keys=[created_member_id])
+    member = relationship("Member", foreign_keys=[member_id])
 
     @property
     def full_name(self) -> str:

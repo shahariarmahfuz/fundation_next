@@ -117,19 +117,19 @@ class QardHasanResponse(BaseModel):
     id: int
     qard_number: str
     group_id: Optional[int] = None
-    beneficiary_id: int
+    beneficiary_id: Optional[int] = None
     principal_amount: Decimal
     monthly_repayment_amount: Decimal
-    total_repaid: Decimal
-    outstanding_amount: Decimal
+    total_repaid: Decimal = Decimal("0.00")
+    outstanding_amount: Decimal = Decimal("0.00")
     interest_rate: Decimal = Decimal("0.00")
-    status: str
-    disbursed_date: date
+    status: str = "ACTIVE"
+    disbursed_date: Optional[date] = None
     repayment_schedule_notes: Optional[str] = None
     notes: Optional[str] = None
     disbursement_transaction_id: Optional[int] = None
-    created_at: datetime
-    updated_at: datetime
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
     group: Optional[GroupResponse] = None
     beneficiary: Optional[BeneficiaryResponse] = None
     funding_allocations: List[FundingAllocationResponse] = []
@@ -159,17 +159,17 @@ class RepaymentPreviewResponse(BaseModel):
 class QardHasanLedgerItem(BaseModel):
     id: int
     qard_number: str
-    beneficiary_id: int
-    beneficiary_name: str
-    beneficiary_number: str
+    beneficiary_id: Optional[int] = None
+    beneficiary_name: Optional[str] = "Unknown"
+    beneficiary_number: Optional[str] = ""
     principal_amount: Decimal
     monthly_repayment_amount: Decimal
-    total_repaid: Decimal
-    outstanding_amount: Decimal
-    disbursed_date: date
-    status: str
-    funding_groups: List[str]
-    funding_allocations: List[FundingAllocationResponse]
+    total_repaid: Decimal = Decimal("0.00")
+    outstanding_amount: Decimal = Decimal("0.00")
+    disbursed_date: Optional[date] = None
+    status: str = "ACTIVE"
+    funding_groups: List[str] = []
+    funding_allocations: List[FundingAllocationResponse] = []
 
 
 class QardHasanLedgerResponse(BaseModel):

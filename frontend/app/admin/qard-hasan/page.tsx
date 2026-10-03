@@ -15,22 +15,48 @@ import {
   Loader2,
   FolderTree,
   User,
-  ArrowRight,
   Search,
-  ExternalLink,
-  BookOpen
+  BookOpen,
+  RotateCcw
 } from "lucide-react";
 
 export default function QardHasanPage() {
   const [loans, setLoans] = useState<any[]>([]);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [beneficiaries, setBeneficiaries] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
+  const [selectedGroup, setSelectedGroup] = useState("");
+  const [selectedBeneficiary, setSelectedBeneficiary] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Load groups and beneficiaries for filtering
+  useEffect(() => {
+    async function loadFilterOptions() {
+      try {
+        const [gRes, bRes] = await Promise.allSettled([
+          api.get("/groups"),
+          api.get("/beneficiaries?page=1&page_size=200"),
+        ]);
+        if (gRes.status === "fulfilled") {
+          const gData = gRes.value;
+          setGroups(Array.isArray(gData) ? gData : gData?.items || []);
+        }
+        if (bRes.status === "fulfilled") {
+          const bData = bRes.value;
+          setBeneficiaries(bData?.items || (Array.isArray(bData) ? bData : []));
+        }
+      } catch (e) {
+        console.error("Failed to load filter options", e);
+      }
+    }
+    loadFilterOptions();
+  }, []);
 
   const fetchLoans = async () => {
     setLoading(true);
@@ -40,14 +66,17 @@ export default function QardHasanPage() {
         page: String(page),
         page_size: String(pageSize),
       });
+      if (selectedGroup) params.append("group_id", selectedGroup);
+      if (selectedBeneficiary) params.append("beneficiary_id", selectedBeneficiary);
       if (selectedStatus) params.append("status", selectedStatus);
+      if (search.trim()) params.append("search", search.trim());
 
       const res = await api.get(`/qard-hasan?${params.toString()}`);
-      setLoans(res.items || []);
-      setTotal(res.total || 0);
-      setTotalPages(res.total_pages || 1);
+      setLoans(res?.items || []);
+      setTotal(res?.total || 0);
+      setTotalPages(res?.total_pages || 1);
     } catch (err: any) {
-      setError(err.message || "Failed to load Qard Hasan records");
+      setError(err?.message || "Unable to load Qard Hasan data. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -55,18 +84,16 @@ export default function QardHasanPage() {
 
   useEffect(() => {
     fetchLoans();
-  }, [page, pageSize, selectedStatus]);
+  }, [page, pageSize, selectedGroup, selectedBeneficiary, selectedStatus]);
 
-  const filteredLoans = loans.filter((l) => {
-    if (!search.trim()) return true;
-    const term = search.toLowerCase();
-    return (
-      l.qard_number?.toLowerCase().includes(term) ||
-      l.beneficiary?.name?.toLowerCase().includes(term) ||
-      l.beneficiary?.phone?.includes(term) ||
-      l.beneficiary?.beneficiary_number?.toLowerCase().includes(term)
-    );
-  });
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(1);
+      fetchLoans();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto pb-16">
@@ -100,15 +127,25 @@ export default function QardHasanPage() {
         </div>
       </div>
 
+      {/* Error Alert with Retry button */}
       {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 p-4 text-xs sm:text-sm text-rose-800 dark:text-rose-300">
-          <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
-          <span>{error}</span>
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 p-4 text-xs sm:text-sm text-rose-800 dark:text-rose-300">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={() => fetchLoans()}
+            className="btn-secondary !py-1 !px-3 text-xs flex items-center gap-1.5 shrink-0"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Retry
+          </button>
         </div>
       )}
 
       {/* Filter and Search Bar */}
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
           <input
@@ -120,17 +157,51 @@ export default function QardHasanPage() {
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">Filter Status:</span>
+        <div className="flex items-center gap-2 flex-wrap">
+          {/* Accounting Group Filter */}
+          <select
+            value={selectedGroup}
+            onChange={(e) => {
+              setSelectedGroup(e.target.value);
+              setPage(1);
+            }}
+            className="input-field py-1 text-xs w-44"
+          >
+            <option value="">All Groups</option>
+            {groups.map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Beneficiary Filter */}
+          <select
+            value={selectedBeneficiary}
+            onChange={(e) => {
+              setSelectedBeneficiary(e.target.value);
+              setPage(1);
+            }}
+            className="input-field py-1 text-xs w-44"
+          >
+            <option value="">All Beneficiaries</option>
+            {beneficiaries.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name} ({b.beneficiary_number || b.code})
+              </option>
+            ))}
+          </select>
+
+          {/* Status Filter */}
           <select
             value={selectedStatus}
             onChange={(e) => {
               setSelectedStatus(e.target.value);
               setPage(1);
             }}
-            className="input-field py-1 text-xs w-44"
+            className="input-field py-1 text-xs w-36"
           >
-            <option value="">All Loans</option>
+            <option value="">All Statuses</option>
             <option value="ACTIVE">ACTIVE</option>
             <option value="COMPLETED">COMPLETED</option>
             <option value="DEFAULTED">DEFAULTED</option>
@@ -158,17 +229,36 @@ export default function QardHasanPage() {
             {loading ? (
               <tr>
                 <td colSpan={9} className="text-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-emerald-600" />
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+                    <span className="text-xs text-slate-500">Loading Qard Hasan...</span>
+                  </div>
                 </td>
               </tr>
-            ) : filteredLoans.length === 0 ? (
+            ) : error ? (
               <tr>
-                <td colSpan={9} className="text-center py-12 text-slate-400">
-                  No Qard Hasan loan records found.
+                <td colSpan={9} className="text-center py-12">
+                  <div className="flex flex-col items-center justify-center gap-2 text-rose-600 dark:text-rose-400">
+                    <AlertCircle className="h-6 w-6" />
+                    <p className="text-xs font-semibold">Unable to load Qard Hasan data. Please try again.</p>
+                    <button
+                      onClick={() => fetchLoans()}
+                      className="btn-secondary !py-1 !px-3 text-xs mt-1 inline-flex items-center gap-1.5"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Retry
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ) : loans.length === 0 ? (
+              <tr>
+                <td colSpan={9} className="text-center py-12 text-slate-400 dark:text-slate-500">
+                  No Qard Hasan records found.
                 </td>
               </tr>
             ) : (
-              filteredLoans.map((l) => {
+              loans.map((l) => {
                 const faCount = l.funding_allocations?.length || 0;
                 return (
                   <tr key={l.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
@@ -185,10 +275,10 @@ export default function QardHasanPage() {
                     {/* Beneficiary */}
                     <td>
                       <div className="font-semibold text-xs text-slate-900 dark:text-slate-100">
-                        {l.beneficiary?.name}
+                        {l.beneficiary?.name || "Unknown"}
                       </div>
                       <div className="text-[10px] text-slate-400 dark:text-slate-400">
-                        {l.beneficiary?.phone || "No phone"} • {l.beneficiary?.beneficiary_number}
+                        {l.beneficiary?.phone || "No phone"} • {l.beneficiary?.beneficiary_number || ""}
                       </div>
                     </td>
 

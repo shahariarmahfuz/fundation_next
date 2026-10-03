@@ -225,6 +225,7 @@ export default function ApplicationsPage() {
           <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
             <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200 dark:bg-slate-800/60 dark:text-slate-400 dark:border-slate-800">
               <tr>
+                <th className="px-6 py-3 font-semibold">Request ID</th>
                 <th className="px-6 py-3 font-semibold">Applicant</th>
                 <th className="px-6 py-3 font-semibold">Applied Group</th>
                 <th className="px-6 py-3 font-semibold text-center">Status</th>
@@ -235,20 +236,20 @@ export default function ApplicationsPage() {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={6} className="px-6 py-12 text-center">
                     <Loader2 className="mx-auto h-6 w-6 animate-spin text-emerald-600" />
                     <span className="mt-2 block text-xs text-slate-500 dark:text-slate-400">Loading applications...</span>
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-6 text-center text-rose-600 dark:text-rose-400">
+                  <td colSpan={6} className="px-6 py-6 text-center text-rose-600 dark:text-rose-400">
                     {error}
                   </td>
                 </tr>
               ) : applications.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-slate-400 dark:text-slate-500">
+                  <td colSpan={6} className="px-6 py-10 text-center text-slate-400 dark:text-slate-500">
                     No membership applications found matching criteria.
                   </td>
                 </tr>
@@ -262,8 +263,12 @@ export default function ApplicationsPage() {
                   return (
                     <tr key={app.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="px-6 py-4">
+                        <span className="font-mono text-xs font-bold text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded">
+                          {app.request_id || `REQ-${String(app.id).padStart(6, "0")}`}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
                         <div className="font-bold text-slate-900 dark:text-white">{app.applicant_name}</div>
-                        <div className="text-xs text-slate-400 dark:text-slate-500">App #{app.id}</div>
                       </td>
                       <td className="px-6 py-4">
                         <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-800 dark:text-slate-200">

@@ -67,15 +67,15 @@ class SadakahResponse(BaseModel):
     id: int
     sadakah_number: str
     group_id: Optional[int] = None
-    beneficiary_id: int
+    beneficiary_id: Optional[int] = None
     amount: Decimal
-    disbursement_date: date
-    payment_method: str
-    description: str
+    disbursement_date: Optional[date] = None
+    payment_method: Optional[str] = "CASH"
+    description: Optional[str] = ""
     reference: Optional[str] = None
     notes: Optional[str] = None
     transaction_id: Optional[int] = None
-    created_at: datetime
+    created_at: Optional[datetime] = None
     group: Optional[GroupResponse] = None
     beneficiary: Optional[BeneficiaryResponse] = None
     transaction: Optional[TransactionResponse] = None
@@ -85,17 +85,17 @@ class SadakahResponse(BaseModel):
 class SadakahLedgerItem(BaseModel):
     id: int
     sadakah_number: str
-    disbursement_date: date
-    beneficiary_id: int
-    beneficiary_name: str
-    beneficiary_number: str
+    disbursement_date: Optional[date] = None
+    beneficiary_id: Optional[int] = None
+    beneficiary_name: Optional[str] = "Unknown"
+    beneficiary_number: Optional[str] = ""
     amount: Decimal
-    description: str
-    payment_method: str
+    description: Optional[str] = ""
+    payment_method: Optional[str] = "CASH"
     reference: Optional[str] = None
     created_by_name: Optional[str] = None
-    funding_groups: List[str]
-    funding_allocations: List[SadakahFundingAllocationResponse]
+    funding_groups: List[str] = []
+    funding_allocations: List[SadakahFundingAllocationResponse] = []
 
 
 class SadakahLedgerResponse(BaseModel):

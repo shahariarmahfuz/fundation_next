@@ -4,6 +4,8 @@ from typing import List, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
+from sqlalchemy import text, func
+
 from backend.app.core.database import get_db
 from backend.app.models.member_application import MemberApplication
 from backend.app.models.member import Member
@@ -13,6 +15,7 @@ from backend.app.schemas.member_application import (
     MemberApplicationCreate,
     MemberApplicationReview,
     MemberApplicationResponse,
+    PublicApplicationStatusResponse,
     PublicGroupOption
 )
 from backend.app.schemas.common import PaginatedResponse
@@ -22,10 +25,77 @@ from backend.app.services.audit_service import AuditService
 router = APIRouter()
 
 
+def generate_request_id(db: Session) -> str:
+    """Generates next sequential, public-safe request ID (e.g. REQ-000016)."""
+    bind = db.get_bind()
+    if bind.dialect.name == "postgresql":
+        try:
+            val = db.execute(text("SELECT nextval('application_request_seq')")).scalar()
+            return f"REQ-{val:06d}"
+        except Exception:
+            db.rollback()
+    max_id = db.query(func.coalesce(func.max(MemberApplication.id), 0)).scalar() or 0
+    return f"REQ-{max_id + 1:06d}"
+
+
 @router.get("/groups", response_model=List[PublicGroupOption])
 def get_public_application_groups(db: Session = Depends(get_db)) -> Any:
     """Public endpoint to list active groups available for prospective member selection."""
     return db.query(Group).filter(Group.status == "ACTIVE").order_by(Group.name).all()
+
+
+@router.get("/status/{request_id}", response_model=PublicApplicationStatusResponse)
+def get_public_application_status(
+    request_id: str,
+    db: Session = Depends(get_db)
+) -> Any:
+    """Public safe endpoint to track application status without exposing private data."""
+    req_clean = request_id.strip()
+    app = db.query(MemberApplication).filter(
+        func.upper(MemberApplication.request_id) == req_clean.upper()
+    ).first()
+    if not app:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application not found for the provided Request ID."
+        )
+
+    # Safe public group name
+    group_name = "General Group"
+    if app.group:
+        group_name = app.group.name
+    elif app.assigned_group:
+        group_name = app.assigned_group.name
+
+    # Member ID only exposed upon approval
+    member_code = None
+    if app.status == "APPROVED":
+        if app.created_member and app.created_member.member_number:
+            member_code = app.created_member.member_number
+        elif app.member and app.member.member_number:
+            member_code = app.member.member_number
+        elif app.created_member_id or app.member_id:
+            m_id = app.created_member_id or app.member_id
+            m = db.query(Member).filter(Member.id == m_id).first()
+            if m:
+                member_code = m.member_number
+
+    # Rejection reason only exposed upon rejection
+    rejection_reason = None
+    if app.status == "REJECTED":
+        rejection_reason = app.rejection_reason or app.review_notes or "Application was not approved."
+
+    submitted_date_str = app.created_at.strftime("%d %B %Y") if app.created_at else ""
+
+    return {
+        "request_id": app.request_id,
+        "applicant_name": app.applicant_name,
+        "group_name": group_name,
+        "status": app.status,
+        "submitted_date": submitted_date_str,
+        "member_id": member_code,
+        "rejection_reason": rejection_reason,
+    }
 
 
 @router.post("", response_model=MemberApplicationResponse)
@@ -54,7 +124,10 @@ def submit_member_application(
             detail="Selected Group does not exist"
         )
 
+    req_id = generate_request_id(db)
+
     app = MemberApplication(
+        request_id=req_id,
         applicant_name=full_name,
         group_id=group.id,
         assigned_group_id=group.id,
@@ -157,9 +230,11 @@ def review_member_application(
         db.flush()
 
         app.status = "APPROVED"
+        app.approved_at = datetime.now(timezone.utc)
         app.group_id = group.id
         app.assigned_group_id = group.id
         app.created_member_id = new_member.id
+        app.member_id = new_member.id
 
         AuditService.log(
             db, action="APPROVE", module="member_applications", record_id=str(app.id),
@@ -168,6 +243,8 @@ def review_member_application(
 
     elif review_in.action.upper() == "REJECT":
         app.status = "REJECTED"
+        app.rejected_at = datetime.now(timezone.utc)
+        app.rejection_reason = review_in.review_notes or "Application was rejected during administrative review."
         AuditService.log(
             db, action="REJECT", module="member_applications", record_id=str(app.id),
             user=current_user, details=f"Rejected member application. Reason: {review_in.review_notes}"

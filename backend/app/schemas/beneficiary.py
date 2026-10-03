@@ -8,8 +8,8 @@ class BeneficiaryBase(BaseModel):
     beneficiary_number: Optional[str] = None
     code: Optional[str] = None
     name: str
-    phone: str
-    email: Optional[EmailStr] = None
+    phone: Optional[str] = None
+    email: Optional[str] = None
     address: Optional[str] = None
     nid_or_id: Optional[str] = None
     status: str = "ACTIVE"
@@ -25,7 +25,7 @@ class BeneficiaryUpdate(BaseModel):
     code: Optional[str] = None
     name: Optional[str] = None
     phone: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     address: Optional[str] = None
     nid_or_id: Optional[str] = None
     status: Optional[str] = None

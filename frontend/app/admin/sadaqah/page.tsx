@@ -14,11 +14,9 @@ import {
   Loader2,
   FolderTree,
   User,
-  ArrowRight,
   Search,
-  ExternalLink,
   BookOpen,
-  ShieldCheck
+  RotateCcw
 } from "lucide-react";
 
 export default function SadaqahManagePage() {
@@ -38,13 +36,21 @@ export default function SadaqahManagePage() {
   useEffect(() => {
     async function loadRefs() {
       try {
-        const [gRes, bRes] = await Promise.all([
+        const [gRes, bRes] = await Promise.allSettled([
           api.get("/groups"),
           api.get("/beneficiaries?page=1&page_size=200"),
         ]);
-        setGroups(gRes || []);
-        setBeneficiaries(bRes.items || []);
-      } catch {}
+        if (gRes.status === "fulfilled") {
+          const gData = gRes.value;
+          setGroups(Array.isArray(gData) ? gData : gData?.items || []);
+        }
+        if (bRes.status === "fulfilled") {
+          const bData = bRes.value;
+          setBeneficiaries(bData?.items || (Array.isArray(bData) ? bData : []));
+        }
+      } catch (err) {
+        console.error("Failed to load reference data", err);
+      }
     }
     loadRefs();
   }, []);
@@ -62,11 +68,11 @@ export default function SadaqahManagePage() {
       if (search.trim()) params.append("search", search.trim());
 
       const res = await api.get(`/sadaqah?${params.toString()}`);
-      setGrants(res.items || []);
-      setTotal(res.total || 0);
-      setTotalPages(res.total_pages || 1);
+      setGrants(res?.items || []);
+      setTotal(res?.total || 0);
+      setTotalPages(res?.total_pages || 1);
     } catch (err: any) {
-      setError(err.message || "Failed to load Sadaqah records");
+      setError(err?.message || "Unable to load Sadaqah data. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -117,15 +123,25 @@ export default function SadaqahManagePage() {
         </div>
       </div>
 
+      {/* Error Alert with Retry button */}
       {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 p-4 text-xs sm:text-sm text-rose-800 dark:text-rose-300">
-          <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
-          <span>{error}</span>
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 p-4 text-xs sm:text-sm text-rose-800 dark:text-rose-300">
+          <div className="flex items-center gap-2.5">
+            <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
+            <span>{error}</span>
+          </div>
+          <button
+            onClick={() => fetchGrants()}
+            className="btn-secondary !py-1 !px-3 text-xs flex items-center gap-1.5 shrink-0"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            Retry
+          </button>
         </div>
       )}
 
       {/* Filter and Search Bar */}
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
           <input
@@ -167,7 +183,7 @@ export default function SadaqahManagePage() {
             <option value="">All Beneficiaries</option>
             {beneficiaries.map((b) => (
               <option key={b.id} value={b.id}>
-                {b.name} ({b.beneficiary_number})
+                {b.name} ({b.beneficiary_number || b.code})
               </option>
             ))}
           </select>
@@ -194,13 +210,32 @@ export default function SadaqahManagePage() {
             {loading ? (
               <tr>
                 <td colSpan={9} className="text-center py-12">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto text-rose-600" />
+                  <div className="flex flex-col items-center justify-center gap-2">
+                    <Loader2 className="h-6 w-6 animate-spin text-rose-600" />
+                    <span className="text-xs text-slate-500">Loading Sadaqah...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan={9} className="text-center py-12">
+                  <div className="flex flex-col items-center justify-center gap-2 text-rose-600 dark:text-rose-400">
+                    <AlertCircle className="h-6 w-6" />
+                    <p className="text-xs font-semibold">Unable to load Sadaqah data. Please try again.</p>
+                    <button
+                      onClick={() => fetchGrants()}
+                      className="btn-secondary !py-1 !px-3 text-xs mt-1 inline-flex items-center gap-1.5"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      Retry
+                    </button>
+                  </div>
                 </td>
               </tr>
             ) : grants.length === 0 ? (
               <tr>
-                <td colSpan={9} className="text-center py-12 text-slate-400">
-                  No Sadaqah grant records found.
+                <td colSpan={9} className="text-center py-12 text-slate-400 dark:text-slate-500">
+                  No Sadaqah records yet.
                 </td>
               </tr>
             ) : (
@@ -226,10 +261,10 @@ export default function SadaqahManagePage() {
                     {/* Beneficiary */}
                     <td>
                       <div className="font-semibold text-xs text-slate-900 dark:text-slate-100">
-                        {g.beneficiary?.name}
+                        {g.beneficiary?.name || "Unknown"}
                       </div>
                       <div className="text-[10px] text-slate-400 dark:text-slate-400">
-                        {g.beneficiary?.phone || "No phone"} • {g.beneficiary?.beneficiary_number}
+                        {g.beneficiary?.phone || "No phone"} • {g.beneficiary?.beneficiary_number || ""}
                       </div>
                     </td>
 
@@ -261,18 +296,20 @@ export default function SadaqahManagePage() {
                       )}
                     </td>
 
-                    {/* Purpose / Description */}
-                    <td className="text-xs text-slate-700 dark:text-slate-300 max-w-xs truncate" title={g.description}>
+                    {/* Purpose */}
+                    <td className="text-xs text-slate-700 dark:text-slate-300 max-w-[200px] truncate" title={g.description}>
                       {g.description}
                     </td>
 
-                    {/* Payment Method */}
-                    <td className="font-mono text-xs text-slate-600 dark:text-slate-400">
-                      {g.payment_method}
+                    {/* Method */}
+                    <td className="text-xs">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                        {g.payment_method}
+                      </span>
                     </td>
 
-                    {/* Voucher Ref */}
-                    <td className="font-mono text-xs text-slate-500 dark:text-slate-400">
+                    {/* Voucher */}
+                    <td className="text-xs text-slate-500 font-mono">
                       {g.reference || "—"}
                     </td>
 
@@ -281,11 +318,11 @@ export default function SadaqahManagePage() {
                       {formatCurrency(g.amount)}
                     </td>
 
-                    {/* Actions */}
+                    {/* Action */}
                     <td className="text-right">
                       <Link
                         href={`/admin/sadaqah/${g.id}`}
-                        className="btn-secondary !py-1 !px-2.5 text-xs inline-flex items-center gap-1"
+                        className="btn-secondary !py-1 !px-2.5 text-xs"
                       >
                         Details
                       </Link>

@@ -141,7 +141,7 @@ def get_qard_hasan_loans(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("qard_hasan.view"))
 ) -> Any:
-    query = db.query(QardHasan).join(Beneficiary, Beneficiary.id == QardHasan.beneficiary_id)
+    query = db.query(QardHasan).outerjoin(Beneficiary, Beneficiary.id == QardHasan.beneficiary_id)
 
     if group_id:
         query = query.filter(
@@ -154,8 +154,8 @@ def get_qard_hasan_loans(
         query = query.filter(QardHasan.beneficiary_id == beneficiary_id)
     if status and status != "ALL":
         query = query.filter(QardHasan.status == status)
-    if search:
-        s = f"%{search}%"
+    if search and search.strip():
+        s = f"%{search.strip()}%"
         query = query.filter(
             or_(
                 QardHasan.qard_number.ilike(s),
@@ -166,7 +166,7 @@ def get_qard_hasan_loans(
         )
 
     total = query.count()
-    items = query.order_by(QardHasan.disbursed_date.desc(), QardHasan.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    items = query.order_by(QardHasan.disbursed_date.desc().nullslast(), QardHasan.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
     total_pages = (total + page_size - 1) // page_size if total > 0 else 1
 
     return {
@@ -175,6 +175,32 @@ def get_qard_hasan_loans(
         "page": page,
         "page_size": page_size,
         "total_pages": total_pages
+    }
+
+
+@router.get("/summary")
+def get_qard_hasan_summary(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("qard_hasan.view"))
+) -> Any:
+    """Safe aggregated metrics for Qard Hasan loans."""
+    summary_data = db.query(
+        func.coalesce(func.sum(QardHasan.principal_amount), Decimal("0.00")).label("total_principal"),
+        func.coalesce(func.sum(QardHasan.total_repaid), Decimal("0.00")).label("total_repaid"),
+        func.coalesce(func.sum(QardHasan.outstanding_amount), Decimal("0.00")).label("total_outstanding"),
+        func.count(QardHasan.id).label("total_count")
+    ).first()
+
+    active_count = db.query(QardHasan).filter(QardHasan.status.in_(["ACTIVE", "PARTIALLY_REPAID"])).count()
+    completed_count = db.query(QardHasan).filter(QardHasan.status.in_(["COMPLETED", "FULLY_REPAID"])).count()
+
+    return {
+        "total_principal": str(summary_data.total_principal if summary_data else "0.00"),
+        "total_repaid": str(summary_data.total_repaid if summary_data else "0.00"),
+        "total_outstanding": str(summary_data.total_outstanding if summary_data else "0.00"),
+        "total_count": summary_data.total_count if summary_data else 0,
+        "active_count": active_count,
+        "completed_count": completed_count
     }
 
 
@@ -193,7 +219,7 @@ def get_qard_hasan_ledger(
     Central Qard Hasan audit ledger with multi-group funding tracking,
     cumulative repayments, and remaining balances.
     """
-    query = db.query(QardHasan).join(Beneficiary, Beneficiary.id == QardHasan.beneficiary_id)
+    query = db.query(QardHasan).outerjoin(Beneficiary, Beneficiary.id == QardHasan.beneficiary_id)
 
     if group_id:
         query = query.filter(
@@ -206,8 +232,8 @@ def get_qard_hasan_ledger(
         query = query.filter(QardHasan.beneficiary_id == beneficiary_id)
     if status and status != "ALL":
         query = query.filter(QardHasan.status == status)
-    if search:
-        s = f"%{search}%"
+    if search and search.strip():
+        s = f"%{search.strip()}%"
         query = query.filter(
             or_(
                 QardHasan.qard_number.ilike(s),
@@ -228,7 +254,7 @@ def get_qard_hasan_ledger(
     completed_count = db.query(QardHasan).filter(QardHasan.status.in_(["COMPLETED", "FULLY_REPAID"])).count()
 
     total = query.count()
-    items = query.order_by(QardHasan.disbursed_date.desc(), QardHasan.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    items = query.order_by(QardHasan.disbursed_date.desc().nullslast(), QardHasan.id.desc()).offset((page - 1) * page_size).limit(page_size).all()
     total_pages = (total + page_size - 1) // page_size if total > 0 else 1
 
     ledger_items = []
