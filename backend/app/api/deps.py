@@ -1,4 +1,4 @@
-from typing import Generator, Optional, Callable
+from typing import Generator, Optional, Callable, Union, Sequence
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
@@ -45,14 +45,15 @@ def get_current_active_superuser(
     return current_user
 
 
-def require_permission(perm_code: str) -> Callable[[User], User]:
+def require_permission(perm_code: Union[str, Sequence[str]]) -> Callable[[User], User]:
     def permission_checker(current_user: User = Depends(get_current_user)) -> User:
         if current_user.is_superuser:
             return current_user
-        if not current_user.has_permission(perm_code):
+        codes = [perm_code] if isinstance(perm_code, str) else list(perm_code)
+        if not any(current_user.has_permission(c) for c in codes):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Operation not permitted. Required permission: '{perm_code}'"
+                detail=f"Operation not permitted. Required permission: {codes}"
             )
         return current_user
     return permission_checker

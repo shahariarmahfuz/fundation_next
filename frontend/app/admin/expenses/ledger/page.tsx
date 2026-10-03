@@ -128,19 +128,19 @@ export default function ExpenseLedgerPage() {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href="/admin/expenses"
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
-          >
-            Manage Expenses
-          </Link>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-2 w-full sm:w-auto shrink-0">
           <Link
             href="/admin/expenses/new"
-            className="btn-primary inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold shadow-sm"
+            className="w-full sm:w-auto btn-primary text-xs sm:text-sm inline-flex items-center justify-center gap-1.5 whitespace-nowrap min-h-[44px] sm:min-h-0 py-2.5 sm:py-2 px-4 shadow-sm order-1 sm:order-2"
           >
-            <Plus className="h-4 w-4" />
-            Add Expense
+            <Plus className="h-4 w-4 shrink-0" />
+            <span>Add Expense</span>
+          </Link>
+          <Link
+            href="/admin/expenses"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl sm:rounded-lg border border-slate-200 bg-white px-4 py-2.5 sm:py-2 text-xs sm:text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 whitespace-nowrap min-h-[44px] sm:min-h-0 order-2 sm:order-1"
+          >
+            <span>Manage Expenses</span>
           </Link>
         </div>
       </div>

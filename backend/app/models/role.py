@@ -33,3 +33,7 @@ class Role(Base, TimestampMixin):
 
     permissions = relationship("Permission", secondary=role_permissions, back_populates="roles", lazy="joined")
     users = relationship("User", back_populates="role")
+
+    @property
+    def users_count(self) -> int:
+        return len(self.users) if self.users else 0

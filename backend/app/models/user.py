@@ -25,4 +25,26 @@ class User(Base, TimestampMixin):
             return True
         if not self.role:
             return False
-        return any(p.code == permission_code for p in self.role.permissions)
+        user_perms = {p.code for p in self.role.permissions}
+        if permission_code in user_perms:
+            return True
+        # Module-level manage fallback (e.g. roles.manage grants roles.view, roles.create, etc.)
+        if "." in permission_code:
+            module = permission_code.split(".")[0]
+            if f"{module}.manage" in user_perms:
+                return True
+        # Common module aliases
+        aliases = {
+            "sadaqah.view": ["sadakah.view"],
+            "sadaqah.create": ["sadakah.create"],
+            "sadaqah.update": ["sadakah.update"],
+            "sadaqah.delete": ["sadakah.delete"],
+            "qard_hasan.repay": ["qard_hasan.repayment"],
+            "qard_hasan.repayment": ["qard_hasan.repay"],
+            "organization.view": ["settings.manage"],
+            "organization.update": ["settings.manage"],
+        }
+        for alias in aliases.get(permission_code, []):
+            if alias in user_perms:
+                return True
+        return False

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -13,25 +14,41 @@ import {
   CheckCircle,
   Loader2,
   Users,
-  ShieldCheck
+  ShieldCheck,
+  Search,
+  KeyRound,
+  ExternalLink,
+  AlertCircle
 } from "lucide-react";
 
-export default function UsersRolesPage() {
-  const [activeTab, setActiveTab] = useState<"users" | "roles">("users");
+interface RoleOption {
+  id: number;
+  name: string;
+  is_system: boolean;
+}
 
-  // Users State
-  const [users, setUsers] = useState<any[]>([]);
-  const [usersLoading, setUsersLoading] = useState(true);
-  const [usersError, setUsersError] = useState<string | null>(null);
+interface UserItem {
+  id: number;
+  username: string;
+  email: string;
+  full_name: string;
+  role_id: number | null;
+  role: RoleOption | null;
+  is_active: boolean;
+  is_superuser: boolean;
+  created_at: string;
+}
 
-  // Roles & Permissions State
-  const [roles, setRoles] = useState<any[]>([]);
-  const [permissions, setPermissions] = useState<any[]>([]);
-  const [rolesLoading, setRolesLoading] = useState(true);
+export default function UsersPage() {
+  const [users, setUsers] = useState<UserItem[]>([]);
+  const [roles, setRoles] = useState<RoleOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // User Modal State
   const [userModalOpen, setUserModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<any | null>(null);
+  const [editingUser, setEditingUser] = useState<UserItem | null>(null);
   const [userFormData, setUserFormData] = useState({
     username: "",
     email: "",
@@ -43,17 +60,6 @@ export default function UsersRolesPage() {
   const [userSubmitting, setUserSubmitting] = useState(false);
   const [userModalError, setUserModalError] = useState<string | null>(null);
 
-  // Role Modal State
-  const [roleModalOpen, setRoleModalOpen] = useState(false);
-  const [editingRole, setEditingRole] = useState<any | null>(null);
-  const [roleFormData, setRoleFormData] = useState({
-    name: "",
-    description: "",
-    permission_ids: [] as number[],
-  });
-  const [roleSubmitting, setRoleSubmitting] = useState(false);
-  const [roleModalError, setRoleModalError] = useState<string | null>(null);
-
   const [notification, setNotification] = useState<string | null>(null);
 
   const notify = (msg: string) => {
@@ -62,40 +68,27 @@ export default function UsersRolesPage() {
   };
 
   const fetchUsers = async () => {
-    setUsersLoading(true);
+    setLoading(true);
+    setError(null);
     try {
-      const data = await api.get("/users");
-      setUsers(data);
-    } catch (err: any) {
-      setUsersError(err.message || "Failed to load users");
-    } finally {
-      setUsersLoading(false);
-    }
-  };
-
-  const fetchRolesAndPermissions = async () => {
-    setRolesLoading(true);
-    try {
-      const [rRes, pRes] = await Promise.all([
-        api.get("/roles"),
-        api.get("/roles/permissions"),
+      const [userData, rolesData] = await Promise.all([
+        api.get<UserItem[]>("/users"),
+        api.get<RoleOption[]>("/roles"),
       ]);
-      setRoles(rRes);
-      setPermissions(pRes);
+      setUsers(userData);
+      setRoles(rolesData);
     } catch (err: any) {
-      console.error(err);
+      setError(err.message || "Failed to load personnel accounts");
     } finally {
-      setRolesLoading(false);
+      setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchUsers();
-    fetchRolesAndPermissions();
   }, []);
 
-  // Open User Modal
-  const handleOpenUserModal = (user: any | null = null) => {
+  const handleOpenUserModal = (user: UserItem | null = null) => {
     setEditingUser(user);
     setUserModalError(null);
     if (user) {
@@ -104,7 +97,7 @@ export default function UsersRolesPage() {
         email: user.email,
         full_name: user.full_name,
         password: "",
-        role_id: user.role_id ? user.role_id.toString() : "",
+        role_id: user.role_id ? String(user.role_id) : "",
         is_active: user.is_active,
       });
     } else {
@@ -113,7 +106,7 @@ export default function UsersRolesPage() {
         email: "",
         full_name: "",
         password: "",
-        role_id: roles.length > 0 ? roles[0].id.toString() : "",
+        role_id: "",
         is_active: true,
       });
     }
@@ -127,24 +120,20 @@ export default function UsersRolesPage() {
 
     try {
       if (editingUser) {
-        // Update user
-        const updatePayload: any = {
-          email: userFormData.email,
+        const payload: any = {
           full_name: userFormData.full_name,
+          email: userFormData.email,
           role_id: userFormData.role_id ? Number(userFormData.role_id) : null,
           is_active: userFormData.is_active,
         };
         if (userFormData.password) {
-          updatePayload.password = userFormData.password;
+          payload.password = userFormData.password;
         }
-        await api.put(`/users/${editingUser.id}`, updatePayload);
+        await api.put(`/users/${editingUser.id}`, payload);
         notify(`User ${editingUser.username} updated successfully.`);
       } else {
-        // Create user
         if (!userFormData.password) {
-          setUserModalError("Password is required for new users");
-          setUserSubmitting(false);
-          return;
+          throw new Error("Password is required for new accounts");
         }
         await api.post("/users", {
           ...userFormData,
@@ -161,100 +150,50 @@ export default function UsersRolesPage() {
     }
   };
 
-  // Open Role Modal
-  const handleOpenRoleModal = (role: any | null = null) => {
-    setEditingRole(role);
-    setRoleModalError(null);
-    if (role) {
-      setRoleFormData({
-        name: role.name,
-        description: role.description || "",
-        permission_ids: role.permissions?.map((p: any) => p.id) || [],
-      });
-    } else {
-      setRoleFormData({
-        name: "",
-        description: "",
-        permission_ids: [],
-      });
-    }
-    setRoleModalOpen(true);
-  };
-
-  const handleSaveRole = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setRoleSubmitting(true);
-    setRoleModalError(null);
-
-    try {
-      if (editingRole) {
-        await api.put(`/roles/${editingRole.id}`, roleFormData);
-        notify(`Role ${editingRole.name} updated successfully.`);
-      } else {
-        await api.post("/roles", roleFormData);
-        notify(`Role ${roleFormData.name} created successfully.`);
-      }
-      setRoleModalOpen(false);
-      fetchRolesAndPermissions();
-    } catch (err: any) {
-      setRoleModalError(err.message || "Failed to save role");
-    } finally {
-      setRoleSubmitting(false);
-    }
-  };
-
-  // Toggle permission in role form
-  const togglePermission = (permId: number) => {
-    setRoleFormData((prev) => {
-      const exists = prev.permission_ids.includes(permId);
-      return {
-        ...prev,
-        permission_ids: exists
-          ? prev.permission_ids.filter((id) => id !== permId)
-          : [...prev.permission_ids, permId],
-      };
-    });
-  };
-
-  // Group permissions by module
-  const permissionsByModule = permissions.reduce((acc: Record<string, any[]>, perm: any) => {
-    const mod = perm.module || "general";
-    if (!acc[mod]) acc[mod] = [];
-    acc[mod].push(perm);
-    return acc;
-  }, {});
+  const filteredUsers = users.filter((u) => {
+    const q = searchQuery.toLowerCase();
+    return (
+      u.full_name.toLowerCase().includes(q) ||
+      u.username.toLowerCase().includes(q) ||
+      u.email.toLowerCase().includes(q) ||
+      (u.role && u.role.name.toLowerCase().includes(q))
+    );
+  });
 
   return (
-    <div className="space-y-6 transition-colors">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
+          <div className="flex items-center gap-2 text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">
+            <span>Users & Access</span>
+            <span>/</span>
+            <span className="text-slate-900 dark:text-white font-semibold">Users</span>
+          </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Users, Roles & Access Control
+            Staff & Personnel Accounts
           </h1>
           <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Manage personnel accounts, grant granular permissions, and configure access levels
+            Manage staff credentials, activate accounts, and assign access roles
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          {activeTab === "users" ? (
-            <button
-              onClick={() => handleOpenUserModal(null)}
-              className="btn-primary"
-            >
-              <Plus className="h-4 w-4" />
-              Add Staff User
-            </button>
-          ) : (
-            <button
-              onClick={() => handleOpenRoleModal(null)}
-              className="btn-primary"
-            >
-              <Plus className="h-4 w-4" />
-              Create Custom Role
-            </button>
-          )}
+          <Link
+            href="/admin/roles"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 shadow-sm transition-colors"
+          >
+            <Shield className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <span>Manage Roles</span>
+          </Link>
+
+          <button
+            onClick={() => handleOpenUserModal(null)}
+            className="btn-primary inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 transition-all"
+          >
+            <Plus className="h-4 w-4" />
+            <span>Add Staff User</span>
+          </button>
         </div>
       </div>
 
@@ -265,155 +204,107 @@ export default function UsersRolesPage() {
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
-        <button
-          onClick={() => setActiveTab("users")}
-          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === "users"
-              ? "bg-slate-900 text-white dark:bg-emerald-600 dark:text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-800 dark:hover:bg-slate-800"
-          }`}
-        >
-          <Users className="h-4 w-4" />
-          Personnel Accounts ({users.length})
-        </button>
-
-        <button
-          onClick={() => setActiveTab("roles")}
-          className={`inline-flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
-            activeTab === "roles"
-              ? "bg-slate-900 text-white dark:bg-emerald-600 dark:text-white shadow-sm"
-              : "bg-white text-slate-600 hover:bg-slate-100 border border-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:border-slate-800 dark:hover:bg-slate-800"
-          }`}
-        >
-          <Shield className="h-4 w-4" />
-          Roles & Permissions ({roles.length})
-        </button>
-      </div>
-
-      {/* TAB 1: USERS */}
-      {activeTab === "users" && (
-        <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
-              <thead className="bg-slate-50 dark:bg-slate-950 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
-                <tr>
-                  <th className="px-6 py-3 font-semibold">User Details</th>
-                  <th className="px-6 py-3 font-semibold">Email</th>
-                  <th className="px-6 py-3 font-semibold">Assigned Role</th>
-                  <th className="px-6 py-3 font-semibold text-center">Status</th>
-                  <th className="px-6 py-3 font-semibold">Created Date</th>
-                  <th className="px-6 py-3 font-semibold text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {usersLoading ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center">
-                      <Loader2 className="mx-auto h-6 w-6 animate-spin text-emerald-600 dark:text-emerald-400" />
-                      <span className="mt-2 block text-xs text-slate-500 dark:text-slate-400">Loading user accounts...</span>
-                    </td>
-                  </tr>
-                ) : usersError ? (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-6 text-center text-rose-600 dark:text-rose-400">
-                      {usersError}
-                    </td>
-                  </tr>
-                ) : (
-                  users.map((u) => (
-                    <tr key={u.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div className="font-bold text-slate-900 dark:text-white">{u.full_name}</div>
-                        <div className="font-mono text-xs text-slate-400">@{u.username}</div>
-                      </td>
-                      <td className="px-6 py-4 text-slate-700 dark:text-slate-300">{u.email}</td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                          <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                          {u.role?.name || (u.is_superuser ? "Super Admin" : "No Role")}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <StatusBadge status={u.is_active ? "ACTIVE" : "INACTIVE"} />
-                      </td>
-                      <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs">
-                        {formatDate(u.created_at)}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button
-                          onClick={() => handleOpenUserModal(u)}
-                          className="btn-secondary !py-1 !px-2.5 text-xs"
-                        >
-                          <Edit className="h-3 w-3" />
-                          Edit User
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+      {/* Main Table Card */}
+      <div className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+        {/* Search Toolbar */}
+        <div className="border-b border-slate-200 dark:border-slate-800 p-4 sm:flex sm:items-center sm:justify-between gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Search users by name, username, email, or role..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 pl-10 pr-4 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+            />
+          </div>
+          <div className="mt-3 sm:mt-0 text-xs font-medium text-slate-500 dark:text-slate-400">
+            Showing {filteredUsers.length} of {users.length} accounts
           </div>
         </div>
-      )}
 
-      {/* TAB 2: ROLES & PERMISSIONS */}
-      {activeTab === "roles" && (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {roles.map((r) => (
-            <div
-              key={r.id}
-              className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm flex flex-col justify-between transition-colors"
-            >
-              <div>
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">{r.name}</h3>
-                      {r.is_system && (
-                        <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-2xs font-semibold text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                          System Role
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{r.description || "No description provided."}</p>
-                  </div>
-
-                  <button
-                    onClick={() => handleOpenRoleModal(r)}
-                    className="btn-secondary !py-1 !px-2.5 text-xs"
+        {/* Users Table */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-sm text-slate-600 dark:text-slate-300">
+            <thead className="bg-slate-50 dark:bg-slate-950 text-xs uppercase tracking-wider text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
+              <tr>
+                <th className="px-6 py-3 font-semibold">User Details</th>
+                <th className="px-6 py-3 font-semibold">Email</th>
+                <th className="px-6 py-3 font-semibold">Assigned Role</th>
+                <th className="px-6 py-3 font-semibold text-center">Status</th>
+                <th className="px-6 py-3 font-semibold">Created Date</th>
+                <th className="px-6 py-3 font-semibold text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {loading ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center">
+                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-emerald-600 dark:text-emerald-400" />
+                    <span className="mt-2 block text-xs text-slate-500 dark:text-slate-400">
+                      Loading user accounts...
+                    </span>
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-6 text-center text-rose-600 dark:text-rose-400">
+                    <AlertCircle className="mx-auto h-6 w-6 mb-1" />
+                    <div>{error}</div>
+                  </td>
+                </tr>
+              ) : filteredUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-10 text-center text-slate-500 dark:text-slate-400">
+                    No accounts found matching your search.
+                  </td>
+                </tr>
+              ) : (
+                filteredUsers.map((u) => (
+                  <tr
+                    key={u.id}
+                    className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors"
                   >
-                    <Edit className="h-3 w-3" />
-                    Configure
-                  </button>
-                </div>
-
-                <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">
-                    Granted Permissions ({r.permissions?.length || 0})
-                  </div>
-                  <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto">
-                    {r.permissions?.length === 0 ? (
-                      <span className="text-xs text-slate-400 dark:text-slate-500">No permissions assigned.</span>
-                    ) : (
-                      r.permissions?.map((p: any) => (
-                        <span
-                          key={p.id}
-                          className="rounded-md bg-slate-50 dark:bg-slate-800 px-2 py-0.5 text-2xs font-mono text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700"
-                        >
-                          {p.code}
-                        </span>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+                    <td className="px-6 py-4">
+                      <div className="font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        <span>{u.full_name}</span>
+                        {u.is_superuser && (
+                          <span className="inline-flex items-center rounded-md bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                            Superuser
+                          </span>
+                        )}
+                      </div>
+                      <div className="font-mono text-xs text-slate-400">@{u.username}</div>
+                    </td>
+                    <td className="px-6 py-4 text-slate-700 dark:text-slate-300">{u.email}</td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center gap-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                        <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        {u.role?.name || (u.is_superuser ? "Super Admin" : "No Role")}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <StatusBadge status={u.is_active ? "ACTIVE" : "INACTIVE"} />
+                    </td>
+                    <td className="px-6 py-4 text-slate-500 dark:text-slate-400 text-xs">
+                      {formatDate(u.created_at)}
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <button
+                        onClick={() => handleOpenUserModal(u)}
+                        className="btn-secondary !py-1 !px-2.5 text-xs inline-flex items-center gap-1"
+                      >
+                        <Edit className="h-3 w-3" />
+                        <span>Edit</span>
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
+      </div>
 
       {/* USER MODAL */}
       <Modal
@@ -531,107 +422,6 @@ export default function UsersRolesPage() {
             >
               {userSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
               {editingUser ? "Save Changes" : "Create Account"}
-            </button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* ROLE MODAL */}
-      <Modal
-        isOpen={roleModalOpen}
-        onClose={() => setRoleModalOpen(false)}
-        title={editingRole ? `Configure Role — ${editingRole.name}` : "Create Custom Role"}
-        maxWidth="xl"
-      >
-        <form onSubmit={handleSaveRole} className="space-y-4">
-          {roleModalError && (
-            <div className="rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/40 p-3 text-xs text-rose-800 dark:text-rose-400">
-              {roleModalError}
-            </div>
-          )}
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-              Role Name *
-            </label>
-            <input
-              required
-              type="text"
-              value={roleFormData.name}
-              onChange={(e) => setRoleFormData({ ...roleFormData, name: e.target.value })}
-              className="input-field"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
-              Description
-            </label>
-            <textarea
-              rows={2}
-              value={roleFormData.description}
-              onChange={(e) => setRoleFormData({ ...roleFormData, description: e.target.value })}
-              className="input-field"
-            />
-          </div>
-
-          {/* Permissions Matrix */}
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-              Permissions Matrix ({roleFormData.permission_ids.length} selected)
-            </label>
-            <div className="space-y-3 max-h-64 overflow-y-auto border border-slate-200 dark:border-slate-800 rounded-xl p-3 bg-slate-50/50 dark:bg-slate-950/50">
-              {Object.entries(permissionsByModule).map(([mod, perms]) => (
-                <div key={mod} className="border-b border-slate-200 dark:border-slate-800 pb-2 last:border-b-0">
-                  <div className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1.5">
-                    {mod} Module
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                    {perms.map((p) => {
-                      const isChecked = roleFormData.permission_ids.includes(p.id);
-                      return (
-                        <label
-                          key={p.id}
-                          className={`flex items-start gap-2 p-1.5 rounded-lg border text-xs cursor-pointer transition-colors ${
-                            isChecked
-                              ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-300"
-                              : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                          }`}
-                        >
-                          <input
-                            type="checkbox"
-                            checked={isChecked}
-                            onChange={() => togglePermission(p.id)}
-                            className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500"
-                          />
-                          <div>
-                            <span className="font-semibold block">{p.name}</span>
-                            <span className="font-mono text-2xs text-slate-400 block">{p.code}</span>
-                          </div>
-                        </label>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <button
-              type="button"
-              onClick={() => setRoleModalOpen(false)}
-              className="btn-secondary"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={roleSubmitting}
-              className="btn-primary"
-            >
-              {roleSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-              {editingRole ? "Update Permissions" : "Create Role"}
             </button>
           </div>
         </form>

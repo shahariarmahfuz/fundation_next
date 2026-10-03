@@ -121,19 +121,19 @@ export default function QardHasanLedgerPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-2 w-full sm:w-auto shrink-0">
           <Link
             href="/admin/qard-hasan/new"
-            className="btn-primary text-xs flex items-center gap-1.5"
+            className="w-full sm:w-auto btn-primary text-xs sm:text-sm flex items-center justify-center gap-1.5 whitespace-nowrap min-h-[44px] sm:min-h-0 py-2.5 sm:py-2 px-4"
           >
-            <Plus className="h-4 w-4" />
-            New Qard Hasan
+            <Plus className="h-4 w-4 shrink-0" />
+            <span>New Qard Hasan</span>
           </Link>
           <Link
             href="/admin/qard-hasan"
-            className="btn-secondary text-xs"
+            className="w-full sm:w-auto btn-secondary text-xs sm:text-sm flex items-center justify-center gap-1.5 whitespace-nowrap min-h-[44px] sm:min-h-0 py-2.5 sm:py-2 px-4"
           >
-            Manage Loans
+            <span>Manage Loans</span>
           </Link>
         </div>
       </div>

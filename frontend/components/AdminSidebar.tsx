@@ -194,11 +194,11 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       name: "Users & Access",
       href: "/admin/users",
       icon: UserCog,
-      permission: "users.manage",
+      permission: "users.view",
       children: [
-        { name: "Users", href: "/admin/users?tab=users" },
-        { name: "Roles", href: "/admin/users?tab=roles" },
-        { name: "Permissions", href: "/admin/users?tab=roles" },
+        { name: "Users", href: "/admin/users", permission: "users.view" },
+        { name: "Roles", href: "/admin/roles", permission: "roles.view" },
+        { name: "Permissions", href: "/admin/roles/permissions", permission: "roles.view" },
       ],
     },
     {

@@ -15,63 +15,131 @@ from backend.app.models.monthly_contribution_setting import MonthlyContributionS
 def seed_database(db: Session):
     # 1. Seed Permissions
     permissions_data = [
-        # Members
-        ("members.view", "View Members", "members", "Can view member list and profile"),
-        ("members.create", "Create Member", "members", "Can register new members"),
-        ("members.update", "Update Member", "members", "Can update member details"),
-        ("members.delete", "Delete Member", "members", "Can remove or deactivate members"),
-        
-        # Groups
-        ("groups.view", "View Groups", "groups", "Can view financial groups and balances"),
-        ("groups.create", "Create Group", "groups", "Can create accounting groups"),
-        ("groups.update", "Update Group", "groups", "Can update group info"),
-        ("groups.delete", "Delete Group", "groups", "Can archive or delete groups"),
+        # 1. Members
+        ("members.view", "View Members", "Members", "Can view member list and profile"),
+        ("members.create", "Create Member", "Members", "Can register new members"),
+        ("members.update", "Update Member", "Members", "Can update member details"),
+        ("members.delete", "Delete Member", "Members", "Can remove or deactivate members"),
+        ("members.status", "Manage Member Status", "Members", "Can change member active/inactive status"),
+        ("members.ledger", "View Member Ledger", "Members", "Can view individual member contribution ledger"),
+        ("members.requests", "Manage Member Requests", "Members", "Can manage public membership applications and requests"),
+        ("members.export", "Export Members", "Members", "Can export member data to CSV or Excel"),
 
-        # Contributions
-        ("contributions.view", "View Contributions", "contributions", "Can view monthly contributions"),
-        ("contributions.create", "Record Contribution", "contributions", "Can record member contribution payments"),
-        ("contributions.update", "Update Contribution", "contributions", "Can edit contribution details"),
+        # 2. Beneficiaries
+        ("beneficiaries.view", "View Beneficiaries", "Beneficiaries", "Can view beneficiary profiles"),
+        ("beneficiaries.create", "Create Beneficiary", "Beneficiaries", "Can register new beneficiaries"),
+        ("beneficiaries.update", "Update Beneficiary", "Beneficiaries", "Can update beneficiary profiles"),
+        ("beneficiaries.delete", "Delete Beneficiary", "Beneficiaries", "Can archive or delete beneficiaries"),
+        ("beneficiaries.ledger", "View Beneficiary Ledger", "Beneficiaries", "Can view beneficiary aid and grant ledgers"),
 
-        # Expenses
-        ("expenses.view", "View Expenses", "expenses", "Can view expenses and categories"),
-        ("expenses.create", "Record Expense", "expenses", "Can disburse and record expenses"),
-        ("expenses.update", "Update Expense", "expenses", "Can update expense details"),
+        # 3. Groups
+        ("groups.view", "View Groups", "Groups", "Can view financial groups and balances"),
+        ("groups.create", "Create Group", "Groups", "Can create accounting groups"),
+        ("groups.update", "Update Group", "Groups", "Can update group info"),
+        ("groups.delete", "Delete Group", "Groups", "Can archive or delete groups"),
+        ("groups.ledger", "View Group Ledger", "Groups", "Can view complete group accounting ledgers"),
+        ("groups.status", "Manage Group Status", "Groups", "Can change group status"),
 
-        # Donors & Donations
-        ("donors.view", "View Donors", "donors", "Can view donor records"),
-        ("donors.create", "Create Donor", "donors", "Can add new donors"),
-        ("donations.view", "View Donations", "donations", "Can view donation records"),
-        ("donations.create", "Record Donation", "donations", "Can record incoming donations"),
+        # 4. Contributions
+        ("contributions.view", "View Contributions", "Contributions", "Can view monthly contributions"),
+        ("contributions.create", "Create Contribution", "Contributions", "Can record member contribution payments"),
+        ("contributions.update", "Update Contribution", "Contributions", "Can edit contribution details"),
+        ("contributions.delete", "Delete Contribution", "Contributions", "Can reverse or delete contributions"),
+        ("contributions.ledger", "View Contribution Ledger", "Contributions", "Can view full contribution transaction history"),
 
-        # Beneficiaries
-        ("beneficiaries.view", "View Beneficiaries", "beneficiaries", "Can view beneficiary profiles"),
-        ("beneficiaries.create", "Create Beneficiary", "beneficiaries", "Can register new beneficiaries"),
-        ("beneficiaries.update", "Update Beneficiary", "beneficiaries", "Can update beneficiary profiles"),
-        ("beneficiaries.delete", "Delete Beneficiary", "beneficiaries", "Can archive or delete beneficiaries"),
+        # 5. Donors
+        ("donors.view", "View Donors", "Donors", "Can view donor records"),
+        ("donors.create", "Create Donor", "Donors", "Can add new donors"),
+        ("donors.update", "Update Donor", "Donors", "Can update donor information"),
+        ("donors.delete", "Delete Donor", "Donors", "Can remove or archive donors"),
+        ("donors.ledger", "View Donor Ledger", "Donors", "Can view donor donation statements and history"),
 
-        # Qard Hasan
-        ("qard_hasan.view", "View Qard Hasan", "qard_hasan", "Can view loan ledgers and statuses"),
-        ("qard_hasan.create", "Disburse Qard Hasan", "qard_hasan", "Can disburse interest-free loans"),
-        ("qard_hasan.repayment", "Record Qard Repayment", "qard_hasan", "Can record loan repayments"),
+        # 6. Donations
+        ("donations.view", "View Donations", "Donations", "Can view donation records"),
+        ("donations.create", "Create Donation", "Donations", "Can record incoming donations"),
+        ("donations.update", "Update Donation", "Donations", "Can update donation details"),
+        ("donations.delete", "Delete Donation", "Donations", "Can reverse or delete donations"),
+        ("donations.ledger", "View Donation Ledger", "Donations", "Can view donation receipts and audit journal"),
 
-        # Sadakah
-        ("sadakah.view", "View Sadakah", "sadakah", "Can view sadakah grants"),
-        ("sadakah.create", "Disburse Sadakah", "sadakah", "Can record non-repayable sadakah aid"),
+        # 7. Qard Hasan
+        ("qard_hasan.view", "View Qard Hasan", "Qard Hasan", "Can view loan ledgers and statuses"),
+        ("qard_hasan.create", "Create Qard Hasan", "Qard Hasan", "Can issue and configure interest-free loans"),
+        ("qard_hasan.update", "Update Qard Hasan", "Qard Hasan", "Can update loan terms and notes"),
+        ("qard_hasan.delete", "Delete Qard Hasan", "Qard Hasan", "Can cancel or delete loan records"),
+        ("qard_hasan.disburse", "Disburse Qard Hasan", "Qard Hasan", "Can disburse funds for approved loans"),
+        ("qard_hasan.repay", "Record Repayment", "Qard Hasan", "Can record loan repayments"),
+        ("qard_hasan.repayment", "Record Repayment (Legacy)", "Qard Hasan", "Alias for recording loan repayments"),
+        ("qard_hasan.ledger", "View Qard Hasan Ledger", "Qard Hasan", "Can view repayment and outstanding balance ledgers"),
 
-        # Accounting / Ledgers / Transactions
-        ("transactions.view", "View Transactions", "transactions", "Can view financial journal transactions"),
-        ("transactions.reverse", "Reverse Transaction", "transactions", "Can reverse financial transactions"),
-        ("ledgers.view", "View Group Ledgers", "ledgers", "Can view complete group accounting ledgers"),
+        # 8. Sadaqah
+        ("sadaqah.view", "View Sadaqah", "Sadaqah", "Can view sadaqah grants"),
+        ("sadaqah.create", "Create Sadaqah", "Sadaqah", "Can record non-repayable sadaqah aid"),
+        ("sadaqah.update", "Update Sadaqah", "Sadaqah", "Can update sadaqah grant details"),
+        ("sadaqah.delete", "Delete Sadaqah", "Sadaqah", "Can cancel or delete sadaqah grants"),
+        ("sadaqah.disburse", "Disburse Sadaqah", "Sadaqah", "Can disburse funds for sadaqah grants"),
+        ("sadaqah.ledger", "View Sadaqah Ledger", "Sadaqah", "Can view sadaqah disbursement journal"),
+        ("sadakah.view", "View Sadakah (Legacy)", "Sadaqah", "Legacy alias for viewing sadaqah"),
+        ("sadakah.create", "Disburse Sadakah (Legacy)", "Sadaqah", "Legacy alias for disbursing sadaqah"),
 
-        # Reports & Dashboard
-        ("reports.view", "View Reports", "reports", "Can view financial and member analytics"),
-        ("dashboard.view", "View Dashboard", "dashboard", "Can view executive dashboard"),
+        # 9. Expenses
+        ("expenses.view", "View Expenses", "Expenses", "Can view expenses list and vouchers"),
+        ("expenses.create", "Create Expense", "Expenses", "Can disburse and record expenses"),
+        ("expenses.update", "Update Expense", "Expenses", "Can update expense details and vouchers"),
+        ("expenses.delete", "Delete Expense", "Expenses", "Can cancel or delete expense transactions"),
+        ("expenses.ledger", "View Expense Ledger", "Expenses", "Can view expense breakdown ledgers"),
+        ("expenses.approve", "Approve Expense", "Expenses", "Can verify and approve expense disbursements"),
+        ("expenses.categories", "Manage Expense Categories", "Expenses", "Can configure expense category classifications"),
 
-        # Management
-        ("users.manage", "Manage Users", "users", "Can manage system users"),
-        ("roles.manage", "Manage Roles", "roles", "Can manage roles and permissions"),
-        ("settings.manage", "Manage Settings", "settings", "Can manage organization settings and CMS"),
-        ("audit.view", "View Audit Logs", "audit", "Can view historical audit trails"),
+        # 10. Expense Categories
+        ("expense_categories.view", "View Categories", "Expense Categories", "Can view expense categories"),
+        ("expense_categories.create", "Create Category", "Expense Categories", "Can add new expense categories"),
+        ("expense_categories.update", "Update Category", "Expense Categories", "Can rename and edit expense categories"),
+        ("expense_categories.delete", "Delete Category", "Expense Categories", "Can delete unused expense categories"),
+
+        # 11. Foundation / Organization
+        ("organization.view", "View Foundation Profile", "Foundation / Organization", "Can view organization identity and profile"),
+        ("organization.update", "Update Foundation Profile", "Foundation / Organization", "Can edit organization name and details"),
+        ("organization.settings", "Manage Foundation Settings", "Foundation / Organization", "Can manage system-level organization settings"),
+        ("organization.website", "Manage Public Website Settings", "Foundation / Organization", "Can manage public landing page CMS content"),
+        ("organization.timezone", "Manage Global Timezone", "Foundation / Organization", "Can configure global system timezone"),
+        ("organization.monthly_contribution", "Manage Monthly Contribution Settings", "Foundation / Organization", "Can configure global default monthly contribution"),
+        ("settings.manage", "Manage Settings (Legacy)", "Foundation / Organization", "Legacy alias for settings management"),
+
+        # 12. Users
+        ("users.view", "View Users", "Users", "Can view system staff user accounts"),
+        ("users.create", "Create User", "Users", "Can provision new staff accounts"),
+        ("users.update", "Update User", "Users", "Can edit user profile details"),
+        ("users.status", "Disable User", "Users", "Can deactivate or reactivate user login access"),
+        ("users.delete", "Delete User", "Users", "Can permanently remove staff accounts"),
+        ("users.reset_access", "Reset User Access", "Users", "Can reset passwords and security credentials"),
+        ("users.manage", "Manage Users (Legacy)", "Users", "Legacy alias for managing users"),
+
+        # 13. Roles
+        ("roles.view", "View Roles", "Roles", "Can view roles and permissions"),
+        ("roles.create", "Create Role", "Roles", "Can create custom roles with permission matrices"),
+        ("roles.update", "Update Role", "Roles", "Can edit custom roles and update permissions"),
+        ("roles.delete", "Delete Role", "Roles", "Can delete unassigned custom roles"),
+        ("roles.assign", "Assign Roles", "Roles", "Can assign roles to user accounts"),
+        ("roles.permissions", "Manage Permissions", "Roles", "Can inspect and manage system permissions"),
+        ("roles.manage", "Manage Roles (Legacy)", "Roles", "Legacy alias for managing roles"),
+
+        # 14. Member Applications
+        ("applications.view", "View Applications", "Member Applications", "Can view public membership applications"),
+        ("applications.approve", "Approve Application", "Member Applications", "Can approve applications and onboard new members"),
+        ("applications.reject", "Reject Application", "Member Applications", "Can reject membership applications with notes"),
+        ("applications.update", "Update Application", "Member Applications", "Can update application data and notes"),
+
+        # 15. Dashboard
+        ("dashboard.view", "View Dashboard", "Dashboard", "Can view executive dashboard summary"),
+        ("dashboard.financial", "View Financial Summary", "Dashboard", "Can view organization-wide financial figures"),
+        ("dashboard.balances", "View Group Balances", "Dashboard", "Can view accounting group balances"),
+
+        # Additional System Auditing & Transactions
+        ("transactions.view", "View Transactions", "Accounting", "Can view financial journal transactions"),
+        ("transactions.reverse", "Reverse Transaction", "Accounting", "Can reverse financial transactions"),
+        ("ledgers.view", "View Ledgers", "Accounting", "Can view complete group accounting ledgers"),
+        ("audit.view", "View Audit Logs", "Audit", "Can view historical audit trails"),
+        ("reports.view", "View Reports", "Reports", "Can view financial and member analytics"),
     ]
 
     code_to_perm = {}
@@ -81,6 +149,10 @@ def seed_database(db: Session):
             perm = Permission(code=code, name=name, module=module, description=desc)
             db.add(perm)
             db.flush()
+        else:
+            perm.name = name
+            perm.module = module
+            perm.description = desc
         code_to_perm[code] = perm
 
     # 2. Seed Roles
@@ -100,7 +172,7 @@ def seed_database(db: Session):
             "is_system": True,
             "perms": [
                 p for code, p in code_to_perm.items()
-                if p.module in ("contributions", "expenses", "donations", "donors", "qard_hasan", "sadakah", "transactions", "ledgers", "reports", "dashboard", "groups", "beneficiaries")
+                if p.module.lower() in ("contributions", "expenses", "expense categories", "donations", "donors", "qard hasan", "sadaqah", "accounting", "reports", "dashboard", "groups", "beneficiaries")
                 and code not in ("transactions.reverse",)
             ]
         },
@@ -109,7 +181,7 @@ def seed_database(db: Session):
             "is_system": True,
             "perms": [
                 p for code, p in code_to_perm.items()
-                if p.module in ("members", "groups", "beneficiaries", "reports", "dashboard")
+                if p.module.lower() in ("members", "groups", "beneficiaries", "reports", "dashboard", "member applications")
             ]
         },
         "Staff": {

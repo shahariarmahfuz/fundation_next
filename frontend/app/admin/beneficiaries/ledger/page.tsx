@@ -20,7 +20,9 @@ import {
   Scale,
   HeartHandshake,
   CreditCard,
-  Plus
+  Plus,
+  UserPlus,
+  Users
 } from "lucide-react";
 
 interface LedgerItem {
@@ -172,28 +174,31 @@ export default function BeneficiaryLedgerPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-gray-200 dark:border-gray-800 pb-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2.5">
-            <HandHeart className="w-7 h-7 text-primary-600 dark:text-primary-400" />
-            Beneficiary Financial Assistance Ledger
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-2.5">
+            <HandHeart className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>Beneficiary Financial Assistance Ledger</span>
           </h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
             Complete central double-entry audit ledger for all welfare assistance, Sadakah grants, and interest-free Qard Hasan disbursements &amp; repayments.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
+        {/* Action Buttons: Responsive, Clear Hierarchy, Mobile-First */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto shrink-0">
           <Link
             href="/admin/beneficiaries/new"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-primary-600 hover:bg-primary-700 rounded-lg shadow-sm transition-colors"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 rounded-xl shadow-sm transition-all whitespace-nowrap min-h-[44px]"
           >
-            <Plus className="w-4 h-4" />
-            Add Beneficiary
+            <UserPlus className="w-4 h-4 shrink-0" />
+            <span>Add Beneficiary</span>
           </Link>
+
           <Link
             href="/admin/beneficiaries"
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg shadow-sm transition-colors"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 active:bg-slate-100 rounded-xl shadow-xs transition-all whitespace-nowrap min-h-[44px]"
           >
-            Manage Beneficiaries
+            <Users className="w-4 h-4 shrink-0 text-slate-400 dark:text-slate-500" />
+            <span>Manage Beneficiaries</span>
           </Link>
         </div>
       </div>

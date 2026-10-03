@@ -196,29 +196,29 @@ export default function DonationsLedgerPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full sm:w-auto">
           <button
             onClick={fetchLedger}
             disabled={loading}
-            className="btn-secondary text-xs inline-flex items-center gap-1.5"
+            className="flex-1 sm:flex-none btn-secondary text-xs inline-flex items-center justify-center gap-1.5 whitespace-nowrap min-h-[40px] sm:min-h-0 py-2 px-3"
             title="Refresh Ledger"
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
-            Refresh
+            <span>Refresh</span>
           </button>
           <button
             onClick={handlePrint}
-            className="btn-secondary text-xs inline-flex items-center gap-1.5"
+            className="flex-1 sm:flex-none btn-secondary text-xs inline-flex items-center justify-center gap-1.5 whitespace-nowrap min-h-[40px] sm:min-h-0 py-2 px-3"
           >
             <Printer className="h-4 w-4" />
-            Print Ledger
+            <span>Print</span>
           </button>
           <Link
             href="/admin/donations/new"
-            className="btn-primary text-xs inline-flex items-center gap-1.5"
+            className="w-full sm:w-auto btn-primary text-xs inline-flex items-center justify-center gap-1.5 whitespace-nowrap min-h-[40px] sm:min-h-0 py-2 px-3"
           >
             <Gift className="h-4 w-4" />
-            Record Donation
+            <span>Record Donation</span>
           </Link>
         </div>
       </div>

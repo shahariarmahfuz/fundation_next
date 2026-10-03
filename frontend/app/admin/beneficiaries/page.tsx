@@ -19,7 +19,8 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
-  ShieldAlert
+  ShieldAlert,
+  UserPlus
 } from "lucide-react";
 
 export default function ManageBeneficiariesPage() {
@@ -131,23 +132,23 @@ export default function ManageBeneficiariesPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/admin/beneficiaries/ledger"
-            className="btn-secondary shrink-0 flex items-center gap-1.5"
-          >
-            <HandHeart className="h-4 w-4" />
-            Beneficiary Ledger
-          </Link>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto shrink-0">
           {canCreate && (
             <Link
               href="/admin/beneficiaries/new"
-              className="btn-primary shrink-0 flex items-center gap-1.5"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:py-2 text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 rounded-xl shadow-sm transition-all whitespace-nowrap min-h-[44px] order-1 sm:order-2"
             >
-              <Plus className="h-4 w-4" />
-              Add Beneficiary
+              <UserPlus className="h-4 w-4 shrink-0" />
+              <span>Add Beneficiary</span>
             </Link>
           )}
+          <Link
+            href="/admin/beneficiaries/ledger"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 active:bg-slate-100 rounded-xl shadow-xs transition-all whitespace-nowrap min-h-[44px] order-2 sm:order-1"
+          >
+            <HandHeart className="h-4 w-4 shrink-0 text-slate-400 dark:text-slate-500" />
+            <span>Beneficiary Ledger</span>
+          </Link>
         </div>
       </div>
 
