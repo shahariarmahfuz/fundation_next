@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Pagination } from "@/components/Pagination";
 import { StatusBadge } from "@/components/StatusBadge";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Gift,
   HeartHandshake,
@@ -328,18 +329,19 @@ export default function DonationsLedgerPage() {
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
               Source Type
             </label>
-            <select
-              className="input-field text-xs"
+            <CustomSelect
               value={sourceTypeFilter}
-              onChange={(e) => {
-                setSourceTypeFilter(e.target.value);
+              onChange={(val) => {
+                setSourceTypeFilter(String(val));
                 setPage(1);
               }}
-            >
-              <option value="">All Sources</option>
-              <option value="DONOR">External Donors</option>
-              <option value="MEMBER">Foundation Members</option>
-            </select>
+              options={[
+                { value: "", label: "All Sources" },
+                { value: "DONOR", label: "External Donors" },
+                { value: "MEMBER", label: "Foundation Members" },
+              ]}
+              searchable={false}
+            />
           </div>
 
           {/* Group Filter */}
@@ -347,21 +349,22 @@ export default function DonationsLedgerPage() {
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
               Accounting Group
             </label>
-            <select
-              className="input-field text-xs"
+            <CustomSelect
               value={selectedGroupId}
-              onChange={(e) => {
-                setSelectedGroupId(e.target.value);
+              onChange={(val) => {
+                setSelectedGroupId(String(val));
                 setPage(1);
               }}
-            >
-              <option value="">All Groups</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.code} — {g.name}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "All Groups" },
+                ...groups.map((g) => ({
+                  value: String(g.id),
+                  label: g.name,
+                  sublabel: g.code,
+                })),
+              ]}
+              searchable={true}
+            />
           </div>
 
           {/* Donor Filter */}
@@ -369,22 +372,23 @@ export default function DonationsLedgerPage() {
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
               Donor
             </label>
-            <select
-              className="input-field text-xs"
+            <CustomSelect
               value={selectedDonorId}
-              onChange={(e) => {
-                setSelectedDonorId(e.target.value);
-                if (e.target.value) setSourceTypeFilter("DONOR");
+              onChange={(val) => {
+                setSelectedDonorId(String(val));
+                if (val) setSourceTypeFilter("DONOR");
                 setPage(1);
               }}
-            >
-              <option value="">All Donors</option>
-              {donors.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name} ({d.donor_number})
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "All Donors" },
+                ...donors.map((d) => ({
+                  value: String(d.id),
+                  label: d.name,
+                  sublabel: d.donor_number,
+                })),
+              ]}
+              searchable={true}
+            />
           </div>
 
           {/* Member Filter */}
@@ -392,22 +396,23 @@ export default function DonationsLedgerPage() {
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
               Member
             </label>
-            <select
-              className="input-field text-xs"
+            <CustomSelect
               value={selectedMemberId}
-              onChange={(e) => {
-                setSelectedMemberId(e.target.value);
-                if (e.target.value) setSourceTypeFilter("MEMBER");
+              onChange={(val) => {
+                setSelectedMemberId(String(val));
+                if (val) setSourceTypeFilter("MEMBER");
                 setPage(1);
               }}
-            >
-              <option value="">All Members</option>
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.full_name} ({m.member_number})
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "All Members" },
+                ...members.map((m) => ({
+                  value: String(m.id),
+                  label: m.full_name,
+                  sublabel: m.member_number,
+                })),
+              ]}
+              searchable={true}
+            />
           </div>
 
           {/* Payment Method Filter */}
@@ -415,21 +420,22 @@ export default function DonationsLedgerPage() {
             <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
               Payment Method
             </label>
-            <select
-              className="input-field text-xs"
+            <CustomSelect
               value={selectedPaymentMethod}
-              onChange={(e) => {
-                setSelectedPaymentMethod(e.target.value);
+              onChange={(val) => {
+                setSelectedPaymentMethod(String(val));
                 setPage(1);
               }}
-            >
-              <option value="">All Methods</option>
-              <option value="CASH">CASH</option>
-              <option value="BANK_TRANSFER">BANK TRANSFER</option>
-              <option value="BKASH">BKASH</option>
-              <option value="NAGAD">NAGAD</option>
-              <option value="OTHER">OTHER</option>
-            </select>
+              options={[
+                { value: "", label: "All Methods" },
+                { value: "CASH", label: "CASH" },
+                { value: "BANK_TRANSFER", label: "BANK TRANSFER" },
+                { value: "BKASH", label: "BKASH" },
+                { value: "NAGAD", label: "NAGAD" },
+                { value: "OTHER", label: "OTHER" },
+              ]}
+              searchable={false}
+            />
           </div>
 
           {/* Date Range: From & To */}

@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { useFlash } from "@/lib/flash";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Coins,
   ArrowLeft,
@@ -416,19 +417,20 @@ export default function ReceiveContributionPage() {
                     Loading members...
                   </div>
                 ) : (
-                  <select
-                    value={selectedMemberId}
-                    onChange={(e) => setSelectedMemberId(e.target.value)}
+                  <CustomSelect
                     required
-                    className="w-full px-3.5 py-2.5 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all shadow-sm"
-                  >
-                    <option value="">-- Choose Member --</option>
-                    {members.map((m) => (
-                      <option key={m.id} value={m.id}>
-                        {m.full_name} ({m.member_number}) {m.phone ? `— ${m.phone}` : ""}
-                      </option>
-                    ))}
-                  </select>
+                    value={selectedMemberId}
+                    onChange={(val) => setSelectedMemberId(String(val))}
+                    options={members.map((m) => ({
+                      value: String(m.id),
+                      label: m.full_name,
+                      sublabel: `(${m.member_number})${m.phone ? ` — ${m.phone}` : ""}`,
+                    }))}
+                    placeholder="-- Choose Member --"
+                    emptyMessage="No members found"
+                    searchable={true}
+                    searchPlaceholder="Search member name, ID, or phone..."
+                  />
                 )}
               </div>
 
@@ -723,21 +725,20 @@ export default function ReceiveContributionPage() {
                 <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider mb-1.5">
                   Payment Method <span className="text-red-500">*</span>
                 </label>
-                <div className="relative">
-                  <CreditCard className="w-4 h-4 text-gray-400 absolute left-3 top-3" />
-                  <select
-                    value={paymentMethod}
-                    onChange={(e) => setPaymentMethod(e.target.value)}
-                    required
-                    className="w-full pl-9 pr-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-                  >
-                    <option value="CASH">CASH (Physical Receipt)</option>
-                    <option value="BANK_TRANSFER">BANK TRANSFER</option>
-                    <option value="BKASH">bKash Mobile Banking</option>
-                    <option value="NAGAD">Nagad Mobile Banking</option>
-                    <option value="OTHER">OTHER PAYMENT METHOD</option>
-                  </select>
-                </div>
+                <CustomSelect
+                  required
+                  value={paymentMethod}
+                  onChange={(val) => setPaymentMethod(String(val))}
+                  options={[
+                    { value: "CASH", label: "CASH (Physical Receipt)" },
+                    { value: "BANK_TRANSFER", label: "BANK TRANSFER" },
+                    { value: "BKASH", label: "bKash Mobile Banking" },
+                    { value: "NAGAD", label: "Nagad Mobile Banking" },
+                    { value: "OTHER", label: "OTHER PAYMENT METHOD" },
+                  ]}
+                  icon={<CreditCard className="w-4 h-4" />}
+                  searchable={false}
+                />
               </div>
 
               {/* Reference */}

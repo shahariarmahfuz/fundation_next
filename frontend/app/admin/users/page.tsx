@@ -5,6 +5,7 @@ import { api } from "@/lib/api";
 import { formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Modal } from "@/components/Modal";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Shield,
   Plus,
@@ -474,18 +475,18 @@ export default function UsersRolesPage() {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1">
                 Security Role *
               </label>
-              <select
+              <CustomSelect
                 value={userFormData.role_id}
-                onChange={(e) => setUserFormData({ ...userFormData, role_id: e.target.value })}
-                className="input-field"
-              >
-                <option value="">No Role Assigned</option>
-                {roles.map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setUserFormData({ ...userFormData, role_id: String(val) })}
+                options={[
+                  { value: "", label: "No Role Assigned" },
+                  ...roles.map((r) => ({
+                    value: String(r.id),
+                    label: r.name,
+                  })),
+                ]}
+                searchable={false}
+              />
             </div>
           </div>
 

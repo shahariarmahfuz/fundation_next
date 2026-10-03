@@ -7,6 +7,7 @@ import { formatCurrency } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Modal } from "@/components/Modal";
 import { useFlash, getUserFriendlyErrorMessage } from "@/lib/flash";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   FolderTree,
   Plus,
@@ -218,16 +219,18 @@ export default function ManageGroupsPage() {
               className="input-field pl-9 text-xs"
             />
           </div>
-          <div>
-            <select
+          <div className="w-40">
+            <CustomSelect
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="input-field text-xs font-medium"
-            >
-              <option value="">All Statuses</option>
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="INACTIVE">INACTIVE</option>
-            </select>
+              onChange={(val) => setStatusFilter(String(val))}
+              options={[
+                { value: "", label: "All Statuses" },
+                { value: "ACTIVE", label: "ACTIVE" },
+                { value: "INACTIVE", label: "INACTIVE" },
+              ]}
+              searchable={false}
+              triggerClassName="py-1.5 text-xs h-9"
+            />
           </div>
         </div>
       </div>
@@ -431,38 +434,40 @@ export default function ManageGroupsPage() {
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Source Group (Debit/Outflow) *
             </label>
-            <select
+            <CustomSelect
               required
-              className="input-field text-xs font-medium"
               value={transferData.source_group_id}
-              onChange={(e) => setTransferData({ ...transferData, source_group_id: e.target.value })}
-            >
-              <option value="">Select source group</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id} disabled={String(g.id) === transferData.destination_group_id}>
-                  {g.name} ({g.code}) — Balance: {formatCurrency(g.current_balance)}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setTransferData({ ...transferData, source_group_id: String(val) })}
+              options={groups.map((g) => ({
+                value: String(g.id),
+                label: `${g.name} (${g.code})`,
+                sublabel: `Balance: ${formatCurrency(g.current_balance)}`,
+                disabled: String(g.id) === transferData.destination_group_id,
+              }))}
+              placeholder="Select source group"
+              searchable={true}
+              searchPlaceholder="Search source group..."
+            />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
               Destination Group (Credit/Inflow) *
             </label>
-            <select
+            <CustomSelect
               required
-              className="input-field text-xs font-medium"
               value={transferData.destination_group_id}
-              onChange={(e) => setTransferData({ ...transferData, destination_group_id: e.target.value })}
-            >
-              <option value="">Select destination group</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id} disabled={String(g.id) === transferData.source_group_id}>
-                  {g.name} ({g.code}) — Balance: {formatCurrency(g.current_balance)}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setTransferData({ ...transferData, destination_group_id: String(val) })}
+              options={groups.map((g) => ({
+                value: String(g.id),
+                label: `${g.name} (${g.code})`,
+                sublabel: `Balance: ${formatCurrency(g.current_balance)}`,
+                disabled: String(g.id) === transferData.source_group_id,
+              }))}
+              placeholder="Select destination group"
+              searchable={true}
+              searchPlaceholder="Search destination group..."
+            />
           </div>
 
           <div>

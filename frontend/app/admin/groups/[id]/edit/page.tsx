@@ -6,6 +6,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useFlash, getUserFriendlyErrorMessage } from "@/lib/flash";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   ArrowLeft,
   Loader2,
@@ -358,15 +359,16 @@ export default function EditGroupPage() {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                 Status
               </label>
-              <select
+              <CustomSelect
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
-              >
-                <option value="ACTIVE">ACTIVE — Operating & Receiving Contributions</option>
-                <option value="INACTIVE">INACTIVE — Paused Operations</option>
-                <option value="ARCHIVED">ARCHIVED — Closed Account</option>
-              </select>
+                onChange={(val) => setFormData({ ...formData, status: String(val) })}
+                options={[
+                  { value: "ACTIVE", label: "ACTIVE — Operating & Receiving Contributions" },
+                  { value: "INACTIVE", label: "INACTIVE — Paused Operations" },
+                  { value: "ARCHIVED", label: "ARCHIVED — Closed Account" },
+                ]}
+                searchable={false}
+              />
             </div>
 
             {/* Group Name (Required) */}

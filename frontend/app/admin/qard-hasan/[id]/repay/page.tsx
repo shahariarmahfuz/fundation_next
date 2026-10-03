@@ -7,6 +7,7 @@ import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { getFoundationTodayDate } from "@/lib/timezone";
 import { StatusBadge } from "@/components/StatusBadge";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Scale,
   ArrowLeft,
@@ -494,16 +495,17 @@ export default function QardHasanRepayPage({ params }: PageProps) {
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                   Payment Method <span className="text-rose-500">*</span>
                 </label>
-                <select
-                  className="input-field text-xs font-semibold"
+                <CustomSelect
                   value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                >
-                  <option value="CASH">CASH</option>
-                  <option value="BANK_TRANSFER">BANK TRANSFER</option>
-                  <option value="BKASH">BKASH</option>
-                  <option value="NAGAD">NAGAD</option>
-                </select>
+                  onChange={(val) => setPaymentMethod(String(val))}
+                  options={[
+                    { value: "CASH", label: "CASH" },
+                    { value: "BANK_TRANSFER", label: "BANK TRANSFER" },
+                    { value: "BKASH", label: "BKASH" },
+                    { value: "NAGAD", label: "NAGAD" },
+                  ]}
+                  searchable={false}
+                />
               </div>
 
               <div>

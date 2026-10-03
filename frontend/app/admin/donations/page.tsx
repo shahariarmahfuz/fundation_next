@@ -5,6 +5,7 @@ import Link from "next/link";
 import { api, getStoredUser } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Pagination } from "@/components/Pagination";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Gift,
   PlusCircle,
@@ -149,38 +150,40 @@ export default function DonationsPage() {
 
         <div className="flex flex-wrap items-center gap-2">
           {/* Source Type Filter */}
-          <div className="flex items-center gap-1.5">
-            <select
-              className="input-field text-xs sm:text-sm w-36"
+          <div className="w-36">
+            <CustomSelect
               value={sourceTypeFilter}
-              onChange={(e) => {
-                setSourceTypeFilter(e.target.value);
+              onChange={(val) => {
+                setSourceTypeFilter(String(val));
                 setPage(1);
               }}
-            >
-              <option value="">All Sources</option>
-              <option value="DONOR">External Donors</option>
-              <option value="MEMBER">Foundation Members</option>
-            </select>
+              options={[
+                { value: "", label: "All Sources" },
+                { value: "DONOR", label: "External Donors" },
+                { value: "MEMBER", label: "Foundation Members" },
+              ]}
+              searchable={false}
+            />
           </div>
 
           {/* Group Filter */}
-          <div className="flex items-center gap-1.5">
-            <select
-              className="input-field text-xs sm:text-sm w-44"
+          <div className="w-44">
+            <CustomSelect
               value={selectedGroup}
-              onChange={(e) => {
-                setSelectedGroup(e.target.value);
+              onChange={(val) => {
+                setSelectedGroup(String(val));
                 setPage(1);
               }}
-            >
-              <option value="">All Groups</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.code} — {g.name}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "All Groups" },
+                ...groups.map((g) => ({
+                  value: String(g.id),
+                  label: g.name,
+                  sublabel: g.code,
+                })),
+              ]}
+              searchable={true}
+            />
           </div>
         </div>
       </div>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { api } from "@/lib/api";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { UserPlus, CheckCircle2, AlertCircle, ArrowLeft, Loader2, Copy, Check, Search } from "lucide-react";
 
 interface GroupOption {
@@ -219,21 +220,20 @@ export default function MemberApplicationPage() {
                       Loading groups...
                     </div>
                   ) : (
-                    <select
+                    <CustomSelect
                       required
-                      className="input-field text-sm font-medium"
                       value={groupId}
-                      onChange={(e) => setGroupId(e.target.value)}
-                    >
-                      {groups.length === 0 && (
-                        <option value="">No active groups available</option>
-                      )}
-                      {groups.map((g) => (
-                        <option key={g.id} value={g.id}>
-                          {g.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => setGroupId(String(val))}
+                      options={groups.map((g) => ({
+                        value: String(g.id),
+                        label: g.name,
+                        sublabel: g.code ? `(${g.code})` : undefined,
+                      }))}
+                      placeholder={groups.length === 0 ? "No active groups available" : "Select Group"}
+                      emptyMessage="No active groups found"
+                      searchable={true}
+                      searchPlaceholder="Search groups..."
+                    />
                   )}
                 </div>
 

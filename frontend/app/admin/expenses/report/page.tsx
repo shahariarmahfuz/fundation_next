@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   BarChart3,
   Calendar,
@@ -157,18 +158,19 @@ export default function ExpenseReportPage() {
             <label className="block text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">
               Source Group
             </label>
-            <select
+            <CustomSelect
               value={selectedGroup}
-              onChange={(e) => setSelectedGroup(e.target.value)}
-              className="input-field text-xs font-medium"
-            >
-              <option value="">All Accounting Groups</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedGroup(String(val))}
+              options={[
+                { value: "", label: "All Accounting Groups" },
+                ...groups.map((g) => ({
+                  value: String(g.id),
+                  label: g.name,
+                })),
+              ]}
+              searchable={true}
+              searchPlaceholder="Search groups..."
+            />
           </div>
 
           {/* Category Filter */}
@@ -176,18 +178,19 @@ export default function ExpenseReportPage() {
             <label className="block text-[11px] font-bold uppercase text-slate-500 dark:text-slate-400 mb-1">
               Expense Category
             </label>
-            <select
+            <CustomSelect
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className="input-field text-xs font-medium"
-            >
-              <option value="">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedCategory(String(val))}
+              options={[
+                { value: "", label: "All Categories" },
+                ...categories.map((c) => ({
+                  value: String(c.id),
+                  label: c.name,
+                })),
+              ]}
+              searchable={true}
+              searchPlaceholder="Search categories..."
+            />
           </div>
 
           {/* Start Date */}

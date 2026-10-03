@@ -5,6 +5,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Pagination } from "@/components/Pagination";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Receipt,
   Plus,
@@ -218,60 +219,63 @@ export default function ExpenseLedgerPage() {
 
           {/* Group Filter */}
           <div>
-            <select
+            <CustomSelect
               value={selectedGroup}
-              onChange={(e) => {
-                setSelectedGroup(e.target.value);
+              onChange={(val) => {
+                setSelectedGroup(String(val));
                 setPage(1);
               }}
-              className="input-field text-xs font-medium"
-            >
-              <option value="">All Groups</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "All Groups" },
+                ...groups.map((g) => ({
+                  value: String(g.id),
+                  label: g.name,
+                })),
+              ]}
+              searchable={true}
+              searchPlaceholder="Search groups..."
+            />
           </div>
 
           {/* Category Filter */}
           <div>
-            <select
+            <CustomSelect
               value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value);
+              onChange={(val) => {
+                setSelectedCategory(String(val));
                 setPage(1);
               }}
-              className="input-field text-xs font-medium"
-            >
-              <option value="">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "All Categories" },
+                ...categories.map((c) => ({
+                  value: String(c.id),
+                  label: c.name,
+                })),
+              ]}
+              searchable={true}
+              searchPlaceholder="Search categories..."
+            />
           </div>
 
           {/* Method Filter */}
           <div>
-            <select
+            <CustomSelect
               value={selectedMethod}
-              onChange={(e) => {
-                setSelectedMethod(e.target.value);
+              onChange={(val) => {
+                setSelectedMethod(String(val));
                 setPage(1);
               }}
-              className="input-field text-xs font-medium"
-            >
-              <option value="">All Methods</option>
-              <option value="CASH">CASH</option>
-              <option value="BANK_TRANSFER">BANK TRANSFER</option>
-              <option value="BKASH">BKASH</option>
-              <option value="NAGAD">NAGAD</option>
-              <option value="ROCKET">ROCKET</option>
-              <option value="CHEQUE">CHEQUE</option>
-            </select>
+              options={[
+                { value: "", label: "All Methods" },
+                { value: "CASH", label: "CASH" },
+                { value: "BANK_TRANSFER", label: "BANK TRANSFER" },
+                { value: "BKASH", label: "BKASH" },
+                { value: "NAGAD", label: "NAGAD" },
+                { value: "ROCKET", label: "ROCKET" },
+                { value: "CHEQUE", label: "CHEQUE" },
+              ]}
+              searchable={false}
+            />
           </div>
 
           {/* Clear Filters Button */}

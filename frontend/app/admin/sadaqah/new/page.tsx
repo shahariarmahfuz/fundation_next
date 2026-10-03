@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { getFoundationTodayDate } from "@/lib/timezone";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Heart,
   Plus,
@@ -427,28 +428,26 @@ export default function NewSadaqahPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                Filter / Search Beneficiary
+                Select Beneficiary <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="text"
-                placeholder="Search by name, phone, or code..."
-                className="input-field text-xs mb-2"
-                value={beneficiarySearch}
-                onChange={(e) => setBeneficiarySearch(e.target.value)}
-              />
-              <select
+              <CustomSelect
                 required
-                size={5}
-                className="input-field text-xs leading-normal font-medium h-36"
                 value={beneficiaryId}
-                onChange={(e) => setBeneficiaryId(e.target.value)}
-              >
-                {filteredBeneficiaries.map((b) => (
-                  <option key={b.id} value={b.id} className="p-1.5 hover:bg-rose-50 dark:hover:bg-slate-800">
-                    {b.name} — ({b.phone || "No phone"}) [{b.beneficiary_number}]
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setBeneficiaryId(String(val))}
+                options={beneficiaries.map((b) => ({
+                  value: String(b.id),
+                  label: b.name,
+                  sublabel: `[${b.beneficiary_number}] ${b.phone ? `— ${b.phone}` : ""}`,
+                  badge: b.status,
+                }))}
+                placeholder="-- Select Beneficiary --"
+                emptyMessage="No beneficiaries found"
+                searchable={true}
+                searchPlaceholder="Search by name, phone, code, or NID..."
+              />
+              <p className="mt-1 text-[11px] text-slate-400 dark:text-slate-500">
+                Total {beneficiaries.length} registered beneficiaries available
+              </p>
             </div>
 
             {selectedBeneficiaryObj ? (
@@ -545,16 +544,17 @@ export default function NewSadaqahPage() {
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Payment Method
               </label>
-              <select
-                className="input-field text-xs font-semibold"
+              <CustomSelect
                 value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              >
-                <option value="CASH">CASH</option>
-                <option value="BANK_TRANSFER">BANK TRANSFER</option>
-                <option value="BKASH">BKASH</option>
-                <option value="NAGAD">NAGAD</option>
-              </select>
+                onChange={(val) => setPaymentMethod(String(val))}
+                options={[
+                  { value: "CASH", label: "CASH" },
+                  { value: "BANK_TRANSFER", label: "BANK TRANSFER" },
+                  { value: "BKASH", label: "BKASH" },
+                  { value: "NAGAD", label: "NAGAD" },
+                ]}
+                searchable={false}
+              />
             </div>
           </div>
 
@@ -651,19 +651,19 @@ export default function NewSadaqahPage() {
                       <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
                         Source Group #{idx + 1} <span className="text-rose-500">*</span>
                       </label>
-                      <select
+                      <CustomSelect
                         required
-                        className="input-field text-xs font-semibold"
                         value={row.group_id}
-                        onChange={(e) => updateAllocationRow(idx, "group_id", e.target.value)}
-                      >
-                        <option value="">-- Select Accounting Group --</option>
-                        {groups.map((g) => (
-                          <option key={g.id} value={g.id}>
-                            {g.name} ({g.code}) — Avail: {formatCurrency(g.current_balance)}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => updateAllocationRow(idx, "group_id", String(val))}
+                        options={groups.map((g) => ({
+                          value: String(g.id),
+                          label: `${g.name} (${g.code})`,
+                          sublabel: `Avail: ${formatCurrency(g.current_balance)}`,
+                        }))}
+                        placeholder="-- Select Accounting Group --"
+                        searchable={true}
+                        searchPlaceholder="Search groups..."
+                      />
                     </div>
 
                     {/* Available Balance Chip */}

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { getFoundationTodayDate } from "@/lib/timezone";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Receipt,
   Plus,
@@ -344,18 +345,18 @@ export default function NewExpensePage() {
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                       Source Accounting Group <span className="text-rose-500">*</span>
                     </label>
-                    <select
-                      required
+                    <CustomSelect
                       value={groupId}
-                      onChange={(e) => setGroupId(e.target.value)}
-                      className="input-field text-xs font-medium"
-                    >
-                      {groups.map((g) => (
-                        <option key={g.id} value={g.id}>
-                          {g.name} (৳{parseFloat(g.current_balance || "0").toLocaleString(undefined, { minimumFractionDigits: 2 })})
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => setGroupId(String(val))}
+                      options={groups.map((g) => ({
+                        value: String(g.id),
+                        label: g.name,
+                        sublabel: `৳${parseFloat(g.current_balance || "0").toLocaleString(undefined, { minimumFractionDigits: 2 })}`,
+                      }))}
+                      placeholder="Select accounting group"
+                      searchable={true}
+                      searchPlaceholder="Search groups..."
+                    />
                     <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                       The expense will be debited from this group&apos;s available funds.
                     </p>
@@ -375,18 +376,17 @@ export default function NewExpensePage() {
                       </Link>
                     </div>
 
-                    <select
-                      required
+                    <CustomSelect
                       value={categoryId}
-                      onChange={(e) => setCategoryId(e.target.value)}
-                      className="input-field text-xs font-medium"
-                    >
-                      {categories.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => setCategoryId(String(val))}
+                      options={categories.map((c) => ({
+                        value: String(c.id),
+                        label: c.name,
+                      }))}
+                      placeholder="Select expense category"
+                      searchable={true}
+                      searchPlaceholder="Search categories..."
+                    />
                     <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                       Identifies the purpose or classification of the expenditure.
                     </p>
@@ -440,19 +440,19 @@ export default function NewExpensePage() {
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                       Payment Method <span className="text-rose-500">*</span>
                     </label>
-                    <select
-                      required
+                    <CustomSelect
                       value={paymentMethod}
-                      onChange={(e) => setPaymentMethod(e.target.value)}
-                      className="input-field text-xs font-medium"
-                    >
-                      <option value="CASH">CASH</option>
-                      <option value="BANK_TRANSFER">BANK TRANSFER</option>
-                      <option value="BKASH">BKASH</option>
-                      <option value="NAGAD">NAGAD</option>
-                      <option value="ROCKET">ROCKET</option>
-                      <option value="CHEQUE">CHEQUE</option>
-                    </select>
+                      onChange={(val) => setPaymentMethod(String(val))}
+                      options={[
+                        { value: "CASH", label: "CASH" },
+                        { value: "BANK_TRANSFER", label: "BANK TRANSFER" },
+                        { value: "BKASH", label: "BKASH" },
+                        { value: "NAGAD", label: "NAGAD" },
+                        { value: "ROCKET", label: "ROCKET" },
+                        { value: "CHEQUE", label: "CHEQUE" },
+                      ]}
+                      searchable={false}
+                    />
                   </div>
 
                   {/* Payee / Recipient (Optional) */}

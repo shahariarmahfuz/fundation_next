@@ -6,6 +6,7 @@ import { api, getStoredUser } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Pagination } from "@/components/Pagination";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { Modal } from "@/components/Modal";
 import {
   HeartHandshake,
@@ -157,18 +158,21 @@ export default function ManageDonorsPage() {
 
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-slate-400 shrink-0" />
-          <select
-            className="input-field text-xs sm:text-sm w-40"
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-          >
-            <option value="">All Statuses</option>
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="INACTIVE">INACTIVE</option>
-          </select>
+          <div className="w-40">
+            <CustomSelect
+              value={statusFilter}
+              onChange={(val) => {
+                setStatusFilter(String(val));
+                setPage(1);
+              }}
+              options={[
+                { value: "", label: "All Statuses" },
+                { value: "ACTIVE", label: "ACTIVE" },
+                { value: "INACTIVE", label: "INACTIVE" },
+              ]}
+              searchable={false}
+            />
+          </div>
         </div>
       </div>
 

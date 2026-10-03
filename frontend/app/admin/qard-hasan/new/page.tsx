@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { getFoundationTodayDate } from "@/lib/timezone";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Scale,
   Plus,
@@ -472,49 +473,24 @@ export default function NewQardHasanPage() {
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    placeholder="Search by name, phone, code, or NID..."
-                    className="input-field text-xs"
-                    value={beneficiarySearch}
-                    onChange={(e) => setBeneficiarySearch(e.target.value)}
+                <div className="space-y-1">
+                  <CustomSelect
+                    required
+                    value={beneficiaryId}
+                    onChange={(val) => setBeneficiaryId(String(val))}
+                    options={beneficiaries.map((b) => ({
+                      value: String(b.id),
+                      label: b.name,
+                      sublabel: `[${b.beneficiary_number}] ${b.phone ? `— ${b.phone}` : ""}`,
+                      badge: b.status,
+                    }))}
+                    placeholder="-- Select Beneficiary --"
+                    emptyMessage="No beneficiaries found"
+                    searchable={true}
+                    searchPlaceholder="Search by name, phone, code, or NID..."
                   />
-
-                  {filteredBeneficiaries.length === 0 ? (
-                    <div className="p-5 border border-dashed border-slate-300 dark:border-[#242424] rounded-xl text-center text-xs text-slate-500 dark:text-slate-400 space-y-2">
-                      <p>
-                        No beneficiaries found matching &ldquo;<span className="font-semibold text-slate-800 dark:text-slate-200">{beneficiarySearch}</span>&rdquo;
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setBeneficiarySearch("")}
-                        className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline font-semibold cursor-pointer"
-                      >
-                        Clear Search Filter ({beneficiaries.length} total available)
-                      </button>
-                    </div>
-                  ) : (
-                    <select
-                      required
-                      size={5}
-                      className="input-field text-xs leading-normal font-medium h-36"
-                      value={beneficiaryId}
-                      onChange={(e) => setBeneficiaryId(e.target.value)}
-                    >
-                      {filteredBeneficiaries.map((b) => (
-                        <option
-                          key={b.id}
-                          value={b.id}
-                          className="p-1.5 hover:bg-emerald-50 dark:hover:bg-[#151515]"
-                        >
-                          [{b.beneficiary_number}] {b.name} — ({b.phone || "No phone"}) [{b.status}]
-                        </option>
-                      ))}
-                    </select>
-                  )}
                   <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                    Showing {filteredBeneficiaries.length} of {beneficiaries.length} beneficiaries
+                    Total {beneficiaries.length} registered beneficiaries available
                   </p>
                 </div>
               )}
@@ -642,16 +618,17 @@ export default function NewQardHasanPage() {
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Disbursement Payment Method
               </label>
-              <select
-                className="input-field text-xs"
+              <CustomSelect
                 value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              >
-                <option value="CASH">CASH</option>
-                <option value="BANK_TRANSFER">BANK TRANSFER</option>
-                <option value="BKASH">BKASH</option>
-                <option value="NAGAD">NAGAD</option>
-              </select>
+                onChange={(val) => setPaymentMethod(String(val))}
+                options={[
+                  { value: "CASH", label: "CASH" },
+                  { value: "BANK_TRANSFER", label: "BANK TRANSFER" },
+                  { value: "BKASH", label: "BKASH" },
+                  { value: "NAGAD", label: "NAGAD" },
+                ]}
+                searchable={false}
+              />
             </div>
 
             <div>
@@ -779,19 +756,20 @@ export default function NewQardHasanPage() {
                       <label className="block text-[11px] font-semibold text-slate-600 dark:text-slate-400 mb-1">
                         Source Group #{idx + 1} <span className="text-rose-500">*</span>
                       </label>
-                      <select
+                      <CustomSelect
                         required
-                        className="input-field text-xs font-semibold"
                         value={row.group_id}
-                        onChange={(e) => updateAllocationRow(idx, "group_id", e.target.value)}
-                      >
-                        <option value="">-- Select Accounting Group --</option>
-                        {groups.map((g) => (
-                          <option key={g.id} value={g.id}>
-                            {g.name} ({g.code}) — Avail: {formatCurrency(g.current_balance)}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => updateAllocationRow(idx, "group_id", String(val))}
+                        options={groups.map((g) => ({
+                          value: String(g.id),
+                          label: `${g.name} (${g.code})`,
+                          sublabel: `Avail: ${formatCurrency(g.current_balance)}`,
+                        }))}
+                        placeholder="-- Select Accounting Group --"
+                        searchable={true}
+                        searchPlaceholder="Search group..."
+                        triggerClassName="text-xs font-semibold py-2"
+                      />
                     </div>
 
                     {/* Available Balance Chip */}

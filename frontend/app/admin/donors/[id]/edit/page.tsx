@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   HeartHandshake,
   ArrowLeft,
@@ -301,18 +302,16 @@ export default function EditDonorPage() {
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               Status <span className="text-rose-500">*</span>
             </label>
-            <div className="relative">
-              <Activity className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
-              <select
-                required
-                className="input-field pl-10"
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-              >
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="INACTIVE">INACTIVE</option>
-              </select>
-            </div>
+            <CustomSelect
+              value={formData.status}
+              onChange={(val) => setFormData({ ...formData, status: String(val) })}
+              options={[
+                { value: "ACTIVE", label: "ACTIVE" },
+                { value: "INACTIVE", label: "INACTIVE" },
+              ]}
+              searchable={false}
+              icon={<Activity className="h-4 w-4" />}
+            />
           </div>
 
           {/* Phone */}

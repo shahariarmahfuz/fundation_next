@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { useFlash } from "@/lib/flash";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   HandHeart,
   ArrowLeft,
@@ -374,18 +375,16 @@ export default function AddBeneficiaryPage() {
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                 Status
               </label>
-              <div className="relative">
-                <ShieldCheck className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 dark:text-slate-500 pointer-events-none" />
-                <select
-                  name="status"
-                  value={formData.status}
-                  onChange={handleChange}
-                  className="input-field pl-10"
-                >
-                  <option value="ACTIVE">ACTIVE (Eligible for Aid &amp; Loans)</option>
-                  <option value="INACTIVE">INACTIVE</option>
-                </select>
-              </div>
+              <CustomSelect
+                value={formData.status}
+                onChange={(val) => setFormData({ ...formData, status: String(val) })}
+                options={[
+                  { value: "ACTIVE", label: "ACTIVE (Eligible for Aid & Loans)" },
+                  { value: "INACTIVE", label: "INACTIVE" },
+                ]}
+                icon={<ShieldCheck className="h-4 w-4 text-slate-400" />}
+                searchable={false}
+              />
             </div>
           </div>
         </div>

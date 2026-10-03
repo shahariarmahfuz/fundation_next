@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Pagination } from "@/components/Pagination";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Scale,
   Plus,
@@ -211,53 +212,61 @@ export default function QardHasanLedgerPage() {
 
           <div className="flex items-center gap-2 flex-wrap">
             {/* Status Filter */}
-            <select
-              value={selectedStatus}
-              onChange={(e) => {
-                setSelectedStatus(e.target.value);
-                setPage(1);
-              }}
-              className="input-field py-1 text-xs w-36"
-            >
-              <option value="">All Statuses</option>
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="COMPLETED">COMPLETED</option>
-              <option value="DEFAULTED">DEFAULTED</option>
-            </select>
+            <div className="w-36">
+              <CustomSelect
+                value={selectedStatus}
+                onChange={(val) => {
+                  setSelectedStatus(String(val));
+                  setPage(1);
+                }}
+                options={[
+                  { value: "", label: "All Statuses" },
+                  { value: "ACTIVE", label: "ACTIVE" },
+                  { value: "COMPLETED", label: "COMPLETED" },
+                  { value: "DEFAULTED", label: "DEFAULTED" },
+                ]}
+                searchable={false}
+              />
+            </div>
 
             {/* Group Filter */}
-            <select
-              value={selectedGroup}
-              onChange={(e) => {
-                setSelectedGroup(e.target.value);
-                setPage(1);
-              }}
-              className="input-field py-1 text-xs w-44"
-            >
-              <option value="">All Funding Groups</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name}
-                </option>
-              ))}
-            </select>
+            <div className="w-44">
+              <CustomSelect
+                value={selectedGroup}
+                onChange={(val) => {
+                  setSelectedGroup(String(val));
+                  setPage(1);
+                }}
+                options={[
+                  { value: "", label: "All Funding Groups" },
+                  ...groups.map((g) => ({
+                    value: String(g.id),
+                    label: g.name,
+                  })),
+                ]}
+                searchable={true}
+              />
+            </div>
 
             {/* Beneficiary Filter */}
-            <select
-              value={selectedBeneficiary}
-              onChange={(e) => {
-                setSelectedBeneficiary(e.target.value);
-                setPage(1);
-              }}
-              className="input-field py-1 text-xs w-48"
-            >
-              <option value="">All Beneficiaries</option>
-              {beneficiaries.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name} ({b.beneficiary_number})
-                </option>
-              ))}
-            </select>
+            <div className="w-48">
+              <CustomSelect
+                value={selectedBeneficiary}
+                onChange={(val) => {
+                  setSelectedBeneficiary(String(val));
+                  setPage(1);
+                }}
+                options={[
+                  { value: "", label: "All Beneficiaries" },
+                  ...beneficiaries.map((b) => ({
+                    value: String(b.id),
+                    label: b.name,
+                    sublabel: b.beneficiary_number,
+                  })),
+                ]}
+                searchable={true}
+              />
+            </div>
           </div>
         </div>
       </div>

@@ -8,6 +8,7 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { Pagination } from "@/components/Pagination";
 import { Modal } from "@/components/Modal";
 import { useFlash } from "@/lib/flash";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   BookOpen,
   ArrowDownLeft,
@@ -215,21 +216,24 @@ export default function ContributionLedgerPage() {
             <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
               Filter by Group
             </label>
-            <select
+            <CustomSelect
               value={selectedGroup}
-              onChange={(e) => {
-                setSelectedGroup(e.target.value);
+              onChange={(val) => {
+                setSelectedGroup(String(val));
                 setPage(1);
               }}
-              className="input-field py-1.5 text-xs"
-            >
-              <option value="">All Groups</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name} ({g.code})
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "All Groups" },
+                ...groups.map((g) => ({
+                  value: String(g.id),
+                  label: g.name,
+                  sublabel: `(${g.code})`,
+                })),
+              ]}
+              searchable={true}
+              searchPlaceholder="Search groups..."
+              triggerClassName="py-1.5 text-xs h-9"
+            />
           </div>
 
           <div>
@@ -266,18 +270,20 @@ export default function ContributionLedgerPage() {
             <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
               Reversal Status
             </label>
-            <select
+            <CustomSelect
               value={filterReversed}
-              onChange={(e) => {
-                setFilterReversed(e.target.value);
+              onChange={(val) => {
+                setFilterReversed(String(val));
                 setPage(1);
               }}
-              className="input-field py-1.5 text-xs"
-            >
-              <option value="">All Entries</option>
-              <option value="false">Active Only</option>
-              <option value="true">Reversed Only</option>
-            </select>
+              options={[
+                { value: "", label: "All Entries" },
+                { value: "false", label: "Active Only" },
+                { value: "true", label: "Reversed Only" },
+              ]}
+              searchable={false}
+              triggerClassName="py-1.5 text-xs h-9"
+            />
           </div>
         </div>
       </div>

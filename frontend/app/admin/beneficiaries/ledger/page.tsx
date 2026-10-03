@@ -5,6 +5,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDateTime } from "@/lib/utils";
 import { Pagination } from "@/components/Pagination";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   HandHeart,
   Search,
@@ -285,58 +286,66 @@ export default function BeneficiaryLedgerPage() {
 
           {/* Beneficiary Filter */}
           <div>
-            <select
+            <CustomSelect
               value={selectedBeneficiaryId}
-              onChange={(e) => {
-                setSelectedBeneficiaryId(e.target.value);
+              onChange={(val) => {
+                setSelectedBeneficiaryId(String(val));
                 setPage(1);
               }}
-              className="w-full px-2.5 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            >
-              <option value="">All Beneficiaries</option>
-              {beneficiaries.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name} ({b.code || b.beneficiary_number})
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "All Beneficiaries" },
+                ...beneficiaries.map((b) => ({
+                  value: String(b.id),
+                  label: b.name,
+                  sublabel: `(${b.code || b.beneficiary_number})`,
+                })),
+              ]}
+              searchable={true}
+              searchPlaceholder="Search beneficiaries..."
+              triggerClassName="py-2 text-xs sm:text-sm h-10"
+            />
           </div>
 
           {/* Aid Type Filter */}
           <div>
-            <select
+            <CustomSelect
               value={selectedAidType}
-              onChange={(e) => {
-                setSelectedAidType(e.target.value);
+              onChange={(val) => {
+                setSelectedAidType(String(val));
                 setPage(1);
               }}
-              className="w-full px-2.5 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            >
-              <option value="ALL">All Aid Types</option>
-              <option value="SADAKAH">Sadakah Grants</option>
-              <option value="QARD_HASAN">All Qard Hasan</option>
-              <option value="QARD_DISBURSEMENT">Qard Disbursements</option>
-              <option value="QARD_REPAYMENT">Qard Repayments</option>
-            </select>
+              options={[
+                { value: "ALL", label: "All Aid Types" },
+                { value: "SADAKAH", label: "Sadakah Grants" },
+                { value: "QARD_HASAN", label: "All Qard Hasan" },
+                { value: "QARD_DISBURSEMENT", label: "Qard Disbursements" },
+                { value: "QARD_REPAYMENT", label: "Qard Repayments" },
+              ]}
+              searchable={false}
+              triggerClassName="py-2 text-xs sm:text-sm h-10"
+            />
           </div>
 
           {/* Group Filter */}
           <div>
-            <select
+            <CustomSelect
               value={selectedGroupId}
-              onChange={(e) => {
-                setSelectedGroupId(e.target.value);
+              onChange={(val) => {
+                setSelectedGroupId(String(val));
                 setPage(1);
               }}
-              className="w-full px-2.5 py-2 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-xs sm:text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-all"
-            >
-              <option value="">All Groups</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name} ({g.code})
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "All Groups" },
+                ...groups.map((g) => ({
+                  value: String(g.id),
+                  label: g.name,
+                  sublabel: `(${g.code})`,
+                })),
+              ]}
+              searchable={true}
+              searchPlaceholder="Search groups..."
+              triggerClassName="py-2 text-xs sm:text-sm h-10"
+            />
           </div>
 
           {/* Reset button */}

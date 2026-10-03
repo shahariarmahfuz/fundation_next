@@ -6,6 +6,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useFlash, getUserFriendlyErrorMessage } from "@/lib/flash";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   ArrowLeft,
   Loader2,
@@ -536,19 +537,19 @@ export default function EditMemberPage() {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                 Accounting Group <span className="text-rose-500">*</span>
               </label>
-              <select
+              <CustomSelect
                 required
                 value={formData.group_id}
-                onChange={(e) => setFormData({ ...formData, group_id: e.target.value })}
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
-              >
-                <option value="">Select an Accounting Group</option>
-                {groups.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    [{g.code}] {g.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setFormData({ ...formData, group_id: String(val) })}
+                options={groups.map((g) => ({
+                  value: String(g.id),
+                  label: g.name,
+                  sublabel: g.code,
+                }))}
+                placeholder="Select an Accounting Group"
+                searchable={true}
+                searchPlaceholder="Search groups..."
+              />
             </div>
 
             {/* Member Code / ID */}
@@ -573,16 +574,17 @@ export default function EditMemberPage() {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                 Membership Status
               </label>
-              <select
+              <CustomSelect
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2.5 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
-              >
-                <option value="ACTIVE">ACTIVE</option>
-                <option value="INACTIVE">INACTIVE</option>
-                <option value="SUSPENDED">SUSPENDED</option>
-                <option value="ARCHIVED">ARCHIVED</option>
-              </select>
+                onChange={(val) => setFormData({ ...formData, status: String(val) })}
+                options={[
+                  { value: "ACTIVE", label: "ACTIVE" },
+                  { value: "INACTIVE", label: "INACTIVE" },
+                  { value: "SUSPENDED", label: "SUSPENDED" },
+                  { value: "ARCHIVED", label: "ARCHIVED" },
+                ]}
+                searchable={false}
+              />
             </div>
 
             {/* Join Date */}
@@ -730,16 +732,17 @@ export default function EditMemberPage() {
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                     Gender
                   </label>
-                  <select
+                  <CustomSelect
                     value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
-                    <option value="OTHER">Other</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, gender: String(val) })}
+                    options={[
+                      { value: "", label: "Select Gender" },
+                      { value: "MALE", label: "Male" },
+                      { value: "FEMALE", label: "Female" },
+                      { value: "OTHER", label: "Other" },
+                    ]}
+                    searchable={false}
+                  />
                 </div>
 
                 {/* Blood Group */}
@@ -747,21 +750,22 @@ export default function EditMemberPage() {
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                     Blood Group
                   </label>
-                  <select
+                  <CustomSelect
                     value={formData.blood_group}
-                    onChange={(e) => setFormData({ ...formData, blood_group: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
-                  >
-                    <option value="">Select Blood Group</option>
-                    <option value="A+">A+</option>
-                    <option value="A-">A-</option>
-                    <option value="B+">B+</option>
-                    <option value="B-">B-</option>
-                    <option value="O+">O+</option>
-                    <option value="O-">O-</option>
-                    <option value="AB+">AB+</option>
-                    <option value="AB-">AB-</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, blood_group: String(val) })}
+                    options={[
+                      { value: "", label: "Select Blood Group" },
+                      { value: "A+", label: "A+" },
+                      { value: "A-", label: "A-" },
+                      { value: "B+", label: "B+" },
+                      { value: "B-", label: "B-" },
+                      { value: "O+", label: "O+" },
+                      { value: "O-", label: "O-" },
+                      { value: "AB+", label: "AB+" },
+                      { value: "AB-", label: "AB-" },
+                    ]}
+                    searchable={false}
+                  />
                 </div>
 
                 {/* Marital Status */}
@@ -769,17 +773,18 @@ export default function EditMemberPage() {
                   <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                     Marital Status
                   </label>
-                  <select
+                  <CustomSelect
                     value={formData.marital_status}
-                    onChange={(e) => setFormData({ ...formData, marital_status: e.target.value })}
-                    className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-white focus:border-emerald-500 focus:outline-none"
-                  >
-                    <option value="">Select Marital Status</option>
-                    <option value="SINGLE">Single</option>
-                    <option value="MARRIED">Married</option>
-                    <option value="WIDOWED">Widowed</option>
-                    <option value="DIVORCED">Divorced</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, marital_status: String(val) })}
+                    options={[
+                      { value: "", label: "Select Marital Status" },
+                      { value: "SINGLE", label: "Single" },
+                      { value: "MARRIED", label: "Married" },
+                      { value: "WIDOWED", label: "Widowed" },
+                      { value: "DIVORCED", label: "Divorced" },
+                    ]}
+                    searchable={false}
+                  />
                 </div>
 
                 {/* Occupation */}

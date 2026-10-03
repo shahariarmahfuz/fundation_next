@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Users,
   Search,
@@ -214,21 +215,18 @@ function MemberLedgerContent() {
                 </button>
               </div>
             ) : (
-              <select
+              <CustomSelect
                 value={selectedMemberId}
-                onChange={(e) => handleSelectMember(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm font-medium text-slate-900 dark:text-slate-100 focus:border-emerald-500 focus:outline-none"
-              >
-                {filteredMembers.length === 0 ? (
-                  <option value="">No matching members found</option>
-                ) : (
-                  filteredMembers.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      [{m.member_number}] {m.full_name} — {m.group?.name ? `${m.group.name} (${m.group.code})` : "Unassigned"}
-                    </option>
-                  ))
-                )}
-              </select>
+                onChange={(val) => handleSelectMember(String(val))}
+                options={members.map((m) => ({
+                  value: String(m.id),
+                  label: m.full_name,
+                  sublabel: `[${m.member_number}] ${m.group?.name ? `• ${m.group.name}` : "• Unassigned"}`,
+                }))}
+                placeholder="-- Select Member --"
+                searchable={true}
+                searchPlaceholder="Search member name, ID, group..."
+              />
             )}
           </div>
         </div>

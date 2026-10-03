@@ -8,6 +8,7 @@ import { formatCurrency } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Pagination } from "@/components/Pagination";
 import { Modal } from "@/components/Modal";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   HandHeart,
   Plus,
@@ -189,20 +190,24 @@ export default function ManageBeneficiariesPage() {
             />
           </div>
 
-          <div className="flex gap-2">
-            <select
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value);
-                setPage(1);
-              }}
-              className="input-field"
-            >
-              <option value="">All Statuses</option>
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="INACTIVE">INACTIVE</option>
-            </select>
-            <button type="submit" className="btn-secondary">
+          <div className="flex gap-2 items-center">
+            <div className="w-40">
+              <CustomSelect
+                value={statusFilter}
+                onChange={(val) => {
+                  setStatusFilter(String(val));
+                  setPage(1);
+                }}
+                options={[
+                  { value: "", label: "All Statuses" },
+                  { value: "ACTIVE", label: "ACTIVE" },
+                  { value: "INACTIVE", label: "INACTIVE" },
+                ]}
+                searchable={false}
+                triggerClassName="py-2 text-xs"
+              />
+            </div>
+            <button type="submit" className="btn-secondary whitespace-nowrap">
               Search
             </button>
           </div>

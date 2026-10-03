@@ -6,6 +6,7 @@ import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Modal } from "@/components/Modal";
 import { Pagination } from "@/components/Pagination";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   BookOpen,
   FolderTree,
@@ -230,17 +231,17 @@ export default function LedgersPage() {
               <label className="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1">
                 Accounting Group
               </label>
-              <select
+              <CustomSelect
                 value={selectedGroupId || ""}
-                onChange={(e) => setSelectedGroupId(Number(e.target.value))}
-                className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-              >
-                {groups.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    [{g.code}] {g.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedGroupId(Number(val))}
+                options={groups.map((g) => ({
+                  value: g.id,
+                  label: g.name,
+                  sublabel: `[${g.code}]`,
+                }))}
+                searchable={true}
+                searchPlaceholder="Search groups..."
+              />
             </div>
           )}
 
@@ -507,76 +508,86 @@ export default function LedgersPage() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 bg-white p-4 rounded-2xl border border-slate-200 dark:border-slate-800 dark:bg-slate-900 transition-colors">
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Group</label>
-              <select
+              <CustomSelect
                 value={filterGroup}
-                onChange={(e) => {
-                  setFilterGroup(e.target.value);
+                onChange={(val) => {
+                  setFilterGroup(String(val));
                   setTxnPage(1);
                 }}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              >
-                <option value="">All Groups</option>
-                {groups.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name} ({g.code})
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: "All Groups" },
+                  ...groups.map((g) => ({
+                    value: String(g.id),
+                    label: g.name,
+                    sublabel: `(${g.code})`,
+                  })),
+                ]}
+                searchable={true}
+                searchPlaceholder="Search groups..."
+                triggerClassName="py-1.5 text-xs h-9"
+              />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Flow Type</label>
-              <select
+              <CustomSelect
                 value={filterFlow}
-                onChange={(e) => {
-                  setFilterFlow(e.target.value);
+                onChange={(val) => {
+                  setFilterFlow(String(val));
                   setTxnPage(1);
                 }}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              >
-                <option value="">All Flows</option>
-                <option value="INFLOW">INFLOW (+)</option>
-                <option value="OUTFLOW">OUTFLOW (-)</option>
-              </select>
+                options={[
+                  { value: "", label: "All Flows" },
+                  { value: "INFLOW", label: "INFLOW (+)" },
+                  { value: "OUTFLOW", label: "OUTFLOW (-)" },
+                ]}
+                searchable={false}
+                triggerClassName="py-1.5 text-xs h-9"
+              />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Transaction Type</label>
-              <select
+              <CustomSelect
                 value={filterType}
-                onChange={(e) => {
-                  setFilterType(e.target.value);
+                onChange={(val) => {
+                  setFilterType(String(val));
                   setTxnPage(1);
                 }}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              >
-                <option value="">All Types</option>
-                <option value="CONTRIBUTION">Contribution</option>
-                <option value="EXPENSE">Expense</option>
-                <option value="QARD_HASAN_DISBURSEMENT">Qard Hasan Disbursement</option>
-                <option value="QARD_HASAN_REPAYMENT">Qard Hasan Repayment</option>
-                <option value="SADAKAH">Sadakah Aid</option>
-                <option value="DONATION">Donation</option>
-                <option value="TRANSFER_IN">Transfer In</option>
-                <option value="TRANSFER_OUT">Transfer Out</option>
-                <option value="REVERSAL">Reversal</option>
-              </select>
+                options={[
+                  { value: "", label: "All Types" },
+                  { value: "CONTRIBUTION", label: "Contribution" },
+                  { value: "EXPENSE", label: "Expense" },
+                  { value: "QARD_HASAN_DISBURSEMENT", label: "Qard Hasan Disbursement" },
+                  { value: "QARD_HASAN_REPAYMENT", label: "Qard Hasan Repayment" },
+                  { value: "SADAKAH", label: "Sadakah Aid" },
+                  { value: "DONATION", label: "Donation" },
+                  { value: "TRANSFER_IN", label: "Transfer In" },
+                  { value: "TRANSFER_OUT", label: "Transfer Out" },
+                  { value: "REVERSAL", label: "Reversal" },
+                ]}
+                searchable={true}
+                searchPlaceholder="Search type..."
+                triggerClassName="py-1.5 text-xs h-9"
+              />
             </div>
 
             <div>
               <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Status</label>
-              <select
+              <CustomSelect
                 value={filterReversed}
-                onChange={(e) => {
-                  setFilterReversed(e.target.value);
+                onChange={(val) => {
+                  setFilterReversed(String(val));
                   setTxnPage(1);
                 }}
-                className="w-full rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-800 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
-              >
-                <option value="">All Statuses</option>
-                <option value="false">Active Only</option>
-                <option value="true">Reversed Only</option>
-              </select>
+                options={[
+                  { value: "", label: "All Statuses" },
+                  { value: "false", label: "Active Only" },
+                  { value: "true", label: "Reversed Only" },
+                ]}
+                searchable={false}
+                triggerClassName="py-1.5 text-xs h-9"
+              />
             </div>
           </div>
 

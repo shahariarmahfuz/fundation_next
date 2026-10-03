@@ -8,6 +8,7 @@ import { getFoundationTodayDate, getFoundationCurrentMonth } from "@/lib/timezon
 import { StatusBadge } from "@/components/StatusBadge";
 import { Pagination } from "@/components/Pagination";
 import { Modal } from "@/components/Modal";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Coins,
   Plus,
@@ -185,39 +186,44 @@ export default function ContributionsPage() {
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Filter by Group</label>
-            <select
+            <CustomSelect
               value={selectedGroup}
-              onChange={(e) => {
-                setSelectedGroup(e.target.value);
+              onChange={(val) => {
+                setSelectedGroup(String(val));
                 setPage(1);
               }}
-              className="input-field py-1.5 text-xs"
-            >
-              <option value="">All Groups</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name} ({g.code})
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "All Groups" },
+                ...groups.map((g) => ({
+                  value: String(g.id),
+                  label: g.name,
+                  sublabel: `(${g.code})`,
+                })),
+              ]}
+              searchable={true}
+              searchPlaceholder="Search groups..."
+              triggerClassName="py-1.5 text-xs h-9"
+            />
           </div>
 
           <div>
             <label className="block text-[11px] font-semibold text-slate-500 dark:text-slate-400 mb-1">Filter by Status</label>
-            <select
+            <CustomSelect
               value={selectedStatus}
-              onChange={(e) => {
-                setSelectedStatus(e.target.value);
+              onChange={(val) => {
+                setSelectedStatus(String(val));
                 setPage(1);
               }}
-              className="input-field py-1.5 text-xs"
-            >
-              <option value="">All Statuses</option>
-              <option value="PAID">PAID</option>
-              <option value="DUE">DUE</option>
-              <option value="CURRENT_PENDING">CURRENT PENDING</option>
-              <option value="FUTURE">FUTURE</option>
-            </select>
+              options={[
+                { value: "", label: "All Statuses" },
+                { value: "PAID", label: "PAID" },
+                { value: "DUE", label: "DUE" },
+                { value: "CURRENT_PENDING", label: "CURRENT PENDING" },
+                { value: "FUTURE", label: "FUTURE" },
+              ]}
+              searchable={false}
+              triggerClassName="py-1.5 text-xs h-9"
+            />
           </div>
         </div>
       </div>
@@ -354,17 +360,18 @@ export default function ContributionsPage() {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Payment Method</label>
-            <select
-              className="input-field"
+            <CustomSelect
               value={payMethod}
-              onChange={(e) => setPayMethod(e.target.value)}
-            >
-              <option value="CASH">CASH</option>
-              <option value="BKASH">BKASH</option>
-              <option value="NAGAD">NAGAD</option>
-              <option value="BANK_TRANSFER">BANK TRANSFER</option>
-              <option value="OTHER">OTHER</option>
-            </select>
+              onChange={(val) => setPayMethod(String(val))}
+              options={[
+                { value: "CASH", label: "CASH" },
+                { value: "BKASH", label: "BKASH" },
+                { value: "NAGAD", label: "NAGAD" },
+                { value: "BANK_TRANSFER", label: "BANK TRANSFER" },
+                { value: "OTHER", label: "OTHER" },
+              ]}
+              searchable={false}
+            />
           </div>
 
           <div>

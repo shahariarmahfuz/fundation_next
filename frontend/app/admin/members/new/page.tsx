@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
 import { useFlash, getUserFriendlyErrorMessage } from "@/lib/flash";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   ArrowLeft,
   Loader2,
@@ -417,19 +418,19 @@ export default function NewMemberPage() {
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 Group <span className="text-rose-500">*</span>
               </label>
-              <select
+              <CustomSelect
                 required
-                className="input-field font-semibold"
                 value={formData.group_id}
-                onChange={(e) => setFormData({ ...formData, group_id: e.target.value })}
-              >
-                <option value="">Select a group</option>
-                {groups.map((g) => (
-                  <option key={g.id} value={g.id}>
-                    {g.name} ({g.code})
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setFormData({ ...formData, group_id: String(val) })}
+                options={groups.map((g) => ({
+                  value: String(g.id),
+                  label: g.name,
+                  sublabel: g.code,
+                }))}
+                placeholder="Select a group"
+                searchable={true}
+                searchPlaceholder="Search groups..."
+              />
             </div>
           </div>
         </div>
@@ -581,54 +582,57 @@ export default function NewMemberPage() {
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Gender
                   </label>
-                  <select
-                    className="input-field"
+                  <CustomSelect
                     value={formData.gender}
-                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                  >
-                    <option value="">Select gender (optional)</option>
-                    <option value="Male">Male</option>
-                    <option value="Female">Female</option>
-                    <option value="Other">Other</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, gender: String(val) })}
+                    options={[
+                      { value: "", label: "Select gender (optional)" },
+                      { value: "Male", label: "Male" },
+                      { value: "Female", label: "Female" },
+                      { value: "Other", label: "Other" },
+                    ]}
+                    searchable={false}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Blood Group
                   </label>
-                  <select
-                    className="input-field"
+                  <CustomSelect
                     value={formData.blood_group}
-                    onChange={(e) => setFormData({ ...formData, blood_group: e.target.value })}
-                  >
-                    <option value="">Select blood group (optional)</option>
-                    <option value="A+">A+</option>
-                    <option value="A-">A-</option>
-                    <option value="B+">B+</option>
-                    <option value="B-">B-</option>
-                    <option value="AB+">AB+</option>
-                    <option value="AB-">AB-</option>
-                    <option value="O+">O+</option>
-                    <option value="O-">O-</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, blood_group: String(val) })}
+                    options={[
+                      { value: "", label: "Select blood group (optional)" },
+                      { value: "A+", label: "A+" },
+                      { value: "A-", label: "A-" },
+                      { value: "B+", label: "B+" },
+                      { value: "B-", label: "B-" },
+                      { value: "AB+", label: "AB+" },
+                      { value: "AB-", label: "AB-" },
+                      { value: "O+", label: "O+" },
+                      { value: "O-", label: "O-" },
+                    ]}
+                    searchable={false}
+                  />
                 </div>
 
                 <div>
                   <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                     Marital Status
                   </label>
-                  <select
-                    className="input-field"
+                  <CustomSelect
                     value={formData.marital_status}
-                    onChange={(e) => setFormData({ ...formData, marital_status: e.target.value })}
-                  >
-                    <option value="">Select marital status (optional)</option>
-                    <option value="Single">Single</option>
-                    <option value="Married">Married</option>
-                    <option value="Divorced">Divorced</option>
-                    <option value="Widowed">Widowed</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, marital_status: String(val) })}
+                    options={[
+                      { value: "", label: "Select marital status (optional)" },
+                      { value: "Single", label: "Single" },
+                      { value: "Married", label: "Married" },
+                      { value: "Divorced", label: "Divorced" },
+                      { value: "Widowed", label: "Widowed" },
+                    ]}
+                    searchable={false}
+                  />
                 </div>
 
                 <div>
@@ -854,14 +858,15 @@ export default function NewMemberPage() {
                   Document Type
                 </label>
                 <div className="max-w-xs">
-                  <select
-                    className="input-field"
+                  <CustomSelect
                     value={formData.document_type}
-                    onChange={(e) => setFormData({ ...formData, document_type: e.target.value })}
-                  >
-                    <option value="National ID">National ID (NID)</option>
-                    <option value="Birth Certificate">Birth Certificate</option>
-                  </select>
+                    onChange={(val) => setFormData({ ...formData, document_type: String(val) })}
+                    options={[
+                      { value: "National ID", label: "National ID (NID)" },
+                      { value: "Birth Certificate", label: "Birth Certificate" },
+                    ]}
+                    searchable={false}
+                  />
                 </div>
               </div>
 

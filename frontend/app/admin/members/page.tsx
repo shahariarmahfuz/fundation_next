@@ -6,6 +6,7 @@ import { api, getStoredUser } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Pagination } from "@/components/Pagination";
+import { CustomSelect } from "@/components/ui/custom-select";
 import { Modal } from "@/components/Modal";
 import {
   Users,
@@ -182,38 +183,43 @@ export default function ManageMembersPage() {
             />
           </div>
 
-          <div>
-            <select
+          <div className="w-48">
+            <CustomSelect
               value={selectedGroup}
-              onChange={(e) => {
-                setSelectedGroup(e.target.value);
+              onChange={(val) => {
+                setSelectedGroup(String(val));
                 setPage(1);
               }}
-              className="input-field"
-            >
-              <option value="">All Accounting Groups</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.name} ({g.code})
-                </option>
-              ))}
-            </select>
+              options={[
+                { value: "", label: "All Accounting Groups" },
+                ...groups.map((g) => ({
+                  value: String(g.id),
+                  label: g.name,
+                  sublabel: g.code,
+                })),
+              ]}
+              searchable={true}
+              searchPlaceholder="Search groups..."
+            />
           </div>
 
           <div className="flex gap-2">
-            <select
-              value={selectedStatus}
-              onChange={(e) => {
-                setSelectedStatus(e.target.value);
-                setPage(1);
-              }}
-              className="input-field"
-            >
-              <option value="">All Statuses</option>
-              <option value="ACTIVE">ACTIVE</option>
-              <option value="INACTIVE">INACTIVE</option>
-              <option value="SUSPENDED">SUSPENDED</option>
-            </select>
+            <div className="w-40">
+              <CustomSelect
+                value={selectedStatus}
+                onChange={(val) => {
+                  setSelectedStatus(String(val));
+                  setPage(1);
+                }}
+                options={[
+                  { value: "", label: "All Statuses" },
+                  { value: "ACTIVE", label: "ACTIVE" },
+                  { value: "INACTIVE", label: "INACTIVE" },
+                  { value: "SUSPENDED", label: "SUSPENDED" },
+                ]}
+                searchable={false}
+              />
+            </div>
             <button type="submit" className="btn-secondary">
               Search
             </button>

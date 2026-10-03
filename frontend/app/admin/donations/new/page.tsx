@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import { formatCurrency } from "@/lib/utils";
 import { getFoundationTodayDate } from "@/lib/timezone";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Gift,
   HeartHandshake,
@@ -435,32 +436,18 @@ export default function RecordDonationPage() {
               </Link>
             </div>
 
-            <div className="space-y-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Type to filter donors by name, ID, phone..."
-                  className="input-field pl-9 text-xs"
-                  value={donorSearch}
-                  onChange={(e) => setDonorSearch(e.target.value)}
-                />
-              </div>
-
-              <select
-                required
-                className="input-field font-medium text-xs sm:text-sm"
-                value={selectedDonorId}
-                onChange={(e) => setSelectedDonorId(e.target.value)}
-              >
-                <option value="">-- Choose Donor from Database --</option>
-                {filteredDonors.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.donor_number} — {d.name} {d.phone ? `(${d.phone})` : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CustomSelect
+              value={selectedDonorId}
+              onChange={(val) => setSelectedDonorId(String(val))}
+              options={donors.map((d) => ({
+                value: String(d.id),
+                label: d.name,
+                sublabel: `${d.donor_number}${d.phone ? ` • ${d.phone}` : ""}`,
+              }))}
+              placeholder="-- Choose Donor from Database --"
+              searchable={true}
+              searchPlaceholder="Search donors by name, ID, phone..."
+            />
 
             {selectedDonor && (
               <div className="mt-2 p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs flex items-center justify-between">
@@ -487,32 +474,18 @@ export default function RecordDonationPage() {
               </span>
             </div>
 
-            <div className="space-y-2">
-              <div className="relative">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                <input
-                  type="text"
-                  placeholder="Type to filter members by name, ID, phone..."
-                  className="input-field pl-9 text-xs"
-                  value={memberSearch}
-                  onChange={(e) => setMemberSearch(e.target.value)}
-                />
-              </div>
-
-              <select
-                required
-                className="input-field font-medium text-xs sm:text-sm"
-                value={selectedMemberId}
-                onChange={(e) => setSelectedMemberId(e.target.value)}
-              >
-                <option value="">-- Choose Member from Database --</option>
-                {filteredMembers.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.member_number} — {m.full_name} {m.group?.name ? `[${m.group.name}]` : ""} {m.phone ? `(${m.phone})` : ""}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <CustomSelect
+              value={selectedMemberId}
+              onChange={(val) => setSelectedMemberId(String(val))}
+              options={members.map((m) => ({
+                value: String(m.id),
+                label: m.full_name,
+                sublabel: `${m.member_number}${m.group?.name ? ` • ${m.group.name}` : ""}${m.phone ? ` • ${m.phone}` : ""}`,
+              }))}
+              placeholder="-- Choose Member from Database --"
+              searchable={true}
+              searchPlaceholder="Search members by name, ID, phone..."
+            />
 
             {selectedMember && (
               <div className="mt-2 p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs space-y-1">
@@ -558,22 +531,19 @@ export default function RecordDonationPage() {
             )}
           </div>
 
-          <div className="relative">
-            <FolderTree className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-            <select
-              required
-              className="input-field pl-9 font-medium text-xs sm:text-sm"
-              value={selectedGroupId}
-              onChange={(e) => setSelectedGroupId(e.target.value)}
-            >
-              <option value="">-- Choose Accounting Group to Credit --</option>
-              {groups.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.code} — {g.name} (Current Balance: {formatCurrency(g.balance || 0)})
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            value={selectedGroupId}
+            onChange={(val) => setSelectedGroupId(String(val))}
+            options={groups.map((g) => ({
+              value: String(g.id),
+              label: g.name,
+              sublabel: `${g.code} • Balance: ${formatCurrency(g.balance || 0)}`,
+            }))}
+            placeholder="-- Choose Accounting Group to Credit --"
+            searchable={true}
+            searchPlaceholder="Search groups..."
+            icon={<FolderTree className="h-4 w-4" />}
+          />
           <p className="text-[11px] text-slate-400 dark:text-slate-500">
             This group's accounting ledger balance will be credited atomically with the entire donation amount.
           </p>
@@ -609,23 +579,21 @@ export default function RecordDonationPage() {
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               Payment Method <span className="text-rose-500">*</span>
             </label>
-            <div className="relative">
-              <CreditCard className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-              <select
-                required
-                className="input-field pl-9"
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value)}
-              >
-                <option value="CASH">CASH</option>
-                <option value="BANK_TRANSFER">BANK TRANSFER</option>
-                <option value="BKASH">BKASH</option>
-                <option value="NAGAD">NAGAD</option>
-                <option value="ROCKET">ROCKET</option>
-                <option value="CHEQUE">CHEQUE</option>
-                <option value="OTHER">OTHER</option>
-              </select>
-            </div>
+            <CustomSelect
+              value={paymentMethod}
+              onChange={(val) => setPaymentMethod(String(val))}
+              options={[
+                { value: "CASH", label: "CASH" },
+                { value: "BANK_TRANSFER", label: "BANK TRANSFER" },
+                { value: "BKASH", label: "BKASH" },
+                { value: "NAGAD", label: "NAGAD" },
+                { value: "ROCKET", label: "ROCKET" },
+                { value: "CHEQUE", label: "CHEQUE" },
+                { value: "OTHER", label: "OTHER" },
+              ]}
+              searchable={false}
+              icon={<CreditCard className="h-4 w-4" />}
+            />
           </div>
 
           {/* Donation Date */}

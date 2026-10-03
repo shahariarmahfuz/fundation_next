@@ -7,6 +7,7 @@ import { formatCurrency, formatDate, formatDateTime } from "@/lib/utils";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Modal } from "@/components/Modal";
 import { Pagination } from "@/components/Pagination";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   UserCheck,
   Filter,
@@ -437,18 +438,19 @@ export default function ApplicationsPage() {
                     <p className="text-xs text-slate-500 dark:text-slate-400 mb-1.5">
                       Fundamental rule: Every active member must belong to exactly one accounting group. Their future contributions will strictly fund this group.
                     </p>
-                    <select
+                    <CustomSelect
                       required
                       value={assignedGroupId}
-                      onChange={(e) => setAssignedGroupId(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 focus:border-emerald-500 focus:outline-none"
-                    >
-                      {groups.map((g) => (
-                        <option key={g.id} value={g.id}>
-                          [{g.code}] {g.name}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(val) => setAssignedGroupId(String(val))}
+                      options={groups.map((g) => ({
+                        value: String(g.id),
+                        label: g.name,
+                        sublabel: g.code ? `[${g.code}]` : undefined,
+                      }))}
+                      placeholder="Select Assigned Accounting Group"
+                      searchable={true}
+                      searchPlaceholder="Search groups..."
+                    />
                   </div>
                 )}
 

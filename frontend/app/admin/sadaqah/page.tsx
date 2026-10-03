@@ -5,6 +5,7 @@ import Link from "next/link";
 import { api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Pagination } from "@/components/Pagination";
+import { CustomSelect } from "@/components/ui/custom-select";
 import {
   Heart,
   Plus,
@@ -155,38 +156,45 @@ export default function SadaqahManagePage() {
 
         <div className="flex items-center gap-2 flex-wrap">
           {/* Group Filter */}
-          <select
-            value={selectedGroup}
-            onChange={(e) => {
-              setSelectedGroup(e.target.value);
-              setPage(1);
-            }}
-            className="input-field py-1 text-xs w-48"
-          >
-            <option value="">All Funding Groups</option>
-            {groups.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.name}
-              </option>
-            ))}
-          </select>
+          <div className="w-48">
+            <CustomSelect
+              value={selectedGroup}
+              onChange={(val) => {
+                setSelectedGroup(String(val));
+                setPage(1);
+              }}
+              options={[
+                { value: "", label: "All Funding Groups" },
+                ...groups.map((g) => ({
+                  value: String(g.id),
+                  label: g.name,
+                })),
+              ]}
+              searchable={true}
+              searchPlaceholder="Search groups..."
+            />
+          </div>
 
           {/* Beneficiary Filter */}
-          <select
-            value={selectedBeneficiary}
-            onChange={(e) => {
-              setSelectedBeneficiary(e.target.value);
-              setPage(1);
-            }}
-            className="input-field py-1 text-xs w-48"
-          >
-            <option value="">All Beneficiaries</option>
-            {beneficiaries.map((b) => (
-              <option key={b.id} value={b.id}>
-                {b.name} ({b.beneficiary_number || b.code})
-              </option>
-            ))}
-          </select>
+          <div className="w-48">
+            <CustomSelect
+              value={selectedBeneficiary}
+              onChange={(val) => {
+                setSelectedBeneficiary(String(val));
+                setPage(1);
+              }}
+              options={[
+                { value: "", label: "All Beneficiaries" },
+                ...beneficiaries.map((b) => ({
+                  value: String(b.id),
+                  label: b.name,
+                  sublabel: b.beneficiary_number || b.code,
+                })),
+              ]}
+              searchable={true}
+              searchPlaceholder="Search beneficiaries..."
+            />
+          </div>
         </div>
       </div>
 
