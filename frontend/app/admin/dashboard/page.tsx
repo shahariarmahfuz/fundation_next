@@ -3,23 +3,16 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { formatCurrency, formatDateTime } from "@/lib/utils";
-import { StatusBadge } from "@/components/StatusBadge";
+import { formatCurrency } from "@/lib/utils";
 import {
   Coins,
   Receipt,
   Scale,
   Heart,
   AlertCircle,
-  ArrowUpRight,
-  ArrowDownLeft,
   PlusCircle,
-  Loader2,
   RefreshCw,
-  FolderTree,
-  Building2,
-  ExternalLink,
-  ShieldCheck
+  ShieldCheck,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -66,16 +59,6 @@ export default function DashboardPage() {
         {/* Top Liquidity Card Skeleton */}
         <div className="rounded-2xl border border-slate-200 dark:border-[#1A1A1A] bg-white dark:bg-[#0A0A0A] p-8 h-48" />
 
-        {/* Group Cards Skeleton */}
-        <div className="space-y-3">
-          <div className="h-5 w-40 rounded bg-slate-200 dark:bg-[#151515]" />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-36 rounded-xl border border-slate-200 dark:border-[#1A1A1A] bg-white dark:bg-[#0A0A0A]" />
-            ))}
-          </div>
-        </div>
-
         {/* Flow Cards Skeleton */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
@@ -87,7 +70,6 @@ export default function DashboardPage() {
   }
 
   // 2. Fatal Initial Error State (NO previous data available)
-  // NEVER fall back to fake ৳0.00! Show clear error with retry action.
   if (error && !stats) {
     return (
       <div className="py-12 px-4 max-w-xl mx-auto space-y-6">
@@ -132,7 +114,7 @@ export default function DashboardPage() {
             Executive Dashboard
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-[#737373]">
-            Real-time financial status, group balances, and operational aggregates
+            Real-time financial status, liquidity metrics, and operational aggregates
           </p>
         </div>
         <div className="flex items-center gap-2.5">
@@ -174,7 +156,7 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Top Total Foundation Balance Highlight (AMOLED-Inspired subtle gradient, no navy) */}
+      {/* Top Total Foundation Balance Highlight */}
       <div className="rounded-2xl border border-emerald-500/30 dark:border-[#1E382B] bg-gradient-to-r from-emerald-950 via-emerald-900 to-slate-950 dark:bg-gradient-to-br dark:from-[#091B11] dark:via-[#06130C] dark:to-[#0A0A0A] p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
         <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
           <div className="space-y-1.5">
@@ -220,51 +202,6 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-      </div>
-
-      {/* Group Balances Grid */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-slate-900 dark:text-[#F5F5F5]">
-            Financial Groups & Balances
-          </h2>
-          <Link href="/admin/groups" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
-            View All Groups →
-          </Link>
-        </div>
-
-        {stats?.groups?.length === 0 ? (
-          <div className="rounded-xl border border-slate-200 dark:border-[#1A1A1A] bg-white dark:bg-[#0A0A0A] p-8 text-center text-slate-400 dark:text-[#737373]">
-            No financial groups configured yet.
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {stats?.groups?.map((g: any) => (
-              <Link
-                key={g.id}
-                href={`/admin/groups/${g.id}`}
-                className="group rounded-xl border border-slate-200 dark:border-[#1A1A1A] bg-white dark:bg-[#0A0A0A] p-5 shadow-sm hover:border-emerald-500 dark:hover:border-emerald-600/50 dark:hover:bg-[#0F0F0F] hover:shadow-md transition-all"
-              >
-                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-[#737373] mb-2">
-                  <span className="font-mono font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-[#151515] text-slate-700 dark:text-[#A3A3A3]">
-                    {g.code}
-                  </span>
-                  <span>{g.members_count} members</span>
-                </div>
-                <h3 className="text-sm font-bold text-slate-900 dark:text-[#F5F5F5] group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
-                  {g.name}
-                </h3>
-                <div className="mt-3 text-lg sm:text-xl font-extrabold text-slate-900 dark:text-[#F5F5F5] font-mono">
-                  {formatCurrency(g.balance)}
-                </div>
-                <div className="mt-2 flex items-center justify-between text-[11px] text-slate-400 dark:text-[#737373]">
-                  <span>Group Account</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold group-hover:underline">Ledger →</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Operational Flow Cards */}
@@ -323,87 +260,6 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Recent Financial Transactions Table */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-slate-900 dark:text-[#F5F5F5]">
-            Recent Financial Transactions
-          </h2>
-          <Link href="/admin/ledgers" className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300">
-            Open Full Ledger →
-          </Link>
-        </div>
-
-        <div className="table-container">
-          <table className="table-custom">
-            <thead>
-              <tr>
-                <th>Txn Number</th>
-                <th>Date</th>
-                <th>Group</th>
-                <th>Type</th>
-                <th>Description</th>
-                <th>Flow</th>
-                <th className="text-right">Amount</th>
-                <th className="text-right">Balance After</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats?.recent_transactions?.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center py-8 text-slate-400 dark:text-[#737373]">
-                    No transactions recorded yet.
-                  </td>
-                </tr>
-              ) : (
-                stats?.recent_transactions?.map((t: any) => (
-                  <tr key={t.id}>
-                    <td className="font-mono text-xs font-medium text-slate-900 dark:text-[#F5F5F5]">
-                      {t.transaction_number}
-                    </td>
-                    <td className="text-xs text-slate-500 dark:text-[#737373]">{formatDateTime(t.transaction_date)}</td>
-                    <td className="text-xs font-semibold text-slate-800 dark:text-[#D4D4D4]">
-                      {t.group?.name || `Group #${t.group_id}`}
-                    </td>
-                    <td>
-                      <StatusBadge status={t.transaction_type} />
-                    </td>
-                    <td className="text-xs text-slate-600 dark:text-[#A3A3A3] max-w-xs truncate" title={t.description}>
-                      {t.description}
-                    </td>
-                    <td>
-                      <span
-                        className={`inline-flex items-center gap-1 text-xs font-semibold ${
-                          t.flow_type === "INFLOW" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                        }`}
-                      >
-                        {t.flow_type === "INFLOW" ? (
-                          <ArrowUpRight className="h-3.5 w-3.5" />
-                        ) : (
-                          <ArrowDownLeft className="h-3.5 w-3.5" />
-                        )}
-                        {t.flow_type}
-                      </span>
-                    </td>
-                    <td
-                      className={`text-right font-semibold text-sm ${
-                        t.flow_type === "INFLOW" ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"
-                      }`}
-                    >
-                      {t.flow_type === "INFLOW" ? "+" : "-"}
-                      {formatCurrency(t.amount)}
-                    </td>
-                    <td className="text-right font-mono text-xs text-slate-700 dark:text-[#D4D4D4]">
-                      {formatCurrency(t.balance_after)}
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
         </div>
       </div>
     </div>
