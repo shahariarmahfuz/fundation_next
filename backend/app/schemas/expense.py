@@ -29,6 +29,8 @@ class ExpenseCategoryResponse(ExpenseCategoryBase):
     id: int
     created_at: datetime
     updated_at: datetime
+    total_expenses: int = 0
+    total_amount: Decimal = Decimal("0.00")
 
 
 class ExpenseBase(BaseModel):
@@ -39,12 +41,16 @@ class ExpenseBase(BaseModel):
     payment_method: str = "CASH"
     reference: Optional[str] = None
     payee: Optional[str] = None
-    description: str
+    description: Optional[str] = None
     notes: Optional[str] = None
 
 
 class ExpenseCreate(ExpenseBase):
     pass
+
+
+class ExpenseReversalRequest(BaseModel):
+    reason: str = "Administrative correction"
 
 
 class ExpenseResponse(ExpenseBase):
@@ -80,6 +86,7 @@ class ExpenseLedgerItem(BaseModel):
     notes: Optional[str] = None
     transaction_id: int
     transaction_number: Optional[str] = None
+    is_reversed: bool = False
     created_at: datetime
     created_by_name: Optional[str] = None
 
@@ -99,3 +106,29 @@ class ExpenseLedgerResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
+
+
+class ExpenseCategoryReportItem(BaseModel):
+    category_id: int
+    category_name: str
+    total_count: int
+    total_amount: Decimal
+    percentage: float
+
+
+class ExpenseGroupReportItem(BaseModel):
+    group_id: int
+    group_name: str
+    total_count: int
+    total_amount: Decimal
+    percentage: float
+
+
+class ExpenseReportResponse(BaseModel):
+    total_amount: Decimal
+    total_count: int
+    categories: List[ExpenseCategoryReportItem]
+    groups: List[ExpenseGroupReportItem]
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+

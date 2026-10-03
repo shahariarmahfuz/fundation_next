@@ -5,19 +5,31 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 from backend.app.schemas.group import GroupResponse
 
 
+class PublicGroupOption(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    code: str
+
+
 class MemberApplicationCreate(BaseModel):
-    applicant_name: str
+    full_name: Optional[str] = None
+    applicant_name: Optional[str] = None
+    group_id: int
+
+    # Optional fields (omitted in public form, preserved for backwards compatibility)
     email: Optional[EmailStr] = None
-    phone: str
+    phone: Optional[str] = None
     address: Optional[str] = None
     nid_or_id: Optional[str] = None
-    proposed_contribution: Decimal = Decimal("500.00")
+    proposed_contribution: Optional[Decimal] = None
     reason_for_joining: Optional[str] = None
 
 
 class MemberApplicationReview(BaseModel):
     action: str  # APPROVE, REJECT
-    assigned_group_id: Optional[int] = None  # Required if APPROVE
+    assigned_group_id: Optional[int] = None  # Optional override if APPROVE
     review_notes: Optional[str] = None
 
 
@@ -26,18 +38,22 @@ class MemberApplicationResponse(BaseModel):
 
     id: int
     applicant_name: str
+    full_name: Optional[str] = None
+    group_id: Optional[int] = None
+    assigned_group_id: Optional[int] = None
     email: Optional[str] = None
-    phone: str
+    phone: Optional[str] = None
     address: Optional[str] = None
     nid_or_id: Optional[str] = None
-    proposed_contribution: Decimal
+    proposed_contribution: Optional[Decimal] = None
     reason_for_joining: Optional[str] = None
     status: str
     review_notes: Optional[str] = None
     reviewed_by_id: Optional[int] = None
     reviewed_at: Optional[datetime] = None
-    assigned_group_id: Optional[int] = None
     created_member_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
+    group: Optional[GroupResponse] = None
     assigned_group: Optional[GroupResponse] = None
+

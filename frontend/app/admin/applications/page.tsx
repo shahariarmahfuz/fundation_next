@@ -91,9 +91,8 @@ export default function ApplicationsPage() {
     setReviewAction("APPROVE");
     setReviewNotes("");
     setReviewError(null);
-    if (groups.length > 0) {
-      setAssignedGroupId(groups[0].id.toString());
-    }
+    const targetGroupId = app.group_id || app.assigned_group_id || (groups.length > 0 ? groups[0].id : "");
+    setAssignedGroupId(String(targetGroupId));
     setReviewModalOpen(true);
   };
 
@@ -227,9 +226,7 @@ export default function ApplicationsPage() {
             <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500 border-b border-slate-200 dark:bg-slate-800/60 dark:text-slate-400 dark:border-slate-800">
               <tr>
                 <th className="px-6 py-3 font-semibold">Applicant</th>
-                <th className="px-6 py-3 font-semibold">Contact Info</th>
-                <th className="px-6 py-3 font-semibold">National ID / NID</th>
-                <th className="px-6 py-3 font-semibold text-right">Proposed Monthly</th>
+                <th className="px-6 py-3 font-semibold">Applied Group</th>
                 <th className="px-6 py-3 font-semibold text-center">Status</th>
                 <th className="px-6 py-3 font-semibold">Applied Date</th>
                 <th className="px-6 py-3 font-semibold text-center">Action</th>
@@ -238,61 +235,64 @@ export default function ApplicationsPage() {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={5} className="px-6 py-12 text-center">
                     <Loader2 className="mx-auto h-6 w-6 animate-spin text-emerald-600" />
                     <span className="mt-2 block text-xs text-slate-500 dark:text-slate-400">Loading applications...</span>
                   </td>
                 </tr>
               ) : error ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-6 text-center text-rose-600 dark:text-rose-400">
+                  <td colSpan={5} className="px-6 py-6 text-center text-rose-600 dark:text-rose-400">
                     {error}
                   </td>
                 </tr>
               ) : applications.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-10 text-center text-slate-400 dark:text-slate-500">
+                  <td colSpan={5} className="px-6 py-10 text-center text-slate-400 dark:text-slate-500">
                     No membership applications found matching criteria.
                   </td>
                 </tr>
               ) : (
-                applications.map((app) => (
-                  <tr key={app.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="font-bold text-slate-900 dark:text-white">{app.applicant_name}</div>
-                      <div className="text-xs text-slate-400 dark:text-slate-500">App #{app.id}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-slate-800 dark:text-slate-200">{app.email}</div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400">{app.phone}</div>
-                    </td>
-                    <td className="px-6 py-4 font-mono text-xs text-slate-700 dark:text-slate-300">
-                      {app.nid_or_id || "Not Provided"}
-                    </td>
-                    <td className="px-6 py-4 text-right font-bold text-emerald-700 dark:text-emerald-400">
-                      {formatCurrency(app.proposed_contribution)}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <StatusBadge status={app.status} />
-                    </td>
-                    <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
-                      {formatDate(app.created_at)}
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <button
-                        onClick={() => handleOpenReview(app)}
-                        className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                          app.status === "PENDING"
-                            ? "border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
-                            : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                        }`}
-                      >
-                        <Eye className="h-3.5 w-3.5" />
-                        {app.status === "PENDING" ? "Review & Assign" : "Details"}
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                applications.map((app) => {
+                  const appliedGroupName =
+                    app.group?.name ||
+                    app.assigned_group?.name ||
+                    groups.find((g) => g.id === (app.group_id || app.assigned_group_id))?.name ||
+                    "General Group";
+                  return (
+                    <tr key={app.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="font-bold text-slate-900 dark:text-white">{app.applicant_name}</div>
+                        <div className="text-xs text-slate-400 dark:text-slate-500">App #{app.id}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center gap-1.5 rounded-md bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-800 dark:text-slate-200">
+                          <FolderTree className="h-3.5 w-3.5 text-foundation-700 dark:text-foundation-400" />
+                          {appliedGroupName}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <StatusBadge status={app.status} />
+                      </td>
+                      <td className="px-6 py-4 text-slate-600 dark:text-slate-400">
+                        {formatDate(app.created_at)}
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={() => handleOpenReview(app)}
+                          className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
+                            app.status === "PENDING"
+                              ? "border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                              : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                          }`}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                          {app.status === "PENDING" ? "Review & Enroll" : "Details"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -318,39 +318,39 @@ export default function ApplicationsPage() {
           <form onSubmit={handleSubmitReview} className="space-y-4">
             {/* Applicant Summary */}
             <div className="rounded-xl bg-slate-50 p-4 border border-slate-200 text-sm space-y-2 dark:bg-slate-950/60 dark:border-slate-800">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 block">Email Address:</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{selectedApp.email}</span>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 block">Full Name:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{selectedApp.applicant_name}</span>
                 </div>
                 <div>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 block">Phone Number:</span>
-                  <span className="font-semibold text-slate-900 dark:text-white">{selectedApp.phone}</span>
-                </div>
-                <div>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 block">National ID (NID):</span>
-                  <span className="font-mono text-slate-900 dark:text-slate-200">{selectedApp.nid_or_id || "None"}</span>
-                </div>
-                <div>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 block">Proposed Contribution:</span>
-                  <span className="font-bold text-emerald-700 dark:text-emerald-400">
-                    {formatCurrency(selectedApp.proposed_contribution)} / month
+                  <span className="text-xs text-slate-500 dark:text-slate-400 block">Selected Group:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">
+                    {selectedApp.group?.name ||
+                      selectedApp.assigned_group?.name ||
+                      groups.find((g) => g.id === (selectedApp.group_id || selectedApp.assigned_group_id))?.name ||
+                      "Not Specified"}
                   </span>
                 </div>
+                {selectedApp.phone && (
+                  <div>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 block">Phone Number:</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{selectedApp.phone}</span>
+                  </div>
+                )}
+                {selectedApp.email && (
+                  <div>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 block">Email Address:</span>
+                    <span className="font-semibold text-slate-900 dark:text-white">{selectedApp.email}</span>
+                  </div>
+                )}
               </div>
-
-              {selectedApp.address && (
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
-                  <span className="text-xs text-slate-500 dark:text-slate-400 block">Residential Address:</span>
-                  <span className="text-slate-800 dark:text-slate-200">{selectedApp.address}</span>
-                </div>
-              )}
 
               {selectedApp.reason_for_joining && (
                 <div className="pt-2 border-t border-slate-200 dark:border-slate-800">
                   <span className="text-xs text-slate-500 dark:text-slate-400 block">Statement / Reason for Joining:</span>
                   <p className="text-xs text-slate-700 dark:text-slate-300 italic mt-0.5">
-                    "{selectedApp.reason_for_joining}"
+                    &quot;{selectedApp.reason_for_joining}&quot;
                   </p>
                 </div>
               )}

@@ -4,14 +4,11 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
-import { formatCurrency } from "@/lib/utils";
 import { useFlash, getUserFriendlyErrorMessage } from "@/lib/flash";
 import {
   ArrowLeft,
   Loader2,
   AlertCircle,
-  Coins,
-  User,
   ShieldAlert,
   FileText,
   UploadCloud,
@@ -68,8 +65,7 @@ const getInitialFormData = (defaultGroupId: string = "") => ({
   reference_phone: "",
   reference_relationship: "",
 
-  // Optional Commitment & Docs (Cloudinary backed)
-  commitment: "",
+  // Optional Documents (Cloudinary backed)
   photo_url: "",
   photo_public_id: "",
   signature_url: "",
@@ -91,7 +87,6 @@ export default function NewMemberPage() {
   const router = useRouter();
   const { flash } = useFlash();
   const [groups, setGroups] = useState<any[]>([]);
-  const [foundationRate, setFoundationRate] = useState<number>(100);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createdMember, setCreatedMember] = useState<CreatedMemberInfo | null>(null);
@@ -101,7 +96,6 @@ export default function NewMemberPage() {
     personal: true,
     emergency: false,
     reference: false,
-    commitment: false,
     documents: false,
     additional: false,
   });
@@ -170,16 +164,10 @@ export default function NewMemberPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [groupsData, settingData] = await Promise.all([
-          api.get("/groups"),
-          api.get("/settings/monthly-contribution").catch(() => null),
-        ]);
+        const groupsData = await api.get("/groups");
         setGroups(groupsData || []);
         if (groupsData && groupsData.length > 0) {
           setFormData((prev) => ({ ...prev, group_id: String(groupsData[0].id) }));
-        }
-        if (settingData?.current_amount) {
-          setFoundationRate(parseFloat(settingData.current_amount));
         }
       } catch (err: any) {
         setError(err.message || "Failed to load accounting groups");
@@ -251,8 +239,7 @@ export default function NewMemberPage() {
         reference_phone: cleanVal(formData.reference_phone),
         reference_relationship: cleanVal(formData.reference_relationship),
 
-        // Commitment & Documents (Cloudinary)
-        commitment: cleanVal(formData.commitment),
+        // Documents (Cloudinary)
         photo_url: cleanVal(formData.photo_url),
         photo_public_id: cleanVal(formData.photo_public_id),
         signature_url: cleanVal(formData.signature_url),
@@ -326,10 +313,6 @@ export default function NewMemberPage() {
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
             Register New Member
           </h1>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Only <strong className="text-slate-700 dark:text-slate-200">Full Name</strong> and{" "}
-            <strong className="text-slate-700 dark:text-slate-200">Group</strong> are required. Everything else is optional.
-          </p>
         </div>
       </div>
 
@@ -412,18 +395,8 @@ export default function NewMemberPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Core Required Section: Name & Group */}
-        <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-6 shadow-sm space-y-5">
-          <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <User className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              Required Information
-            </h2>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400">
-              These two fields are strictly required to create a member.
-            </p>
-          </div>
-
+        {/* Core Fields: Full Name & Group */}
+        <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 p-6 shadow-sm">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -457,31 +430,6 @@ export default function NewMemberPage() {
                   </option>
                 ))}
               </select>
-              <p className="mt-1 text-[11px] text-slate-400">
-                Determines the group account where contributions will be credited.
-              </p>
-            </div>
-          </div>
-
-          {/* Global Monthly Contribution info */}
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 dark:border-emerald-800 dark:bg-emerald-950/30 p-3.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <Coins className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                <span className="text-xs font-semibold text-emerald-900 dark:text-emerald-200">
-                  Global Monthly Contribution Setting
-                </span>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
-                  Foundation Setting
-                </span>
-              </div>
-              <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                All active foundation members follow the global monthly contribution setting.
-              </p>
-            </div>
-            <div className="text-xl font-black text-slate-900 dark:text-white shrink-0">
-              {formatCurrency(foundationRate)}
-              <span className="text-xs font-normal text-slate-500 dark:text-slate-400 ml-1">/ month</span>
             </div>
           </div>
         </div>
@@ -877,47 +825,7 @@ export default function NewMemberPage() {
           )}
         </div>
 
-        {/* SECTION 4: Commitment & Agreement (Optional) */}
-        <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-sm overflow-hidden">
-          <button
-            type="button"
-            onClick={() => toggleSection("commitment")}
-            className="w-full p-5 text-left flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"
-          >
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                4. Commitment <span className="text-slate-400 font-normal text-xs">(Optional)</span>
-              </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Pledge or constitution adherence remarks
-              </p>
-            </div>
-            {openSections.commitment ? (
-              <ChevronUp className="h-4 w-4 text-slate-400" />
-            ) : (
-              <ChevronDown className="h-4 w-4 text-slate-400" />
-            )}
-          </button>
-
-          {openSections.commitment && (
-            <div className="p-6 pt-0 border-t border-slate-100 dark:border-slate-800 space-y-4">
-              <div className="pt-4">
-                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-                  Commitment Note / Statement
-                </label>
-                <textarea
-                  rows={2}
-                  className="input-field"
-                  placeholder="I commit to upholding the foundation's principles and rules..."
-                  value={formData.commitment}
-                  onChange={(e) => setFormData({ ...formData, commitment: e.target.value })}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* SECTION 5: Documents (Optional) */}
+        {/* SECTION 4: Documents (Optional) */}
         <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-sm overflow-hidden">
           <button
             type="button"
@@ -926,7 +834,7 @@ export default function NewMemberPage() {
           >
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                5. Documents & Media <span className="text-slate-400 font-normal text-xs">(Optional — Cloudinary Storage)</span>
+                4. Documents & Media <span className="text-slate-400 font-normal text-xs">(Optional — Cloudinary Storage)</span>
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Member photo, signature, and identity documents (all uploads are completely optional)
@@ -1331,7 +1239,7 @@ export default function NewMemberPage() {
           )}
         </div>
 
-        {/* SECTION 6: Additional Information (Optional) */}
+        {/* SECTION 5: Additional Information (Optional) */}
         <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900 shadow-sm overflow-hidden">
           <button
             type="button"
@@ -1340,7 +1248,7 @@ export default function NewMemberPage() {
           >
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white">
-                6. Additional Information <span className="text-slate-400 font-normal text-xs">(Optional)</span>
+                5. Additional Information <span className="text-slate-400 font-normal text-xs">(Optional)</span>
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Reason for joining and supplementary notes

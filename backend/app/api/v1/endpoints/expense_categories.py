@@ -1,9 +1,11 @@
+from decimal import Decimal
 from typing import List, Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 
 from backend.app.core.database import get_db
-from backend.app.models.expense import ExpenseCategory
+from backend.app.models.expense import ExpenseCategory, Expense
 from backend.app.models.user import User
 from backend.app.schemas.expense import (
     ExpenseCategoryResponse,
@@ -21,7 +23,72 @@ def get_categories(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_permission("expenses.view"))
 ) -> Any:
-    return db.query(ExpenseCategory).order_by(ExpenseCategory.name).all()
+    categories = db.query(ExpenseCategory).order_by(ExpenseCategory.name).all()
+    if not categories:
+        return []
+
+    # Aggregate stats per category
+    stats = (
+        db.query(
+            Expense.category_id,
+            func.count(Expense.id).label("total_expenses"),
+            func.coalesce(func.sum(Expense.amount), Decimal("0.00")).label("total_amount")
+        )
+        .group_by(Expense.category_id)
+        .all()
+    )
+    stats_map = {row.category_id: (row.total_expenses, row.total_amount) for row in stats}
+
+    results = []
+    for cat in categories:
+        cnt, amt = stats_map.get(cat.id, (0, Decimal("0.00")))
+        results.append(
+            ExpenseCategoryResponse(
+                id=cat.id,
+                name=cat.name,
+                description=cat.description,
+                is_active=cat.is_active,
+                created_at=cat.created_at,
+                updated_at=cat.updated_at,
+                total_expenses=cnt,
+                total_amount=amt
+            )
+        )
+    return results
+
+
+@router.get("/{cat_id}", response_model=ExpenseCategoryResponse)
+def get_category(
+    cat_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_permission("expenses.view"))
+) -> Any:
+    cat = db.query(ExpenseCategory).filter(ExpenseCategory.id == cat_id).first()
+    if not cat:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
+
+    stat = (
+        db.query(
+            func.count(Expense.id).label("total_expenses"),
+            func.coalesce(func.sum(Expense.amount), Decimal("0.00")).label("total_amount")
+        )
+        .filter(Expense.category_id == cat_id)
+        .first()
+    )
+    cnt = stat[0] if stat else 0
+    amt = stat[1] if stat else Decimal("0.00")
+
+    return ExpenseCategoryResponse(
+        id=cat.id,
+        name=cat.name,
+        description=cat.description,
+        is_active=cat.is_active,
+        created_at=cat.created_at,
+        updated_at=cat.updated_at,
+        total_expenses=cnt,
+        total_amount=amt
+    )
+
 
 
 @router.post("", response_model=ExpenseCategoryResponse)

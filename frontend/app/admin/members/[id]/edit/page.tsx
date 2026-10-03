@@ -80,8 +80,7 @@ export default function EditMemberPage() {
     reference_phone: "",
     reference_relationship: "",
 
-    // Optional Commitment & Docs
-    commitment: "",
+    // Optional Documents
     photo_url: "",
     photo_public_id: "",
     signature_url: "",
@@ -104,7 +103,6 @@ export default function EditMemberPage() {
     personal: true,
     emergency: false,
     reference: false,
-    commitment: false,
     documents: false,
     additional: false,
   });
@@ -168,8 +166,6 @@ export default function EditMemberPage() {
         reference_name: memberData.reference_name || "",
         reference_phone: memberData.reference_phone || "",
         reference_relationship: memberData.reference_relationship || "",
-
-        commitment: memberData.commitment || "",
         photo_url: memberData.photo_url || "",
         photo_public_id: memberData.photo_public_id || "",
         signature_url: memberData.signature_url || "",
@@ -313,7 +309,6 @@ export default function EditMemberPage() {
         reference_phone: cleanVal(formData.reference_phone),
         reference_relationship: cleanVal(formData.reference_relationship),
 
-        commitment: cleanVal(formData.commitment),
         photo_url: cleanVal(formData.photo_url),
         photo_public_id: cleanVal(formData.photo_public_id),
         signature_url: cleanVal(formData.signature_url),
@@ -1275,10 +1270,10 @@ export default function EditMemberPage() {
               <FileText className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               <div>
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                  Commitment & Additional Remarks
+                  Additional Information
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Reason for joining, pledge commitments, and administrative notes
+                  Reason for joining and administrative notes
                 </p>
               </div>
             </div>
@@ -1291,19 +1286,6 @@ export default function EditMemberPage() {
 
           {openSections.additional && (
             <div className="p-6 pt-0 border-t border-slate-100 dark:border-slate-800/60 mt-2 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
-                  Commitment / Pledge Details
-                </label>
-                <textarea
-                  rows={2}
-                  value={formData.commitment}
-                  onChange={(e) => setFormData({ ...formData, commitment: e.target.value })}
-                  placeholder="e.g. Committed to participate actively in monthly pooling and volunteer initiatives"
-                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-3.5 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-emerald-500 focus:outline-none"
-                />
-              </div>
-
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
                   Reason for Joining

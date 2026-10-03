@@ -9,16 +9,17 @@ import { Modal } from "@/components/Modal";
 import {
   Receipt,
   Plus,
-  FolderTree,
   Tag,
+  BarChart3,
   AlertCircle,
   Loader2,
   Search,
-  Filter,
-  ArrowRight,
-  ExternalLink,
+  FolderTree,
+  Eye,
+  RotateCcw,
   Calendar,
-  X
+  CheckCircle2,
+  Filter
 } from "lucide-react";
 
 export default function ManageExpensesPage() {
@@ -37,12 +38,12 @@ export default function ManageExpensesPage() {
   const [endDate, setEndDate] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Category Modal (only for adding category classification)
-  const [catModalOpen, setCatModalOpen] = useState(false);
-  const [newCatName, setNewCatName] = useState("");
-  const [newCatDesc, setNewCatDesc] = useState("");
-  const [savingCat, setSavingCat] = useState(false);
+  // Reversal Modal State
+  const [reversingExpense, setReversingExpense] = useState<any | null>(null);
+  const [reversalReason, setReversalReason] = useState("");
+  const [reversing, setReversing] = useState(false);
 
   const fetchDropdowns = async () => {
     try {
@@ -98,30 +99,32 @@ export default function ManageExpensesPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const handleCreateCategory = async (e: React.FormEvent) => {
+  const handleConfirmReversal = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newCatName.trim()) return;
-    setSavingCat(true);
+    if (!reversingExpense) return;
+    setReversing(true);
     try {
-      await api.post("/expense-categories", {
-        name: newCatName.trim(),
-        description: newCatDesc.trim() || undefined,
+      await api.post(`/expenses/${reversingExpense.id}/reverse`, {
+        reason: reversalReason.trim() || "Administrative correction",
       });
-      setCatModalOpen(false);
-      setNewCatName("");
-      setNewCatDesc("");
-      fetchDropdowns();
+      setSuccessMsg(
+        `Expense ${reversingExpense.expense_number} was reversed successfully. The funds have been returned to ${reversingExpense.group?.name}.`
+      );
+      setReversingExpense(null);
+      setReversalReason("");
+      fetchExpenses();
+      setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err: any) {
-      alert(err.message || "Failed to create category");
+      alert(err.message || "Failed to reverse expense transaction");
     } finally {
-      setSavingCat(false);
+      setReversing(false);
     }
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-5">
         <div>
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400 border border-rose-100 dark:border-rose-900">
@@ -132,26 +135,25 @@ export default function ManageExpensesPage() {
             </h1>
           </div>
           <p className="mt-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Track and audit operational and charitable disbursements per accounting group.
+            Track, audit, and disburse operational expenditures with double-entry accounting integrity.
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
           <Link
-            href="/admin/expenses/ledger"
+            href="/admin/expenses/categories"
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
-            <FolderTree className="h-3.5 w-3.5 text-slate-500" />
-            Expense Ledger
+            <Tag className="h-3.5 w-3.5 text-slate-500" />
+            Expense Categories
           </Link>
-          <button
-            onClick={() => setCatModalOpen(true)}
-            className="btn-secondary text-xs inline-flex items-center gap-1.5"
+          <Link
+            href="/admin/expenses/report"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
-            <Tag className="h-3.5 w-3.5" />
-            New Category
-          </button>
-          {/* PRIMARY BUTTON: LINKS DIRECTLY TO DEDICATED PAGE, NO POPUP */}
+            <BarChart3 className="h-3.5 w-3.5 text-slate-500" />
+            Expense Report
+          </Link>
           <Link
             href="/admin/expenses/new"
             className="btn-primary inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold shadow-sm"
@@ -161,6 +163,14 @@ export default function ManageExpensesPage() {
           </Link>
         </div>
       </div>
+
+      {/* Notifications */}
+      {successMsg && (
+        <div className="flex items-center gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-xs sm:text-sm text-emerald-900 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300 animate-in fade-in duration-200">
+          <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <span>{successMsg}</span>
+        </div>
+      )}
 
       {error && (
         <div className="flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs sm:text-sm text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
@@ -184,7 +194,7 @@ export default function ManageExpensesPage() {
             />
           </div>
 
-          {/* Group Filter */}
+          {/* Source Group Filter */}
           <div>
             <select
               value={selectedGroup}
@@ -194,7 +204,7 @@ export default function ManageExpensesPage() {
               }}
               className="input-field text-xs font-medium"
             >
-              <option value="">All Groups</option>
+              <option value="">All Source Groups</option>
               {groups.map((g) => (
                 <option key={g.id} value={g.id}>
                   {g.name}
@@ -291,20 +301,20 @@ export default function ManageExpensesPage() {
         </div>
       </div>
 
-      {/* Table */}
+      {/* Table - Columns strictly matching user requirements */}
       <div className="table-container">
         <table className="table-custom">
           <thead>
             <tr>
-              <th>Expense No.</th>
-              <th>Date</th>
-              <th>Category</th>
-              <th>Group Account</th>
-              <th>Description</th>
-              <th>Payee</th>
-              <th>Method</th>
-              <th className="text-right">Amount (৳)</th>
-              <th className="text-center">Action</th>
+              <th>EXPENSE ID</th>
+              <th>DATE</th>
+              <th>CATEGORY</th>
+              <th>DESCRIPTION</th>
+              <th>SOURCE GROUP</th>
+              <th>PAYEE</th>
+              <th>PAYMENT METHOD</th>
+              <th className="text-right">AMOUNT</th>
+              <th className="text-right">ACTIONS</th>
             </tr>
           </thead>
           <tbody>
@@ -318,50 +328,85 @@ export default function ManageExpensesPage() {
             ) : expenses.length === 0 ? (
               <tr>
                 <td colSpan={9} className="text-center py-12 text-slate-400">
-                  No expenses recorded.
+                  No expenses recorded matching the selected criteria.
                 </td>
               </tr>
             ) : (
-              expenses.map((exp) => (
-                <tr key={exp.id}>
-                  <td className="font-mono text-xs font-semibold text-slate-900 dark:text-white whitespace-nowrap">
-                    <Link
-                      href={`/admin/expenses/${exp.id}`}
-                      className="text-foundation-700 dark:text-foundation-400 hover:underline"
-                    >
-                      {exp.expense_number}
-                    </Link>
-                  </td>
-                  <td className="text-xs text-slate-500 whitespace-nowrap">{formatDate(exp.expense_date)}</td>
-                  <td>
-                    <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-200">
-                      {exp.category?.name}
-                    </span>
-                  </td>
-                  <td>
-                    <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
-                      <FolderTree className="h-3 w-3 text-foundation-700" />
-                      {exp.group?.name}
-                    </span>
-                  </td>
-                  <td className="text-xs text-slate-700 dark:text-slate-300 max-w-sm truncate" title={exp.description}>
-                    {exp.description}
-                  </td>
-                  <td className="text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">{exp.payee || "-"}</td>
-                  <td className="font-mono text-xs text-slate-500 whitespace-nowrap">{exp.payment_method}</td>
-                  <td className="text-right font-bold text-xs text-rose-700 dark:text-rose-400 whitespace-nowrap">
-                    -{formatCurrency(exp.amount)}
-                  </td>
-                  <td className="text-center whitespace-nowrap">
-                    <Link
-                      href={`/admin/expenses/${exp.id}`}
-                      className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-foundation-700 hover:bg-foundation-50 dark:text-foundation-400 dark:hover:bg-slate-800"
-                    >
-                      Details <ArrowRight className="h-3 w-3" />
-                    </Link>
-                  </td>
-                </tr>
-              ))
+              expenses.map((exp) => {
+                const isReversed = Boolean(exp.transaction?.is_reversed);
+                return (
+                  <tr key={exp.id} className={isReversed ? "opacity-60 bg-slate-50/50 dark:bg-slate-900/30" : ""}>
+                    <td className="font-mono text-xs font-semibold text-slate-900 dark:text-white whitespace-nowrap">
+                      <Link
+                        href={`/admin/expenses/${exp.id}`}
+                        className="text-foundation-700 dark:text-foundation-400 hover:underline"
+                      >
+                        {exp.expense_number}
+                      </Link>
+                      {isReversed && (
+                        <span className="ml-1.5 inline-flex items-center rounded bg-amber-100 dark:bg-amber-950/60 px-1.5 py-0.2 text-[10px] font-bold text-amber-800 dark:text-amber-300">
+                          REVERSED
+                        </span>
+                      )}
+                    </td>
+                    <td className="text-xs text-slate-500 whitespace-nowrap">
+                      {formatDate(exp.expense_date)}
+                    </td>
+                    <td>
+                      <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                        {exp.category?.name || "Uncategorized"}
+                      </span>
+                    </td>
+                    <td className="text-xs text-slate-700 dark:text-slate-300 max-w-xs truncate" title={exp.description}>
+                      {exp.description || "-"}
+                    </td>
+                    <td>
+                      <span className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                        <FolderTree className="h-3 w-3 text-foundation-700" />
+                        {exp.group?.name || "-"}
+                      </span>
+                    </td>
+                    <td className="text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">
+                      {exp.payee || "-"}
+                    </td>
+                    <td className="font-mono text-xs text-slate-500 whitespace-nowrap">
+                      {exp.payment_method}
+                    </td>
+                    <td className="text-right font-mono font-bold text-xs whitespace-nowrap">
+                      <span className={isReversed ? "line-through text-slate-400" : "text-rose-700 dark:text-rose-400"}>
+                        -{formatCurrency(exp.amount)}
+                      </span>
+                    </td>
+                    <td className="text-right whitespace-nowrap">
+                      <div className="flex items-center justify-end gap-1.5">
+                        <Link
+                          href={`/admin/expenses/${exp.id}`}
+                          className="inline-flex items-center gap-1 rounded bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 px-2.5 py-1 text-xs font-medium text-slate-700 dark:text-slate-200 transition-colors"
+                          title="View Voucher Details"
+                        >
+                          <Eye className="h-3.5 w-3.5 text-foundation-700 dark:text-foundation-400" />
+                          <span>Details</span>
+                        </Link>
+
+                        {!isReversed && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setReversingExpense(exp);
+                              setReversalReason("");
+                            }}
+                            className="inline-flex items-center gap-1 rounded bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 px-2 py-1 text-xs font-medium text-rose-600 dark:text-rose-400 transition-colors"
+                            title="Reverse Expense Transaction"
+                          >
+                            <RotateCcw className="h-3 w-3" />
+                            <span className="hidden sm:inline">Reverse</span>
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>
@@ -379,44 +424,68 @@ export default function ManageExpensesPage() {
         }}
       />
 
-      {/* Modal: New Category Only */}
+      {/* Safe Reversal Confirmation Modal */}
       <Modal
-        isOpen={catModalOpen}
-        onClose={() => setCatModalOpen(false)}
-        title="Add Expense Category"
+        isOpen={Boolean(reversingExpense)}
+        onClose={() => setReversingExpense(null)}
+        title="Reverse Expense Transaction"
       >
-        <form onSubmit={handleCreateCategory} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Category Name</label>
-            <input
-              required
-              type="text"
-              placeholder="e.g. Winter Clothing Aid"
-              className="input-field"
-              value={newCatName}
-              onChange={(e) => setNewCatName(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">Description</label>
-            <input
-              type="text"
-              placeholder="Category purpose"
-              className="input-field"
-              value={newCatDesc}
-              onChange={(e) => setNewCatDesc(e.target.value)}
-            />
-          </div>
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
-            <button type="button" onClick={() => setCatModalOpen(false)} className="btn-secondary">
-              Cancel
-            </button>
-            <button type="submit" disabled={savingCat} className="btn-primary">
-              {savingCat && <Loader2 className="h-4 w-4 animate-spin" />}
-              Save Category
-            </button>
-          </div>
-        </form>
+        {reversingExpense && (
+          <form onSubmit={handleConfirmReversal} className="space-y-4">
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200 space-y-1">
+              <p className="font-bold">Accounting Contra-Entry Reversal</p>
+              <p>
+                Reversing this expense will create an offsetting financial inflow transaction of{" "}
+                <strong>{formatCurrency(reversingExpense.amount)}</strong>, restoring the balance of{" "}
+                <strong>{reversingExpense.group?.name}</strong>.
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Voucher / Expense ID
+              </label>
+              <input
+                disabled
+                type="text"
+                value={reversingExpense.expense_number}
+                className="input-field text-xs bg-slate-100 dark:bg-slate-800"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                Reversal Reason <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                required
+                rows={3}
+                value={reversalReason}
+                onChange={(e) => setReversalReason(e.target.value)}
+                placeholder="Reason for reversing this expense (e.g. Cancelled payment, duplicate entry, incorrect amount)..."
+                className="input-field text-xs resize-y"
+              />
+            </div>
+
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setReversingExpense(null)}
+                className="btn-secondary text-xs px-3.5 py-1.5"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={reversing || !reversalReason.trim()}
+                className="btn-danger text-xs px-4 py-1.5 font-semibold inline-flex items-center gap-1.5 disabled:opacity-50"
+              >
+                {reversing && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Confirm Reversal
+              </button>
+            </div>
+          </form>
+        )}
       </Modal>
     </div>
   );

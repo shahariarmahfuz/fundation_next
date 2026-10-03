@@ -153,8 +153,11 @@ export const AdminSidebar: React.FC<SidebarProps> = ({ isOpen, isDesktopOpen = t
       icon: Receipt,
       permission: "expenses.view",
       children: [
+        { name: "Expense Categories", href: "/admin/expenses/categories", permission: "expenses.view" },
+        { name: "Manage Expense Categories", href: "/admin/expenses/categories", permission: "expenses.view" },
         { name: "Add Expense", href: "/admin/expenses/new", permission: "expenses.create" },
         { name: "Manage Expenses", href: "/admin/expenses", permission: "expenses.view" },
+        { name: "Expense Report", href: "/admin/expenses/report", permission: "expenses.view" },
         { name: "Expense Ledger", href: "/admin/expenses/ledger", permission: "expenses.view" },
       ],
     },

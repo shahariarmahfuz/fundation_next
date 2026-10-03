@@ -97,10 +97,10 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({ onToggleSidebar }) => 
             <Menu className="h-5 w-5" />
           </button>
 
-          {/* Foundation Brand Typography */}
+          {/* Foundation Brand Typography - Hidden on Mobile, Visible on Desktop */}
           <Link
             href="/admin/dashboard"
-            className="flex items-center gap-2.5 group min-w-0"
+            className="hidden md:flex items-center gap-2.5 group min-w-0"
           >
             <FoundationLogo size="sm" />
             <span className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-[#F5F5F5] leading-tight truncate">

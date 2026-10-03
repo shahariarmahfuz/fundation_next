@@ -1,200 +1,183 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { api } from "@/lib/api";
-import { useBranding } from "@/lib/branding";
 import { UserPlus, CheckCircle2, AlertCircle, ArrowLeft, Loader2 } from "lucide-react";
 
+interface GroupOption {
+  id: number;
+  name: string;
+  code: string;
+}
+
 export default function MemberApplicationPage() {
-  const { name } = useBranding();
-  const [formData, setFormData] = useState({
-    applicant_name: "",
-    email: "",
-    phone: "",
-    address: "",
-    nid_or_id: "",
-    proposed_contribution: "500.00",
-    reason_for_joining: "",
-  });
+  const [fullName, setFullName] = useState("");
+  const [groupId, setGroupId] = useState("");
+  const [groups, setGroups] = useState<GroupOption[]>([]);
+  const [loadingGroups, setLoadingGroups] = useState(true);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successData, setSuccessData] = useState<any | null>(null);
+  const [successData, setSuccessData] = useState<{
+    applicantName: string;
+    groupName: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const data = await api.get("/member-applications/groups");
+        setGroups(data || []);
+        if (data && data.length > 0) {
+          setGroupId(String(data[0].id));
+        }
+      } catch (err: any) {
+        setError("Unable to load groups. Please refresh or try again later.");
+      } finally {
+        setLoadingGroups(false);
+      }
+    };
+    fetchGroups();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!fullName.trim()) {
+      setError("Please enter your full name.");
+      return;
+    }
+    if (!groupId) {
+      setError("Please select a group.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
 
+    const selectedGroup = groups.find((g) => String(g.id) === String(groupId));
+
     try {
-      const res = await api.post("/member-applications", {
-        ...formData,
-        proposed_contribution: parseFloat(formData.proposed_contribution) || 500,
+      await api.post("/member-applications", {
+        full_name: fullName.trim(),
+        group_id: parseInt(groupId),
       });
-      setSuccessData(res);
+
+      setSuccessData({
+        applicantName: fullName.trim(),
+        groupName: selectedGroup?.name || "Selected Group",
+      });
     } catch (err: any) {
-      setError(err.message || "Failed to submit application");
+      setError(err.message || "Failed to submit membership application.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
+    <div className="flex min-h-screen flex-col bg-slate-50 dark:bg-slate-950">
       <Navbar />
 
-      <main className="flex-1 py-12 sm:py-16">
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-10 shadow-sm">
+      <main className="flex-1 flex items-center justify-center py-12 sm:py-16">
+        <div className="w-full max-w-lg px-4 sm:px-6">
+          <div className="rounded-2xl border border-slate-200/80 bg-white p-6 sm:p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            {/* Header */}
             <div className="flex items-center gap-3 mb-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-foundation-100 text-foundation-800">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-foundation-50 text-foundation-700 dark:bg-foundation-950/60 dark:text-foundation-400 border border-foundation-100 dark:border-foundation-900">
                 <UserPlus className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-slate-900">
+                <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
                   Membership Application
                 </h1>
-                <p className="text-xs sm:text-sm text-slate-500">
-                  Join {name || "the Foundation"} to contribute regularly and support community welfare
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                  Apply to join our foundation.
                 </p>
               </div>
             </div>
 
+            {/* Error Banner */}
             {error && (
-              <div className="mb-6 flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs sm:text-sm text-rose-800">
-                <AlertCircle className="h-5 w-5 shrink-0 text-rose-600" />
+              <div className="mb-6 flex items-center gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-xs sm:text-sm text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
+                <AlertCircle className="h-5 w-5 shrink-0 text-rose-600 dark:text-rose-400" />
                 <span>{error}</span>
               </div>
             )}
 
+            {/* Success State */}
             {successData ? (
-              <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-8 text-center space-y-4">
-                <CheckCircle2 className="h-14 w-14 text-emerald-600 mx-auto" />
-                <h3 className="text-xl font-bold text-slate-900">Application Submitted Successfully!</h3>
-                <p className="text-sm text-slate-700 max-w-lg mx-auto">
-                  Thank you, <strong>{successData.applicant_name}</strong>. Your membership application (ID: #{successData.id})
-                  has been submitted for review by the management board.
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-6 sm:p-8 text-center space-y-4 dark:border-emerald-900/50 dark:bg-emerald-950/30">
+                <CheckCircle2 className="h-12 w-12 text-emerald-600 dark:text-emerald-400 mx-auto" />
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                  Application Submitted
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                  Thank you, <strong>{successData.applicantName}</strong>. Your application to join{" "}
+                  <strong>{successData.groupName}</strong> has been received and is pending administrator review.
                 </p>
-                <div className="bg-white p-4 rounded-lg border border-emerald-200 text-xs text-slate-600 max-w-md mx-auto text-left space-y-1">
-                  <div><strong>Status:</strong> PENDING MANAGEMENT REVIEW</div>
-                  <div><strong>Proposed Monthly Contribution:</strong> ৳{successData.proposed_contribution}</div>
-                  <div><strong>Next Step:</strong> Upon approval, an accounting group will be assigned to you and your membership ID generated.</div>
-                </div>
-                <div className="pt-4">
-                  <Link href="/" className="btn-primary">
-                    <ArrowLeft className="h-4 w-4" />
+                <div className="pt-2">
+                  <Link href="/" className="btn-primary inline-flex items-center gap-2 text-xs">
+                    <ArrowLeft className="h-3.5 w-3.5" />
                     Back to Home
                   </Link>
                 </div>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Full Legal Name <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      required
-                      type="text"
-                      className="input-field"
-                      placeholder="e.g. Mohammad Rahim Uddin"
-                      value={formData.applicant_name}
-                      onChange={(e) => setFormData({ ...formData, applicant_name: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Phone Number <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      required
-                      type="tel"
-                      className="input-field"
-                      placeholder="e.g. +880 1711-000000"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      className="input-field"
-                      placeholder="e.g. rahim@example.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      NID or National ID
-                    </label>
-                    <input
-                      type="text"
-                      className="input-field"
-                      placeholder="e.g. 1990123456789"
-                      value={formData.nid_or_id}
-                      onChange={(e) => setFormData({ ...formData, nid_or_id: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Proposed Monthly Contribution (৳ BDT) <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                      required
-                      type="number"
-                      step="50"
-                      min="100"
-                      className="input-field"
-                      placeholder="500"
-                      value={formData.proposed_contribution}
-                      onChange={(e) => setFormData({ ...formData, proposed_contribution: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Residential Address
-                    </label>
-                    <input
-                      type="text"
-                      className="input-field"
-                      placeholder="House / Road / Area / District"
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Why do you wish to join {name || "the Foundation"}?
-                    </label>
-                    <textarea
-                      rows={3}
-                      className="input-field"
-                      placeholder="Share your motivation or area of philanthropic interest (Education, Medical, Qard Hasan, etc.)..."
-                      value={formData.reason_for_joining}
-                      onChange={(e) => setFormData({ ...formData, reason_for_joining: e.target.value })}
-                    />
-                  </div>
+              /* Public Form: Only Full Name and Group */
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Full Name * */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Full Name <span className="text-rose-500">*</span>
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    className="input-field text-sm"
+                    placeholder="Enter your full name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                  />
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
-                  <Link href="/" className="btn-secondary">
-                    Cancel
-                  </Link>
-                  <button type="submit" disabled={loading} className="btn-primary">
+                {/* Group * */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Group <span className="text-rose-500">*</span>
+                  </label>
+                  {loadingGroups ? (
+                    <div className="flex items-center gap-2 p-2.5 text-xs text-slate-400">
+                      <Loader2 className="h-4 w-4 animate-spin text-foundation-700" />
+                      Loading groups...
+                    </div>
+                  ) : (
+                    <select
+                      required
+                      className="input-field text-sm font-medium"
+                      value={groupId}
+                      onChange={(e) => setGroupId(e.target.value)}
+                    >
+                      {groups.length === 0 && (
+                        <option value="">No active groups available</option>
+                      )}
+                      {groups.map((g) => (
+                        <option key={g.id} value={g.id}>
+                          {g.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </div>
+
+                {/* Submit Button */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={loading || loadingGroups || !fullName.trim() || !groupId}
+                    className="w-full btn-primary flex items-center justify-center gap-2 py-2.5 text-sm font-bold shadow-md shadow-foundation-700/20 disabled:opacity-50"
+                  >
                     {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                     Submit Application
                   </button>

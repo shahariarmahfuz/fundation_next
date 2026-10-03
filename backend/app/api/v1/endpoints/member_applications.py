@@ -12,7 +12,8 @@ from backend.app.models.user import User
 from backend.app.schemas.member_application import (
     MemberApplicationCreate,
     MemberApplicationReview,
-    MemberApplicationResponse
+    MemberApplicationResponse,
+    PublicGroupOption
 )
 from backend.app.schemas.common import PaginatedResponse
 from backend.app.api.deps import require_permission, get_current_user
@@ -21,21 +22,49 @@ from backend.app.services.audit_service import AuditService
 router = APIRouter()
 
 
+@router.get("/groups", response_model=List[PublicGroupOption])
+def get_public_application_groups(db: Session = Depends(get_db)) -> Any:
+    """Public endpoint to list active groups available for prospective member selection."""
+    return db.query(Group).filter(Group.status == "ACTIVE").order_by(Group.name).all()
+
+
 @router.post("", response_model=MemberApplicationResponse)
 def submit_member_application(
     app_in: MemberApplicationCreate,
     db: Session = Depends(get_db)
 ) -> Any:
-    """Public endpoint for prospective members to apply."""
+    """Public endpoint for prospective members to apply with Full Name and Group."""
+    full_name = (app_in.full_name or app_in.applicant_name or "").strip()
+    if not full_name:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Full Name is required"
+        )
+
+    if not app_in.group_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Group selection is required"
+        )
+
+    group = db.query(Group).filter(Group.id == app_in.group_id).first()
+    if not group:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Selected Group does not exist"
+        )
+
     app = MemberApplication(
-        applicant_name=app_in.applicant_name,
+        applicant_name=full_name,
+        group_id=group.id,
+        assigned_group_id=group.id,
+        status="PENDING",
         email=app_in.email,
         phone=app_in.phone,
         address=app_in.address,
         nid_or_id=app_in.nid_or_id,
         proposed_contribution=app_in.proposed_contribution,
         reason_for_joining=app_in.reason_for_joining,
-        status="PENDING"
     )
     db.add(app)
     db.commit()
@@ -98,17 +127,18 @@ def review_member_application(
     app.review_notes = review_in.review_notes
 
     if review_in.action.upper() == "APPROVE":
-        if not review_in.assigned_group_id:
+        target_group_id = review_in.assigned_group_id or app.group_id or app.assigned_group_id
+        if not target_group_id:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Assigned group is required to approve member application. A member must belong to a group."
             )
         
-        group = db.query(Group).filter(Group.id == review_in.assigned_group_id).first()
+        group = db.query(Group).filter(Group.id == target_group_id).first()
         if not group:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Assigned group not found")
 
-        # Concurrency-safe unique member code generation
+        # Concurrency-safe unique member code generation (e.g. M-0001, M-0002, etc.)
         from backend.app.services.code_service import CodeService
         member_num = CodeService.process_member_code(db)
 
@@ -116,17 +146,18 @@ def review_member_application(
             member_number=member_num,
             full_name=app.applicant_name,
             email=app.email,
-            phone=app.phone,
+            phone=app.phone or "",
             address=app.address,
             nid_or_id=app.nid_or_id,
             status="ACTIVE",
             group_id=group.id,
-            notes=f"Approved from online application #{app.id}. {review_in.review_notes or ''}"
+            notes=f"Approved from public application #{app.id}. {review_in.review_notes or ''}".strip()
         )
         db.add(new_member)
         db.flush()
 
         app.status = "APPROVED"
+        app.group_id = group.id
         app.assigned_group_id = group.id
         app.created_member_id = new_member.id
 
@@ -147,3 +178,4 @@ def review_member_application(
     db.commit()
     db.refresh(app)
     return app
+

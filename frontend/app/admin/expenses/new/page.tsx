@@ -15,13 +15,10 @@ import {
   Calendar,
   Wallet,
   Tag,
-  Building2,
-  FileText,
   User,
   ExternalLink,
-  Sparkles,
-  RefreshCw,
-  X
+  X,
+  List
 } from "lucide-react";
 
 export default function NewExpensePage() {
@@ -33,27 +30,25 @@ export default function NewExpensePage() {
   // Form State
   const [groupId, setGroupId] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [amount, setAmount] = useState("1500.00");
-  const [description, setDescription] = useState("");
-  const [payee, setPayee] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [amount, setAmount] = useState("");
   const [expenseDate, setExpenseDate] = useState(
     new Date().toISOString().split("T")[0]
   );
+  const [paymentMethod, setPaymentMethod] = useState("CASH");
+  const [payee, setPayee] = useState("");
   const [reference, setReference] = useState("");
-  const [notes, setNotes] = useState("");
-
-  // Quick Category Creation State
-  const [showAddCategory, setShowAddCategory] = useState(false);
-  const [newCatName, setNewCatName] = useState("");
-  const [newCatDesc, setNewCatDesc] = useState("");
-  const [creatingCategory, setCreatingCategory] = useState(false);
-  const [categoryError, setCategoryError] = useState<string | null>(null);
+  const [note, setNote] = useState("");
 
   // Submission State
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successInfo, setSuccessInfo] = useState<any | null>(null);
+  const [successInfo, setSuccessInfo] = useState<{
+    expenseNumber: string;
+    expenseId: number;
+    amount: number;
+    categoryName: string;
+    groupName: string;
+  } | null>(null);
 
   const loadData = async () => {
     try {
@@ -61,14 +56,17 @@ export default function NewExpensePage() {
         api.get("/groups"),
         api.get("/expense-categories"),
       ]);
-      setGroups(gRes || []);
-      setCategories(cRes || []);
+      const activeGroups = (gRes || []).filter((g: any) => g.status !== "INACTIVE");
+      const activeCats = (cRes || []).filter((c: any) => c.is_active);
 
-      if (gRes && gRes.length > 0 && !groupId) {
-        setGroupId(String(gRes[0].id));
+      setGroups(activeGroups);
+      setCategories(activeCats);
+
+      if (activeGroups.length > 0 && !groupId) {
+        setGroupId(String(activeGroups[0].id));
       }
-      if (cRes && cRes.length > 0 && !categoryId) {
-        setCategoryId(String(cRes[0].id));
+      if (activeCats.length > 0 && !categoryId) {
+        setCategoryId(String(activeCats[0].id));
       }
     } catch (err: any) {
       setError(err.message || "Failed to load accounting groups or expense categories.");
@@ -86,30 +84,6 @@ export default function NewExpensePage() {
   const groupAvailableBalance = selectedGroup ? parseFloat(selectedGroup.current_balance || "0") : 0;
   const numAmount = parseFloat(amount) || 0;
   const isInsufficient = numAmount > groupAvailableBalance;
-
-  // Handle Quick Category Create
-  const handleCreateCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newCatName.trim()) return;
-    setCreatingCategory(true);
-    setCategoryError(null);
-    try {
-      const created = await api.post("/expense-categories", {
-        name: newCatName.trim(),
-        description: newCatDesc.trim() || undefined,
-        is_active: true,
-      });
-      setCategories((prev) => [...prev, created]);
-      setCategoryId(String(created.id));
-      setNewCatName("");
-      setNewCatDesc("");
-      setShowAddCategory(false);
-    } catch (err: any) {
-      setCategoryError(err.message || "Failed to create expense category.");
-    } finally {
-      setCreatingCategory(false);
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -134,12 +108,8 @@ export default function NewExpensePage() {
           { minimumFractionDigits: 2 }
         )} available, but ৳${numAmount.toLocaleString(undefined, {
           minimumFractionDigits: 2,
-        })} was requested.`
+        })} was requested. Expenses cannot result in a negative balance.`
       );
-      return;
-    }
-    if (!description.trim()) {
-      setError("Please provide a description of the expense.");
       return;
     }
 
@@ -152,33 +122,41 @@ export default function NewExpensePage() {
         expense_date: expenseDate,
         payment_method: paymentMethod,
         payee: payee.trim() || undefined,
-        description: description.trim(),
+        description: note.trim() || undefined,
+        notes: note.trim() || undefined,
         reference: reference.trim() || undefined,
-        notes: notes.trim() || undefined,
       });
 
-      // Show success info
+      // Show modern animated success banner on page (NO redirect)
       setSuccessInfo({
-        expense: res,
+        expenseNumber: res.expense_number,
+        expenseId: res.id,
         amount: numAmount,
-        groupName: selectedGroup?.name || "Accounting Group",
         categoryName: selectedCategory?.name || "Expense",
+        groupName: selectedGroup?.name || "Accounting Group",
       });
 
-      // Reset form fields so another expense can be entered immediately
-      setDescription("");
+      // Reset form fields
+      setAmount("");
       setPayee("");
       setReference("");
-      setNotes("");
-      setAmount("1500.00");
+      setNote("");
 
-      // Refresh groups list to reflect newly debited balance
+      // Refresh groups list to reflect newly updated balance
       loadData();
     } catch (err: any) {
-      setError(err.message || "Failed to record foundation expense.");
+      setError(err.message || "Failed to record expense.");
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleAddAnother = () => {
+    setSuccessInfo(null);
+    setAmount("");
+    setNote("");
+    setPayee("");
+    setReference("");
   };
 
   return (
@@ -199,97 +177,112 @@ export default function NewExpensePage() {
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400 shadow-sm border border-rose-100 dark:border-rose-900">
               <Receipt className="h-5 w-5" />
             </div>
-            Record Foundation Expense
+            Add Expense
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            Post operational or charitable program disbursements against authoritative accounting groups.
+            Post an expenditure transaction against an accounting group with double-entry ledger allocation.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Link
-            href="/admin/expenses/ledger"
+            href="/admin/expenses/categories"
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
-            <FolderTree className="h-3.5 w-3.5 text-slate-500" />
-            Expense Ledger
+            <Tag className="h-3.5 w-3.5 text-slate-500" />
+            Expense Categories
           </Link>
           <Link
             href="/admin/expenses"
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
           >
+            <List className="h-3.5 w-3.5 text-slate-500" />
             Manage Expenses
           </Link>
         </div>
       </div>
 
-      {/* Success Notification Banner (Animated Flash Message, Stays on Page) */}
+      {/* Modern Animated Success Banner (Stays on Add Expense Page) */}
       {successInfo && (
-        <div className="relative overflow-hidden rounded-2xl border-2 border-emerald-500/30 bg-emerald-50/90 p-5 shadow-lg backdrop-blur dark:bg-emerald-950/40 dark:border-emerald-600/40 transition-all animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="relative overflow-hidden rounded-2xl border-2 border-emerald-500/30 bg-emerald-50/95 p-5 shadow-lg backdrop-blur dark:bg-emerald-950/50 dark:border-emerald-600/40 transition-all animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="flex items-start gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20">
               <CheckCircle2 className="h-6 w-6" />
             </div>
-            <div className="flex-1 space-y-2">
+            <div className="flex-1 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-emerald-950 dark:text-emerald-100 flex items-center gap-2">
-                  ✓ Expense posted successfully
-                  <span className="inline-flex items-center gap-1 rounded-full bg-emerald-200/70 px-2 py-0.5 font-mono text-[11px] font-semibold text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300">
-                    {successInfo.expense?.expense_number}
+                <div>
+                  <h3 className="text-base font-bold text-emerald-950 dark:text-emerald-100 flex items-center gap-2">
+                    ✓ Expense recorded successfully
+                  </h3>
+                  <span className="font-mono text-xs text-emerald-800 dark:text-emerald-300">
+                    Voucher ID: {successInfo.expenseNumber}
                   </span>
-                </h3>
+                </div>
                 <button
                   type="button"
                   onClick={() => setSuccessInfo(null)}
                   className="rounded-lg p-1 text-emerald-700 hover:bg-emerald-100 dark:text-emerald-300 dark:hover:bg-emerald-900/50"
+                  title="Dismiss notification"
                 >
                   <X className="h-4 w-4" />
                 </button>
               </div>
 
-              <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-200">
-                ৳{successInfo.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} has been recorded against {successInfo.groupName}.
-              </p>
+              {/* Required Details: Category, Amount, Source Group */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="rounded-xl bg-emerald-100/70 p-3 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800">
+                  <span className="block text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400">
+                    Expense Category
+                  </span>
+                  <span className="text-sm font-bold text-emerald-950 dark:text-emerald-100">
+                    {successInfo.categoryName}
+                  </span>
+                </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2 text-xs">
-                <div className="rounded-lg bg-emerald-100/60 p-2 dark:bg-emerald-900/30">
-                  <span className="block text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400">Category</span>
-                  <span className="font-semibold text-emerald-950 dark:text-emerald-100">{successInfo.categoryName}</span>
+                <div className="rounded-xl bg-emerald-100/70 p-3 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800">
+                  <span className="block text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400">
+                    Expense Amount
+                  </span>
+                  <span className="text-sm font-bold font-mono text-rose-700 dark:text-rose-400">
+                    {formatCurrency(successInfo.amount)}
+                  </span>
                 </div>
-                <div className="rounded-lg bg-emerald-100/60 p-2 dark:bg-emerald-900/30">
-                  <span className="block text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400">Group Account</span>
-                  <span className="font-semibold text-emerald-950 dark:text-emerald-100">{successInfo.groupName}</span>
-                </div>
-                <div className="rounded-lg bg-emerald-100/60 p-2 dark:bg-emerald-900/30">
-                  <span className="block text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400">Payment Method</span>
-                  <span className="font-semibold text-emerald-950 dark:text-emerald-100">{successInfo.expense?.payment_method}</span>
-                </div>
-                <div className="rounded-lg bg-emerald-100/60 p-2 dark:bg-emerald-900/30">
-                  <span className="block text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400">Expense Date</span>
-                  <span className="font-semibold text-emerald-950 dark:text-emerald-100">{successInfo.expense?.expense_date}</span>
+
+                <div className="rounded-xl bg-emerald-100/70 p-3 dark:bg-emerald-900/40 border border-emerald-200 dark:border-emerald-800">
+                  <span className="block text-[10px] uppercase font-bold text-emerald-700 dark:text-emerald-400">
+                    Source Group
+                  </span>
+                  <span className="text-sm font-bold text-emerald-950 dark:text-emerald-100">
+                    {successInfo.groupName}
+                  </span>
                 </div>
               </div>
 
+              {/* Action Buttons: Add Another Expense & Manage Expenses */}
               <div className="pt-2 flex flex-wrap items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setSuccessInfo(null)}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-emerald-800 transition"
+                  onClick={handleAddAnother}
+                  className="btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold shadow-sm"
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  Record Another Expense
+                  Add Another Expense
                 </button>
+
                 <Link
-                  href={`/admin/expenses/${successInfo.expense?.id}`}
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:underline"
+                  href="/admin/expenses"
+                  className="btn-secondary inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200"
                 >
-                  View Expense Voucher Details <ExternalLink className="h-3 w-3" />
+                  <List className="h-3.5 w-3.5" />
+                  Manage Expenses
                 </Link>
+
                 <Link
-                  href="/admin/expenses/ledger"
-                  className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:underline"
+                  href={`/admin/expenses/${successInfo.expenseId}`}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 dark:text-emerald-300 hover:underline ml-auto"
                 >
-                  Open Expense Ledger <ExternalLink className="h-3 w-3" />
+                  View Expense Details <ExternalLink className="h-3 w-3" />
                 </Link>
               </div>
             </div>
@@ -307,11 +300,11 @@ export default function NewExpensePage() {
                 Insufficient group balance
               </p>
               <p className="mt-0.5 text-xs">
-                <strong>{selectedGroup.name}</strong> has only{" "}
+                <strong>{selectedGroup.name}</strong> currently has only{" "}
                 <strong>৳{groupAvailableBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong> available,
-                but you are attempting to disburse{" "}
+                but you are attempting to spend{" "}
                 <strong>৳{numAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong>.
-                Expenses cannot result in negative group balance.
+                Expenses cannot make the group balance negative.
               </p>
             </div>
           </div>
@@ -330,22 +323,22 @@ export default function NewExpensePage() {
       {loadingRefs ? (
         <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <Loader2 className="mx-auto h-8 w-8 animate-spin text-foundation-600" />
-          <p className="mt-3 text-xs text-slate-500">Loading accounting groups and categories...</p>
+          <p className="mt-3 text-xs text-slate-500">Loading accounting groups and expense categories...</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Left 2 Cols: Form Inputs */}
             <div className="md:col-span-2 space-y-6">
-              {/* Group & Category Card */}
+              {/* Allocation & Category Card */}
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-2">
                   <FolderTree className="h-4 w-4 text-foundation-600" />
-                  Accounting Allocation
+                  Expense Details
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Source Accounting Group */}
+                  {/* Source Accounting Group * */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                       Source Accounting Group <span className="text-rose-500">*</span>
@@ -363,24 +356,22 @@ export default function NewExpensePage() {
                       ))}
                     </select>
                     <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                      The expense amount will reduce this group&apos;s available balance.
+                      The expense will be debited from this group&apos;s available funds.
                     </p>
                   </div>
 
-                  {/* Expense Category */}
+                  {/* Expense Category * */}
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <label className="block text-xs font-bold text-slate-700 dark:text-slate-300">
                         Expense Category <span className="text-rose-500">*</span>
                       </label>
-                      <button
-                        type="button"
-                        onClick={() => setShowAddCategory(!showAddCategory)}
-                        className="text-[11px] font-semibold text-foundation-700 hover:text-foundation-900 dark:text-foundation-400 flex items-center gap-1"
+                      <Link
+                        href="/admin/expenses/categories/new"
+                        className="text-[11px] font-semibold text-foundation-700 hover:text-foundation-900 dark:text-foundation-400 flex items-center gap-0.5"
                       >
-                        <Tag className="h-3 w-3" />
-                        {showAddCategory ? "Close" : "+ New Category"}
-                      </button>
+                        <Plus className="h-3 w-3" /> New Category
+                      </Link>
                     </div>
 
                     <select
@@ -396,73 +387,13 @@ export default function NewExpensePage() {
                       ))}
                     </select>
                     <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
-                      Select classification for financial statements.
+                      Identifies the purpose or classification of the expenditure.
                     </p>
                   </div>
                 </div>
 
-                {/* Quick Add Category Accordion */}
-                {showAddCategory && (
-                  <div className="rounded-xl border border-foundation-200 bg-foundation-50/60 p-4 dark:border-foundation-900 dark:bg-foundation-950/40 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <h4 className="text-xs font-bold text-foundation-900 dark:text-foundation-200">
-                        Create New Expense Category
-                      </h4>
-                      <button
-                        type="button"
-                        onClick={() => setShowAddCategory(false)}
-                        className="text-slate-400 hover:text-slate-600"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                    {categoryError && (
-                      <p className="text-[11px] text-rose-600 dark:text-rose-400">{categoryError}</p>
-                    )}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      <div>
-                        <input
-                          type="text"
-                          placeholder="Category Name (e.g. Utility Bills)"
-                          value={newCatName}
-                          onChange={(e) => setNewCatName(e.target.value)}
-                          className="input-field text-xs"
-                        />
-                      </div>
-                      <div>
-                        <input
-                          type="text"
-                          placeholder="Optional Description"
-                          value={newCatDesc}
-                          onChange={(e) => setNewCatDesc(e.target.value)}
-                          className="input-field text-xs"
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={handleCreateCategory}
-                        disabled={creatingCategory || !newCatName.trim()}
-                        className="inline-flex items-center gap-1.5 rounded-lg bg-foundation-700 px-3 py-1.5 text-xs font-semibold text-white shadow hover:bg-foundation-800 disabled:opacity-50"
-                      >
-                        {creatingCategory && <Loader2 className="h-3 w-3 animate-spin" />}
-                        Save Category
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Expense Details Card */}
-              <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4">
-                <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-foundation-600" />
-                  Expense Details
-                </h2>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Amount */}
+                  {/* Expense Amount * */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                       Expense Amount (৳ BDT) <span className="text-rose-500">*</span>
@@ -484,7 +415,7 @@ export default function NewExpensePage() {
                     </div>
                   </div>
 
-                  {/* Expense Date */}
+                  {/* Expense Date * */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                       Expense Date <span className="text-rose-500">*</span>
@@ -502,40 +433,8 @@ export default function NewExpensePage() {
                   </div>
                 </div>
 
-                {/* Description */}
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    Description <span className="text-rose-500">*</span>
-                  </label>
-                  <input
-                    required
-                    type="text"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    placeholder="e.g. Office rent for October, Clinical supplies for charity dispensary, etc."
-                    className="input-field text-xs"
-                  />
-                </div>
-
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Payee / Recipient */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      Payee / Recipient
-                    </label>
-                    <div className="relative">
-                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                      <input
-                        type="text"
-                        value={payee}
-                        onChange={(e) => setPayee(e.target.value)}
-                        placeholder="Vendor, landlord, or hospital name"
-                        className="input-field pl-9 text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Payment Method */}
+                  {/* Payment Method * */}
                   <div>
                     <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                       Payment Method <span className="text-rose-500">*</span>
@@ -554,46 +453,64 @@ export default function NewExpensePage() {
                       <option value="CHEQUE">CHEQUE</option>
                     </select>
                   </div>
+
+                  {/* Payee / Recipient (Optional) */}
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      Payee / Recipient (Optional)
+                    </label>
+                    <div className="relative">
+                      <User className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                      <input
+                        type="text"
+                        value={payee}
+                        onChange={(e) => setPayee(e.target.value)}
+                        placeholder="Vendor, contractor, landlord, or hospital name"
+                        className="input-field pl-9 text-xs"
+                      />
+                    </div>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Reference / Voucher No */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      Reference / Receipt No.
-                    </label>
-                    <input
-                      type="text"
-                      value={reference}
-                      onChange={(e) => setReference(e.target.value)}
-                      placeholder="e.g. Bill #8491, Trx ID, Money Receipt #"
-                      className="input-field text-xs"
-                    />
-                  </div>
+                {/* Reference / Voucher No (Optional) */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Receipt / Reference No. (Optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={reference}
+                    onChange={(e) => setReference(e.target.value)}
+                    placeholder="e.g. Memo #204, Trx ID, or Invoice #"
+                    className="input-field text-xs"
+                  />
+                </div>
 
-                  {/* Notes */}
-                  <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      Notes / Remarks
-                    </label>
-                    <input
-                      type="text"
-                      value={notes}
-                      onChange={(e) => setNotes(e.target.value)}
-                      placeholder="Additional accounting notes or justifications"
-                      className="input-field text-xs"
-                    />
-                  </div>
+                {/* Note / Description (Optional) */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    Note / Description (Optional)
+                  </label>
+                  <textarea
+                    rows={4}
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    placeholder="Specific details of this transaction (e.g. Guests from the local committee visited today. ৳1,500 was spent on food and ৳1,000 on refreshments)..."
+                    className="input-field text-xs resize-y"
+                  />
+                  <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                    Category identifies where the expense occurred. The note explains specific transaction details.
+                  </p>
                 </div>
               </div>
             </div>
 
-            {/* Right 1 Col: Summary & Balance Overview */}
+            {/* Right 1 Col: Summary & Liquidity Overview */}
             <div className="space-y-6">
-              {/* Selected Group Balance Card */}
+              {/* Selected Group Liquidity Card */}
               <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 space-y-4">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center justify-between">
-                  <span>Group Liquidity</span>
+                  <span>Group Liquidity Check</span>
                   <Wallet className="h-4 w-4 text-foundation-600" />
                 </h3>
 
@@ -638,12 +555,12 @@ export default function NewExpensePage() {
 
                     {isInsufficient && (
                       <p className="text-[11px] font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 p-2.5 rounded-lg border border-amber-200 dark:border-amber-800">
-                        Cannot post: Requested amount exceeds group liquidity.
+                        Disbursement exceeds available group funds. Negative balances are prevented.
                       </p>
                     )}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-400">Select a group to view balance.</p>
+                  <p className="text-xs text-slate-400">Select an accounting group to view liquidity.</p>
                 )}
               </div>
 
@@ -657,12 +574,12 @@ export default function NewExpensePage() {
                   {submitting ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                      Posting Expense...
+                      Recording Expense...
                     </>
                   ) : (
                     <>
                       <Receipt className="h-4 w-4" />
-                      Post Expense
+                      Record Expense
                     </>
                   )}
                 </button>
@@ -675,7 +592,7 @@ export default function NewExpensePage() {
                 </Link>
 
                 <p className="text-[11px] text-center text-slate-400 dark:text-slate-500">
-                  Transactions are logged permanently in the double-entry accounting ledger.
+                  Strict double-entry accounting: writes immutable financial transaction and debits group balance.
                 </p>
               </div>
             </div>
