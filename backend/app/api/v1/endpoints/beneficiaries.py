@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 from typing import List, Any, Optional, Dict
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, status, Query, UploadFile, File, Form
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
@@ -24,8 +24,55 @@ from backend.app.schemas.common import PaginatedResponse
 from backend.app.api.deps import require_permission, get_current_user
 from backend.app.services.audit_service import AuditService
 from backend.app.services.code_service import CodeService
+from backend.app.services.cloudinary_service import CloudinaryService
 
 router = APIRouter()
+
+
+@router.post("/upload-temp")
+def upload_beneficiary_temp_file(
+    file: UploadFile = File(...),
+    category: str = Form("PHOTO"),
+    current_user: User = Depends(require_permission("beneficiaries.create"))
+) -> Any:
+    """
+    Temporary/staging upload for Beneficiary creation and updates.
+    Uploads file to Cloudinary and returns secure URL and metadata.
+    """
+    category_norm = category.upper().strip()
+    allowed_categories = ("PHOTO", "SIGNATURE", "NID_FRONT", "NID_BACK", "BIRTH_CERTIFICATE", "DOCUMENT")
+    if category_norm not in allowed_categories:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid upload category '{category}'. Allowed categories: {', '.join(allowed_categories)}"
+        )
+
+    file_bytes, clean_filename, mime_type = CloudinaryService.validate_file(file, category=category_norm)
+
+    folder = f"foundation/beneficiaries/temp/{category_norm.lower()}"
+    resource_type = "image" if category_norm in ("PHOTO", "SIGNATURE") else "auto"
+
+    upload_res = CloudinaryService.upload(
+        file_bytes=file_bytes,
+        filename=clean_filename,
+        folder=folder,
+        resource_type=resource_type
+    )
+
+    return {
+        "success": True,
+        "category": category_norm,
+        "original_filename": clean_filename,
+        "mime_type": mime_type,
+        "secure_url": upload_res["secure_url"],
+        "public_id": upload_res["public_id"],
+        "resource_type": upload_res["resource_type"],
+        "format": upload_res["format"],
+        "bytes": upload_res["bytes"],
+        "width": upload_res.get("width"),
+        "height": upload_res.get("height")
+    }
+
 
 
 def populate_beneficiaries_metrics_batch(db: Session, beneficiaries: List[Beneficiary]) -> List[BeneficiaryResponse]:
@@ -96,7 +143,8 @@ def get_beneficiaries(
             or_(
                 Beneficiary.name.ilike(s),
                 Beneficiary.beneficiary_number.ilike(s),
-                Beneficiary.phone.ilike(s)
+                Beneficiary.phone.ilike(s),
+                Beneficiary.nid_or_id.ilike(s),
             )
         )
 
@@ -293,12 +341,23 @@ def create_beneficiary(
     b = Beneficiary(
         beneficiary_number=b_num,
         name=ben_in.name,
-        phone=ben_in.phone,
-        email=ben_in.email,
-        address=ben_in.address,
-        nid_or_id=ben_in.nid_or_id,
-        status=ben_in.status,
-        notes=ben_in.notes
+        phone=ben_in.phone or None,
+        email=ben_in.email or None,
+        address=ben_in.present_address or ben_in.address or None,
+        nid_or_id=ben_in.nid_or_id or None,
+        status=ben_in.status or "ACTIVE",
+        notes=ben_in.notes or None,
+        father_or_husband_name=ben_in.father_or_husband_name or None,
+        present_address=ben_in.present_address or ben_in.address or None,
+        permanent_address=ben_in.permanent_address or None,
+        emergency_contact_name=ben_in.emergency_contact_name or None,
+        emergency_contact_relation=ben_in.emergency_contact_relation or None,
+        emergency_contact_phone=ben_in.emergency_contact_phone or None,
+        photo_url=ben_in.photo_url or None,
+        signature_url=ben_in.signature_url or None,
+        id_document_type=ben_in.id_document_type or None,
+        nid_front_url=ben_in.nid_front_url or None,
+        nid_back_url=ben_in.nid_back_url or None,
     )
     db.add(b)
     db.commit()
@@ -349,6 +408,30 @@ def update_beneficiary(
         b.status = ben_in.status
     if ben_in.notes is not None:
         b.notes = ben_in.notes
+    if ben_in.father_or_husband_name is not None:
+        b.father_or_husband_name = ben_in.father_or_husband_name
+    if ben_in.present_address is not None:
+        b.present_address = ben_in.present_address
+        if not b.address:
+            b.address = ben_in.present_address
+    if ben_in.permanent_address is not None:
+        b.permanent_address = ben_in.permanent_address
+    if ben_in.emergency_contact_name is not None:
+        b.emergency_contact_name = ben_in.emergency_contact_name
+    if ben_in.emergency_contact_relation is not None:
+        b.emergency_contact_relation = ben_in.emergency_contact_relation
+    if ben_in.emergency_contact_phone is not None:
+        b.emergency_contact_phone = ben_in.emergency_contact_phone
+    if ben_in.photo_url is not None:
+        b.photo_url = ben_in.photo_url
+    if ben_in.signature_url is not None:
+        b.signature_url = ben_in.signature_url
+    if ben_in.id_document_type is not None:
+        b.id_document_type = ben_in.id_document_type
+    if ben_in.nid_front_url is not None:
+        b.nid_front_url = ben_in.nid_front_url
+    if ben_in.nid_back_url is not None:
+        b.nid_back_url = ben_in.nid_back_url
 
     db.commit()
     db.refresh(b)

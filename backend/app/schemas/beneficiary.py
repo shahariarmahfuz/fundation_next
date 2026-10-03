@@ -15,6 +15,23 @@ class BeneficiaryBase(BaseModel):
     status: str = "ACTIVE"
     notes: Optional[str] = None
 
+    # Optional Personal Information
+    father_or_husband_name: Optional[str] = None
+    present_address: Optional[str] = None
+    permanent_address: Optional[str] = None
+
+    # Optional Emergency Contact
+    emergency_contact_name: Optional[str] = None
+    emergency_contact_relation: Optional[str] = None
+    emergency_contact_phone: Optional[str] = None
+
+    # Optional Documents
+    photo_url: Optional[str] = None
+    signature_url: Optional[str] = None
+    id_document_type: Optional[str] = None
+    nid_front_url: Optional[str] = None
+    nid_back_url: Optional[str] = None
+
 
 class BeneficiaryCreate(BeneficiaryBase):
     pass
@@ -30,6 +47,23 @@ class BeneficiaryUpdate(BaseModel):
     nid_or_id: Optional[str] = None
     status: Optional[str] = None
     notes: Optional[str] = None
+
+    # Optional Personal Information
+    father_or_husband_name: Optional[str] = None
+    present_address: Optional[str] = None
+    permanent_address: Optional[str] = None
+
+    # Optional Emergency Contact
+    emergency_contact_name: Optional[str] = None
+    emergency_contact_relation: Optional[str] = None
+    emergency_contact_phone: Optional[str] = None
+
+    # Optional Documents
+    photo_url: Optional[str] = None
+    signature_url: Optional[str] = None
+    id_document_type: Optional[str] = None
+    nid_front_url: Optional[str] = None
+    nid_back_url: Optional[str] = None
 
 
 class BeneficiaryResponse(BeneficiaryBase):
